@@ -1,0 +1,134 @@
+-- =========================
+-- ENUM TYPES
+-- =========================
+create type user_role as enum ('customer', 'admin', 'rider', 'storeowner');
+
+create type order_status as enum ('pending', 'preparing', 'completed', 'cancelled');
+
+create type payment_method as enum ('gcash', 'cash', 'card');
+
+create type payment_status as enum ('pending', 'paid', 'failed');
+
+create type delivery_status as enum ('assigned', 'picked_up', 'delivered');
+
+
+-- =========================
+-- ADDRESSES (SHARED)
+-- =========================
+create table addresses (
+  address_id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  address_line text not null,
+  latitude numeric,
+  longitude numeric,
+  created_at timestamp default now()
+);
+
+
+-- =========================
+-- USER PROFILES
+-- =========================
+create table user_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  full_name text not null,
+  role user_role,
+  contact_number text not null,
+  profile_image text,
+  is_active boolean default true,
+  created_at timestamp default now()
+);
+
+
+-- =========================
+-- RESTAURANTS
+-- =========================
+create table restaurants (
+  restaurant_id uuid primary key default gen_random_uuid(),
+  name text not null,
+  contact_info text not null,
+  address_id uuid references addresses(address_id),
+  created_at timestamp default now()
+);
+
+
+-- =========================
+-- MENU ITEMS
+-- =========================
+create table menu_items (
+  item_id uuid primary key default gen_random_uuid(),
+  restaurant_id uuid references restaurants(restaurant_id) on delete cascade,
+  name text not null,
+  price numeric not null,
+  description text
+);
+
+
+-- =========================
+-- ORDERS
+-- =========================
+create table orders (
+  order_id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  restaurant_id uuid references restaurants(restaurant_id),
+  total_price numeric,
+  status order_status,
+  created_at timestamp default now()
+);
+
+
+-- =========================
+-- ORDER ITEMS
+-- =========================
+create table order_items (
+  order_item_id uuid primary key default gen_random_uuid(),
+  order_id uuid references orders(order_id) on delete cascade,
+  item_id uuid references menu_items(item_id),
+  quantity integer not null
+);
+
+
+-- =========================
+-- PAYMENTS
+-- =========================
+create table payments (
+  payment_id uuid primary key default gen_random_uuid(),
+  order_id uuid unique references orders(order_id) on delete cascade,
+  amount numeric not null,
+  method payment_method,
+  status payment_status,
+  created_at timestamp default now()
+);
+
+
+-- =========================
+-- DELIVERIES
+-- =========================
+create table deliveries (
+  delivery_id uuid primary key default gen_random_uuid(),
+  order_id uuid unique references orders(order_id) on delete cascade,
+  user_id uuid references auth.users(id), -- rider
+  status delivery_status,
+  delivery_time timestamp
+);
+
+
+-- =========================
+-- REVIEWS
+-- =========================
+create table reviews (
+  review_id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  restaurant_id uuid references restaurants(restaurant_id) on delete cascade,
+  rating integer check (rating >= 1 and rating <= 5),
+  comment text,
+  created_at timestamp default now()
+);
+
+
+-- =========================
+-- INDEXES (PERFORMANCE)
+-- =========================
+create index idx_addresses_user_id on addresses(user_id);
+create index idx_orders_user_id on orders(user_id);
+create index idx_orders_restaurant_id on orders(restaurant_id);
+create index idx_menu_restaurant_id on menu_items(restaurant_id);
