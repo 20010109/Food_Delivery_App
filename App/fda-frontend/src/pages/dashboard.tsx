@@ -8,7 +8,7 @@ function SignupPage() {
   return (
     <section>
       <div>
-        <h1>WELCOME!</h1>
+        <h1>WELCOME TO THE DASHBOARD!</h1>
       </div>
     </section>
   );

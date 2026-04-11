@@ -1,12 +1,14 @@
 import { supabase } from "../../config/supabase.js";
 
-export const createUserProfile = async (userId, role) => {
-    const {data, error} = await supabase
-        .from("profiles")
+export const createUserProfile = async (userId, fullName, contactNumber, role) => {
+    const { data, error } = await supabase
+        .from("user_profiles")
         .insert([
             {
-                id: userId,
-                role: role || "customer"
+                user_id: userId,
+                full_name: fullName,
+                contact_number: contactNumber,
+                role: role || "customer",
             }
         ]);
 
