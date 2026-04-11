@@ -1,0 +1,1 @@
+// GET STORES FROM STORES table
