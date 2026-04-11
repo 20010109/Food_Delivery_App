@@ -7,7 +7,7 @@ export const createUserProfile = async ({user_id, full_name, role, contact_numbe
             {
                 id: user_id,
                 full_name,
-                role: role || "customer",
+                role: role,
                 contact_number,
                 profile_image
             }
