@@ -2,15 +2,22 @@ import 'dotenv/config';
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL);
 import express from "express";
 import cors from "cors";
-import { authenticate } from "./middleware/authMiddleware.js";
-import { createProfile } from "./modules/Auth/auth.controller.js";
-
+import authRoute from "./modules/Auth/auth.routes.js";
+import userRoute from "./modules/User/user.routes.js";
+import express from 'express';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+// auth routes
+app.use("/api/auth", authRoute);
+
+// user routes
+app.use("/api/users", userRoute);
+
+// test route
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
