@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../utils/supabase.js";
+import "./styles/Signup.css"
 
 function SignupPage() {
   const [email, setEmail] = useState("");
@@ -10,7 +11,7 @@ function SignupPage() {
   const navigate = useNavigate();
 
   const createProfile = async (userId, accessToken) => {
-    const response = await fetch("http://localhost:3000/api/auth/profile", {
+    const response = await fetch("http://localhost:3000/api/auth/createProfile", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -54,7 +55,7 @@ function SignupPage() {
 
     try {
       await createProfile(data.user.id, sessionData.session.access_token);
-      navigate("/dashboard");
+      navigate("/login");
     } catch (err) {
       alert(err.message);
     }
@@ -62,37 +63,39 @@ function SignupPage() {
 
   return (
     <section>
-      <form onSubmit={handleSignup}>
-        <input
-          type="text"
-          placeholder="Full Name"
-          value={fullName}
-          onChange={e => setFullName(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Contact Number"
-          value={contactNumber}
-          onChange={e => setContactNumber(e.target.value)}
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Sign Up</button>
-      </form>
+      <div className="bg-amber-950 p-5">
+        <form onSubmit={handleSignup}>
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={fullName}
+            onChange={e => setFullName(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Contact Number"
+            value={contactNumber}
+            onChange={e => setContactNumber(e.target.value)}
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Sign Up</button>
+        </form>
+      </div>
     </section>
   );
 }

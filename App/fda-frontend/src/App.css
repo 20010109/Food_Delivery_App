@@ -1,3 +1,9 @@
+/* 2ND LAYER CSS, CSS OF App.jsx, FILES OR PAGES UNDER THIS FILE WILL INHERIT THESE STYLES */
+
+/* IF PLANNING TO PUT TAILWIND HERE */
+/* v UNCOMMENT THIS v */
+/* @import "tailwindcss"; */
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
