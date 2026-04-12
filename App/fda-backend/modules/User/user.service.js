@@ -1,17 +1,20 @@
 import { supabase } from "../../config/supabase.js";
 
-export const createUserProfile = async ({user_id, full_name, role, contact_number, profile_image }) => {
+export const createUserProfile = async ({user_id, first_name, last_name, role, contact_number, profile_image }) => {
     const {data, error} = await supabase
         .from("user_profiles")
         .insert([
             {
-                id: user_id,
-                full_name,
+                user_id: user_id,
+                first_name: first_name,
+                last_name: last_name,
                 role: role,
-                contact_number,
-                profile_image
+                contact_number: contact_number,
+                profile_image: profile_image
             }
-        ]);
+        ])
+        .select()
+        .single();
         if (error) throw error;
 
     return data;
@@ -21,17 +24,20 @@ export const getUserProfile = async (user_id) => {
     const {data, error} = await supabase
         .from("user_profiles")
         .select("*")
-        .eq("id", user_id)
+        .eq("user_id", user_id)
         .single();
     if (error) throw error;
     return data;
 };
 
-export const updateUserProfile = async (user_id, { full_name, contact_number, profile_image }) => {
+export const updateUserProfile = async (user_id, { first_name, last_name, contact_number, profile_image }) => {
+    const updates = {first_name, last_name, contact_number, profile_image};
+    
     const {data, error} = await supabase
         .from("user_profiles")
         .update(updates)
-        .eq("id", user_id)
+        .eq("user_id", user_id)
+        .select()
         .single();
     if (error) throw error;
     return data;
