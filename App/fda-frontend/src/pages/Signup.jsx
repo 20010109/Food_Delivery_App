@@ -1,100 +1,96 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../utils/supabase.js";
+// pages/Signup.js
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import "./auth.css";
 
-function SignupPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
+const Signup = () => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    username: '',
+    email: '',
+    password: ''
+  });
   const navigate = useNavigate();
 
-  const createProfile = async (userId, accessToken) => {
-    const response = await fetch("http://localhost:3000/api/auth/profile", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        full_name: fullName,
-        contact_number: contactNumber,
-        role: "customer",
-      }),
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to create profile");
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Handle signup logic
+    console.log(formData);
+    navigate('/home');
   };
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
     });
-
-    if (error) {
-      console.error("Supabase signup error:", error);
-      alert(error.message);
-      return;
-    }
-
-    if (!data.user) {
-      alert("Check your email for a confirmation link before signing in.");
-      return;
-    }
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      alert("No session found. Please verify your email and log in.");
-      return;
-    }
-
-    try {
-      await createProfile(data.user.id, sessionData.session.access_token);
-      navigate("/dashboard");
-    } catch (err) {
-      alert(err.message);
-    }
   };
 
   return (
-    <section>
-      <form onSubmit={handleSignup}>
-        <input
-          type="text"
-          placeholder="Full Name"
-          value={fullName}
-          onChange={e => setFullName(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Contact Number"
-          value={contactNumber}
-          onChange={e => setContactNumber(e.target.value)}
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Sign Up</button>
-      </form>
-    </section>
+    <div className="auth-container">
+      <div className="auth-box">
+        <div className="auth-left">
+          <h2>Create an account</h2>
+          <p>Sign up with your email and password</p>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              name="firstName"
+              placeholder="First Name"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+            />
+            <input
+              type="text"
+              name="lastName"
+              placeholder="Last Name"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+            />
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <button type="submit">Sign Up</button>
+          </form>
+          <p>
+            Already have an account? <Link to="/login">Login here</Link>
+          </p>
+        </div>
+        <div className="auth-right">
+          <p>CAROUSEL</p>
+          <div className="carousel-indicators">
+            <span className="indicator active"></span>
+            <span className="indicator"></span>
+            <span className="indicator"></span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
-}
+};
 
-export default SignupPage;
+export default Signup;

@@ -14,7 +14,7 @@ export const createProfile = async (req, res) => {
 };
 
   res.json(profile);
-};
+;
 
 export const signup = async (req, res) => {
   try {

@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 
 function SignupPage() {
   const [text, setText] = useState("");

@@ -1,0 +1,213 @@
+/* BACKGROUND */
+.auth-container {
+  height: 100vh;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* MAIN CARD */
+.auth-box {
+  display: flex;
+  width: 80%;
+  max-width: 1200px;
+  height: 80%;
+  background: #f9f9f9;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* LEFT SIDE */
+.auth-left {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.auth-left h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.auth-left p {
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 1rem;
+}
+
+.auth-left form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-left input {
+  margin-bottom: 15px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  font-size: 1rem;
+}
+
+.auth-left button {
+  padding: 14px;
+  background-color: #d32f2f;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.auth-left button:hover {
+  background-color: #b71c1c;
+}
+
+/* OPTIONS */
+.auth-options {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 15px;
+}
+
+.forgot {
+  color: red;
+  cursor: pointer;
+}
+
+/* LOGIN BUTTON */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+  background: #d90429;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  background-color: #b71c1c;
+}
+
+/* DIVIDER */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.divider span {
+  flex: 1;
+  height: 1px;
+  background: gray;
+}
+
+.divider p {
+  margin: 0 10px;
+  font-size: 12px;
+}
+
+/* SOCIAL BUTTONS */
+.social {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 20px;
+  border: none;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.social.google::before {
+  content: "G ";
+}
+
+.social.facebook::before {
+  content: "f ";
+}
+
+.social.apple::before {
+  content: " ";
+}
+
+/* REGISTER */
+.register {
+  font-size: 12px;
+  text-align: center;
+}
+
+.register span {
+  color: red;
+  cursor: pointer;
+}
+
+/* RIGHT SIDE */
+.auth-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f0f0f0;
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  margin-bottom: 20px;
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  margin: 0 8px;
+  background-color: #ccc;
+  border-radius: 50%;
+}
+
+.indicator.active {
+  background-color: #d32f2f;
+}
+
+/* Button Styling */
+.auth-left button,
+.login-btn {
+  padding: 14px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #d32f2f;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.auth-left button:hover,
+.login-btn:hover {
+  background-color: #b71c1c;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .auth-box {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .auth-right {
+    height: 200px;
+  }
+}
