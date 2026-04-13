@@ -30,7 +30,8 @@ create table addresses (
 -- =========================
 create table user_profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  full_name text not null,
+  first_name text not null,
+  last_name text not null,
   role user_role,
   contact_number text not null,
   profile_image text,
@@ -47,6 +48,8 @@ create table restaurants (
   name text not null,
   contact_info text not null,
   address_id uuid references addresses(address_id),
+  profile_image string,
+  background_image string,
   created_at timestamp default now()
 );
 
@@ -57,6 +60,7 @@ create table restaurants (
 create table menu_items (
   item_id uuid primary key default gen_random_uuid(),
   restaurant_id uuid references restaurants(restaurant_id) on delete cascade,
+  item_image string,
   name text not null,
   price numeric not null,
   description text

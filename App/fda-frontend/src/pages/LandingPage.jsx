@@ -27,7 +27,6 @@ const AuthChoice = () => {
             Sign Up
           </button>
         </div>
-
       </div>
     </div>
   );
