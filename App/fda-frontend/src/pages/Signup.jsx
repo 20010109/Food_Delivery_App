@@ -17,6 +17,8 @@ function SignupPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const slides = [slide1,slide2,slide3];
 
+  const [areaCode, setAreaCode] = useState("+63");
+
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -26,28 +28,37 @@ function SignupPage() {
   },[]);
 
   
-  const createProfile = async (accessToken) => {
-    const response = await fetch("http://localhost:3000/api/auth/createProfile",{
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
-    },
-
-    body: JSON.stringify({
+  const createProfile = async (accessToken, fullContactNumber) => {
+    if (!accessToken) {
+      throw new Error("No access token provided");
+    }
+    const profileData = {
       first_name: firstName,
       last_name: lastName,
-      contact_number: contactNumber,
+      contact_number: fullContactNumber,
       role: "customer",
-    }),
-  });
-
-  if(!response.ok){
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create user profile");
-  }  
-
-};
+    };
+    try {
+      const response = await fetch("http://localhost:3000/api/users/profile", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(profileData),
+      });
+  
+      const responseBody = await response.json();
+      if (!response.ok) {
+        console.error("Profile creation failed:", response.status, responseBody);
+        throw new Error(responseBody.message || "Failed to create user profile");
+      }
+      return responseBody;
+    } catch (err) {
+      console.error("Network or server error:", err);
+      throw err;
+    }
+  };
 
   const handleStep1 = async (e) => {
       e.preventDefault();
@@ -83,14 +94,15 @@ function SignupPage() {
 
   const handleStep2 = async (e) => {
       e.preventDefault();
+      const fullContactNumber = `${areaCode}${contactNumber}`;
       try {
-        await createProfile(accessToken);
+        await createProfile(accessToken, fullContactNumber);
         navigate("/login"); 
       }catch (err) {
         alert(err.message);
       }
     
-    };
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -146,14 +158,44 @@ function SignupPage() {
                 required
                 className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
-              <input
-                type="text"
-                placeholder="Contact Number"
-                value={contactNumber}
-                onChange={(e) => setContactNumber(e.target.value)}
-                required
-                className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
+              <div className="flex gap-2">
+                <select
+                  value={areaCode}
+                  onChange={e => setAreaCode(e.target.value)}
+                  className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  required
+                >
+                  <option value="+1">+1 (US/CA)</option>
+                  <option value="+44">+44 (GB)</option>
+                  <option value="+61">+61 (AU)</option>
+                  <option value="+81">+81 (JP)</option>
+                  <option value="+49">+49 (DE)</option>
+                  <option value="+33">+33 (FR)</option>
+                  <option value="+91">+91 (IN)</option>
+                  <option value="+86">+86 (CN)</option>
+                  <option value="+63">+63 (PH)</option>
+                  <option value="+971">+971 (AE)</option>
+                  <option value="+234">+234 (NG)</option>
+                  <option value="+27">+27 (ZA)</option>
+                  <option value="+55">+55 (BR)</option>
+                  <option value="+7">+7 (RU)</option>
+                  <option value="+82">+82 (KR)</option>
+                  <option value="+34">+34 (ES)</option>
+                  <option value="+39">+39 (IT)</option>
+                  <option value="+62">+62 (ID)</option>
+                  <option value="+92">+92 (PK)</option>
+                  <option value="+20">+20 (EG)</option>
+                  {/* Add more area codes as needed */}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Contact Number"
+                  value={contactNumber}
+                  onChange={e => setContactNumber(e.target.value)}
+                  required
+                  className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
               <button
                 type="submit"
                 className="bg-red-600 text-white rounded-full py-2 font-semibold hover:bg-red-700 transition"

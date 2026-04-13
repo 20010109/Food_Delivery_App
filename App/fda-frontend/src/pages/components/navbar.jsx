@@ -8,10 +8,23 @@ import {
   LuSettings,
 } from "react-icons/lu";
 
+import { useEffect, useState } from "react";
+import { supabase } from "../../utils/supabase.js";
+
+import ProfilePicture from "../../assets/Stock_User.jpg"
+
 // IMPORTANT: set this import to your merged logo filename exactly
 import logo from "../../assets/grubero-logo-merge-updated.png";
 
 function Navbar() {
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    getUser();
+  }, []);
+
   const linkClass = ({ isActive }) =>
     `flex items-center gap-2 px-3 py-2 rounded-lg transition
      ${
@@ -19,6 +32,10 @@ function Navbar() {
          ? "bg-red-600 text-white"
          : "text-gray-200 hover:bg-gray-800 hover:text-white"
      }`;
+
+  const [user, setUser] = useState(null);
+
+
 
   return (
     <nav className="flex flex-col w-64 h-screen bg-gray-900 text-white p-6">
@@ -75,13 +92,18 @@ function Navbar() {
       {/* PROFILE AREA */}
       <div className="mt-auto flex items-center gap-3 border-t border-gray-700 pt-4">
         <img
-          src="https://via.placeholder.com/40"
+          src={ProfilePicture}
           alt="Profile"
           className="w-10 h-10 rounded-full"
         />
         <div>
           <div className="font-semibold">Jessica Codilla</div>
-          <div className="text-sm text-gray-400">View Profile</div>
+          <NavLink
+            to={user ? `/profile/${user.id}` : "/login"}
+            className="text-sm text-gray-400 hover:underline focus:outline-none"
+          >
+            View Profile
+          </NavLink>
         </div>
       </div>
     </nav>
