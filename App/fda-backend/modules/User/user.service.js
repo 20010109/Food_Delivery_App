@@ -1,6 +1,6 @@
 import { supabase } from "../../config/supabase.js";
 
-export const createUserProfile = async ({user_id, first_name, last_name, role, contact_number, profile_image }) => {
+export const createUserProfile = async (supabase, {user_id, first_name, last_name, role, contact_number, profile_image }) => {
     const {data, error} = await supabase
         .from("user_profiles")
         .insert([
@@ -20,7 +20,7 @@ export const createUserProfile = async ({user_id, first_name, last_name, role, c
     return data;
 };
 
-export const getUserProfile = async (user_id) => {
+export const getUserProfile = async (supabase, user_id) => {
     const {data, error} = await supabase
         .from("user_profiles")
         .select("*")
@@ -30,7 +30,7 @@ export const getUserProfile = async (user_id) => {
     return data;
 };
 
-export const updateUserProfile = async (user_id, { first_name, last_name, contact_number, profile_image }) => {
+export const updateUserProfile = async (supabase, user_id, { first_name, last_name, contact_number, profile_image }) => {
     const updates = {first_name, last_name, contact_number, profile_image};
     
     const {data, error} = await supabase

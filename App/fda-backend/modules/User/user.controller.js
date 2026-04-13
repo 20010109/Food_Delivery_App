@@ -4,11 +4,12 @@ export const createProfile = async (req, res) => {
     try {
         const authUser = req.user.id;
         const { first_name, last_name, role, contact_number, profile_image } = req.body;
-            if(!role){
-                return res.status(400).json({ error: 'role is required' });
+            if(!first_name || !last_name ||!role){
+                return res.status(400).json({ error: 'first_name, last_name, and role are required' });
             }
 
-        const profile = await createUserProfile({
+
+        const profile = await createUserProfile(req.supabase, {
             user_id: authUser, 
             first_name, 
             last_name, 
@@ -31,7 +32,7 @@ export const getProfile = async (req, res) => {
         if(authUser !== user_id){
             return res.status(403).json({ error: 'Forbidden' });
         }
-        const profile = await getUserProfile(user_id);
+        const profile = await getUserProfile(req.supabase, user_id);
         res.json(profile);
     }
     catch (error) {
@@ -47,7 +48,7 @@ export const updateProfile = async (req, res) => {
             return res.status(403).json({ error: 'Forbidden' });
         }
         const { first_name, last_name, contact_number, profile_image } = req.body;
-        const profile = await updateUserProfile(user_id, { first_name, last_name, contact_number, profile_image });
+        const profile = await updateUserProfile(req.supabase, user_id, { first_name, last_name, contact_number, profile_image });
         res.json(profile);
     }
     catch (error) {
