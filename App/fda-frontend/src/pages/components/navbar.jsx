@@ -1,67 +1,91 @@
-import { LuHouse } from "react-icons/lu";
-import { LuCompass } from "react-icons/lu";
-import { LuStar } from "react-icons/lu";
-import { LuShoppingCart } from "react-icons/lu";
-import { LuMail } from "react-icons/lu";
-import { LuSettings } from "react-icons/lu";
+import { NavLink } from "react-router-dom";
+import {
+  LuHouse,
+  LuCompass,
+  LuStar,
+  LuShoppingCart,
+  LuMail,
+  LuSettings,
+} from "react-icons/lu";
+
+// IMPORTANT: set this import to your merged logo filename exactly
+import logo from "../../assets/grubero-logo-merge-updated.png";
 
 function Navbar() {
-    return (
-      <nav className="flex flex-col w-64 h-screen bg-gray-900 text-white p-6">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6">AppName</h2>
-          <ul className="space-y-4">
-            <li>
-              <a href="#" className="flex items-center gap-2 hover:text-blue-400">
-                <LuHouse/>
-                Home
-              </a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center gap-2 hover:text-blue-400">
-                <LuCompass/>
-                Explore
-              </a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center gap-2 hover:text-blue-400">
-                <LuStar/>
-                Favourites
-              </a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center gap-2 hover:text-blue-400">
-                <LuShoppingCart/>
-                Orders
-              </a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center gap-2 hover:text-blue-400">
-                <LuMail/>
-                Messages
-              </a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center gap-2 hover:text-blue-400">
-                <LuSettings/>
-                Settings
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div className="mt-auto flex items-center gap-3 border-t border-gray-700 pt-4">
+  const linkClass = ({ isActive }) =>
+    `flex items-center gap-2 px-3 py-2 rounded-lg transition
+     ${
+       isActive
+         ? "bg-red-600 text-white"
+         : "text-gray-200 hover:bg-gray-800 hover:text-white"
+     }`;
+
+  return (
+    <nav className="flex flex-col w-64 h-screen bg-gray-900 text-white p-6">
+      <div className="mb-8">
+        {/* LOGO AREA (merged icon + text) */}
+        <div className="mb-6">
           <img
-            src="https://via.placeholder.com/40"
-            alt="Profile"
-            className="w-10 h-10 rounded-full"
+            src={logo}
+            alt="Grubero"
+            className="h-12 w-auto object-contain"
           />
-          <div>
-            <div className="font-semibold">John Doe</div>
-            <div className="text-sm text-gray-400">View Profile</div>
-          </div>
         </div>
-      </nav>
-    );
-  }
-  
-  export default Navbar;
+
+        <ul className="space-y-2">
+          <li>
+            <NavLink to="/home" className={linkClass}>
+              <LuHouse />
+              Home
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/explore" className={linkClass}>
+              <LuCompass />
+              Explore
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/favorites" className={linkClass}>
+              <LuStar />
+              Favourites
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/orders" className={linkClass}>
+              <LuShoppingCart />
+              Orders
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/messages" className={linkClass}>
+              <LuMail />
+              Messages
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/settings" className={linkClass}>
+              <LuSettings />
+              Settings
+            </NavLink>
+          </li>
+        </ul>
+      </div>
+
+      {/* PROFILE AREA */}
+      <div className="mt-auto flex items-center gap-3 border-t border-gray-700 pt-4">
+        <img
+          src="https://via.placeholder.com/40"
+          alt="Profile"
+          className="w-10 h-10 rounded-full"
+        />
+        <div>
+          <div className="font-semibold">Jessica Codilla</div>
+          <div className="text-sm text-gray-400">View Profile</div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+export default Navbar;
