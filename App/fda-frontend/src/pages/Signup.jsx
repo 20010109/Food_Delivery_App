@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../utils/supabase.js";
-import "./styles/Signup.css";
 import slide1 from "../assets/slide1.jpg";
 import slide2 from "../assets/slide2.jpg";
 import slide3 from "../assets/slide3.jpg";
@@ -22,7 +21,7 @@ function SignupPage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % slides.length);
-    },3000);
+    },5000);
       return () => clearInterval(timer);
   },[]);
 
@@ -94,80 +93,104 @@ function SignupPage() {
     };
 
   return (
-    <div className="signup-wrapper">
-      <div className="signup-card">
-
-
-        
-        <div className="signup-left">
-          <h2 className = "signup-title">Create an account</h2>
-          <p className="signup-subtitle">Sign up with your email and password</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden w-[90%] max-w-4xl h-[1000px] md:h-[600px]">
+        {/* Left Side */}
+        <div className="flex-1 p-8 flex flex-col gap-4 justify-center ">
+          <h2 className="text-2xl font-bold text-center">Create an account</h2>
+          <p className="text-sm text-gray-500 text-center -mt-2">Sign up with your email and password</p>
 
           {step === 1 && (
-            <form onSubmit={handleStep1} className="signup-form">
-              <input className = "signup-input"
-                type = "email"
-                placeholder = "Email"
-                value = {email}
-                onChange = {(e) => setEmail(e.target.value)}
+            <form onSubmit={handleStep1} className="flex flex-col gap-4">
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                />
-
-              <input className = "signup-input"
-                type = "password"
-                placeholder = "Password"
-                value = {password}
-                onChange = {(e) => setPassword(e.target.value)}
+                className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength = {8}
-                />
-                
-                <button type="submit" className = "signup-button">Next</button>
+                minLength={8}
+                className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <button
+                type="submit"
+                className="bg-red-600 text-white rounded-full py-2 font-semibold hover:bg-red-700 transition"
+              >
+                Next
+              </button>
             </form>
           )}
 
           {step === 2 && (
-            <form onSubmit={handleStep2} className = "signup-form">
-              <input className = "signup-input"
-                type = "text"
-                placeholder = "First Name"
+            <form onSubmit={handleStep2} className="flex flex-col gap-4">
+              <input
+                type="text"
+                placeholder="First Name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
+                className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
-
-              <input className = "signup-input"
-                type = "text"
-                placeholder = "Last Name"
+              <input
+                type="text"
+                placeholder="Last Name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
+                className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
-
-              <input className = "signup-input"
-                type= "text"
-                placeholder = "Contact Number"
+              <input
+                type="text"
+                placeholder="Contact Number"
                 value={contactNumber}
                 onChange={(e) => setContactNumber(e.target.value)}
                 required
+                className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
-              <button type="submit" className = "signup-button">Sign Up</button>
+              <button
+                type="submit"
+                className="bg-red-600 text-white rounded-full py-2 font-semibold hover:bg-red-700 transition"
+              >
+                Sign Up
+              </button>
             </form>
           )}
         </div>
 
-        <div className = "signup-right">
-          <img src={slides[currentSlide]} alt = "slide" />
-          <div className="signup-dots">
-            {slides.map((_, i) => (
-              <span
-                key={i}
-                className={i === currentSlide ? "dot-red" : "dot-blue"}
-                onClick={() => setCurrentSlide(i)}
-              ></span>
-            ))}
-          </div>
-        </div>
+        {/* Right Side */}
+<div className="flex-1 relative bg-gray-200 overflow-hidden">
+  <div
+    className="absolute inset-0 flex transition-transform duration-700 ease-in-out"
+    style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+  >
+    {slides.map((slide, index) => (
+      <img
+        key={index}
+        src={slide}
+        alt={`slide-${index}`}
+        className="w-full h-full object-cover flex-shrink-0"
+      />
+    ))}
+  </div>
+  <div className="absolute bottom-4 flex gap-2 justify-center w-full">
+    {slides.map((_, i) => (
+      <span
+        key={i}
+        className={`w-3 h-3 rounded-full cursor-pointer ${
+          i === currentSlide ? "bg-red-600" : "bg-blue-500"
+        }`}
+        onClick={() => setCurrentSlide(i)}
+      ></span>
+    ))}
+  </div>
+</div>
       </div>
     </div>
   );
@@ -176,4 +199,3 @@ function SignupPage() {
 export default SignupPage;
 
 
-    
