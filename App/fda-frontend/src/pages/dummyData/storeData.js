@@ -97,4 +97,22 @@ export const storeData = [
     address_id: 10,
     created_at: "2024-06-10T18:00:00Z",
   },
+  {
+  restaurant_id: 11,
+  name: "Domino's Pizza",
+  contact_info: "655-3321",
+  image_url: "https://upload.wikimedia.org/wikipedia/commons/7/74/Dominos_pizza_logo.svg",
+  banner_url: "https://source.unsplash.com/1600x500/?dominos,pizza",
+  address_id: 11,
+  created_at: "2024-06-11T10:00:00Z",
+},
+{
+  restaurant_id: 12,
+  name: "Starbucks",
+  contact_info: "677-8890",
+  image_url: "https://upload.wikimedia.org/wikipedia/sco/thumb/4/45/Starbucks_Corporation_Logo_2011.svg/800px-Starbucks_Corporation_Logo_2011.svg.png",
+  banner_url: "https://source.unsplash.com/1600x500/?coffee,starbucks,cafe",
+  address_id: 12,
+  created_at: "2024-06-12T09:00:00Z",
+}
 ];
