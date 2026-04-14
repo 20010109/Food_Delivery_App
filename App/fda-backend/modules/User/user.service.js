@@ -42,3 +42,21 @@ export const updateUserProfile = async (supabase, user_id, { first_name, last_na
     if (error) throw error;
     return data;
 };
+
+
+
+
+
+// CUSTOMER REGISTER AS STOREOWNER
+
+export const updateUserRole = async (supabase, user_id, role) => {
+    const { data, error } = await supabase
+        .from("user_profiles")
+        .update({ role })
+        .eq("user_id", user_id)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+};

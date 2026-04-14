@@ -11,6 +11,8 @@ create type payment_status as enum ('pending', 'paid', 'failed');
 
 create type delivery_status as enum ('assigned', 'picked_up', 'delivered');
 
+create type store_approval_status as enum ('denied', 'pending', 'approved');
+
 
 -- =========================
 -- ADDRESSES (SHARED)
@@ -50,6 +52,7 @@ create table restaurants (
   address_id uuid references addresses(address_id),
   profile_image string,
   background_image string,
+  status store_approval_status,
   created_at timestamp default now()
 );
 
