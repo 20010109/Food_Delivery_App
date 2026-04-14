@@ -1,11 +1,8 @@
-import * as service from "./restaurants.service.js";
+import * as service from "./restaurant.service.js";
 
 export const createRestaurant = async (req, res) => {
   try {
-    const restaurant = await service.createRestaurant(
-      req.user.id,
-      req.body
-    );
+    const restaurant = await service.createRestaurant(req, req.body);
     res.status(201).json(restaurant);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -13,18 +10,18 @@ export const createRestaurant = async (req, res) => {
 };
 
 export const getMyRestaurants = async (req, res) => {
-  try {
-    const data = await service.getRestaurantsByOwner(req.user.id);
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    try {
+      const data = await service.getRestaurantsByOwner(req.user.id);
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  };
 
 export const updateRestaurant = async (req, res) => {
   try {
     const updated = await service.updateRestaurant(
-      req.params.id,
+      req.params.restaurant_id,
       req.user.id,
       req.body
     );
@@ -36,9 +33,18 @@ export const updateRestaurant = async (req, res) => {
 
 export const deleteRestaurant = async (req, res) => {
   try {
-    await service.deleteRestaurant(req.params.id, req.user.id);
+    await service.deleteRestaurant(req.params.restaurant_id, req.user.id);
     res.json({ message: "Deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getApprovedRestaurants = async (req, res) => {
+    try {
+      const data = await service.getApprovedRestaurants();
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  };

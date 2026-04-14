@@ -47,12 +47,13 @@ create table user_profiles (
 -- =========================
 create table restaurants (
   restaurant_id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
   name text not null,
   contact_info text not null,
   address_id uuid references addresses(address_id),
-  profile_image string,
-  background_image string,
-  status store_approval_status,
+  profile_image text,
+  background_image text,
+  status store_approval_status default 'pending',
   created_at timestamp default now()
 );
 

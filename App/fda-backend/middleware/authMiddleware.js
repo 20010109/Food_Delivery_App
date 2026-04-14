@@ -14,6 +14,8 @@ export const authenticate = async (req, res, next) => {
 
   req.user = data.user;
 
+  // console.log("AUTH USER:", req.user);
+
   req.supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_ANON_KEY,
