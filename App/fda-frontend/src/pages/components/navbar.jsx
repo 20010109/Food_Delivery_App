@@ -63,7 +63,7 @@ function Navbar() {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/favorites" className={linkClass}>
+            <NavLink to="/favourites" className={linkClass}>
               <LuStar />
               Favourites
             </NavLink>
