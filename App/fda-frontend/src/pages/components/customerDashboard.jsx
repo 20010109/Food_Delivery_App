@@ -11,9 +11,14 @@ import {
 } from "react-icons/lu";
 import "../styles/tailwind.css";
 
+import CartDrawer from "./CartDrawer";
+
 function CustomerDashboard() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+
+  // CART STATE (NEW)
+  const [cartOpen, setCartOpen] = useState(false);
 
   // Address feature
   const [address, setAddress] = useState("");
@@ -32,8 +37,10 @@ function CustomerDashboard() {
 
   return (
     <section className="p-6 space-y-8">
-      {/* TOP BAR (Address + Search + Filter + Cart) */}
+
+      {/* TOP BAR */}
       <div className="flex items-center justify-between gap-4">
+
         {/* Address button */}
         <button
           type="button"
@@ -45,8 +52,10 @@ function CustomerDashboard() {
           <span className="font-medium">{address}</span>
         </button>
 
-        {/* Right side controls */}
+        {/* RIGHT CONTROLS */}
         <div className="flex items-center gap-2 w-full max-w-xl">
+
+          {/* SEARCH */}
           <div className="relative w-full">
             <LuSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -57,7 +66,7 @@ function CustomerDashboard() {
             />
           </div>
 
-          {/* Filter button */}
+          {/* FILTER */}
           <button
             type="button"
             className="h-10 w-10 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center"
@@ -67,15 +76,16 @@ function CustomerDashboard() {
             <LuSlidersHorizontal />
           </button>
 
-          {/* Cart button */}
+          {/* CART BUTTON (FIXED - NOW OPENS DRAWER) */}
           <button
             type="button"
             className="h-10 w-10 rounded-lg bg-red-600 text-white hover:bg-red-700 flex items-center justify-center"
-            onClick={() => navigate("/orders")}
-            title="Cart / Orders"
+            onClick={() => setCartOpen(true)}
+            title="Cart"
           >
             <LuShoppingCart />
           </button>
+
         </div>
       </div>
 
@@ -89,7 +99,6 @@ function CustomerDashboard() {
             className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Input row */}
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
                 <input
@@ -98,7 +107,7 @@ function CustomerDashboard() {
                   className="w-full rounded-full border border-gray-200 bg-white px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-red-200"
                   placeholder="Enter your address"
                 />
-                {/* Clear (X) */}
+
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
@@ -109,7 +118,6 @@ function CustomerDashboard() {
                 </button>
               </div>
 
-              {/* Arrow button */}
               <button
                 type="button"
                 className="h-12 w-12 rounded-xl bg-red-600 text-white hover:bg-red-700 flex items-center justify-center"
@@ -120,7 +128,7 @@ function CustomerDashboard() {
               </button>
             </div>
 
-            {/* Saved Addresses */}
+            {/* SAVED ADDRESSES */}
             <div className="mt-4">
               <p className="text-sm font-semibold text-gray-700 mb-2">
                 Saved Addresses
@@ -146,7 +154,7 @@ function CustomerDashboard() {
         </div>
       )}
 
-      {/* EXPLORE CATEGORIES */}
+      {/* CATEGORIES */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Explore Categories</h2>
@@ -185,7 +193,9 @@ function CustomerDashboard() {
           {filteredStores.slice(0, 6).map((restaurant) => (
             <li
               key={restaurant.restaurant_id}
-              onClick={() => navigate(`/store/${restaurant.restaurant_id}`)}
+              onClick={() =>
+                navigate(`/store/${restaurant.restaurant_id}`)
+              }
               className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col items-center cursor-pointer hover:shadow-lg transition"
             >
               <img
@@ -208,6 +218,13 @@ function CustomerDashboard() {
           <div className="h-40 rounded-xl bg-gray-100 border border-gray-200" />
         </div>
       </div>
+
+      {/* CART DRAWER (NEW) */}
+      <CartDrawer
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+      />
+
     </section>
   );
 }

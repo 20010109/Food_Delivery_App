@@ -91,7 +91,13 @@ export default function AddToCartModal({ open, item, onClose, onConfirm }) {
 
           <button
             className="flex-1 bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition"
-            onClick={() => onConfirm({ qty, notes, unavailableAction })}
+            onClick={() =>
+              onConfirm({
+                qty,
+                notes,
+                unavailableAction,
+              })
+            }
           >
             Add to cart
           </button>

@@ -8,6 +8,7 @@ import LandingPage from "./pages/LandingPage.jsx";
 import StorePage from "./pages/StorePage.jsx";
 import ProfilePage from "./pages/Profile.jsx";
 import RestaurantRegistration from "./pages/RestaurantRegis.jsx";
+import OrdersPage from "./pages/OrdersPage.jsx";
 
 function App() {
   return (
@@ -21,6 +22,9 @@ function App() {
       <Route path="/explore" element={<ExplorePage />} />
       <Route path="/favourites" element={<Favourites />} />
       <Route path="/store/:id" element={<StorePage />} />
+
+      {/* ORDERS PAGE (RESTORED) */}
+      <Route path="/orders" element={<OrdersPage />} />
 
       {/* Other */}
       <Route path="/profile/:id" element={<ProfilePage />} />

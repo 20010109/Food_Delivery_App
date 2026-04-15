@@ -8,7 +8,7 @@ import {
   LuSettings,
 } from "react-icons/lu";
 
-import logoMerged from "../../assets/Grubero-logo-merge-updated.png"; 
+import logoMerged from "../../assets/Grubero-logo-merge-updated.png";
 
 function Navbar() {
   const linkClass = ({ isActive }) =>
@@ -22,7 +22,8 @@ function Navbar() {
   return (
     <nav className="flex flex-col w-64 h-screen bg-gray-900 text-white p-6 shrink-0">
       <div className="mb-8">
-        {/* LOGO AREA */}
+
+        {/* LOGO */}
         <div className="flex items-center gap-3 mb-6">
           <img
             src={logoMerged}
@@ -32,6 +33,7 @@ function Navbar() {
         </div>
 
         <ul className="space-y-2">
+
           <li>
             <NavLink to="/home" className={linkClass}>
               <LuHouse />
@@ -53,6 +55,7 @@ function Navbar() {
             </NavLink>
           </li>
 
+          {/* ORDERS (KEEP THIS) */}
           <li>
             <NavLink to="/orders" className={linkClass}>
               <LuShoppingCart />
@@ -76,7 +79,7 @@ function Navbar() {
         </ul>
       </div>
 
-      {/* PROFILE AREA */}
+      {/* PROFILE */}
       <div className="mt-auto flex items-center gap-3 border-t border-gray-700 pt-4">
         <img
           src="https://via.placeholder.com/40"
