@@ -14,8 +14,8 @@ import "../styles/tailwind.css";
 function CustomerDashboard() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
-  // Restaurants
-  const [restaurants, setRestaurants] = useState([]);
+  // DYNAMIC Restaurants
+  //const [restaurants, setRestaurants] = useState([]);
 
   // Address feature
   const [address, setAddress] = useState("");
@@ -26,32 +26,40 @@ function CustomerDashboard() {
     []
   );
 
-  useEffect(() => {
-    const fetchRestaurants = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/api/restaurants");
-        const data = await res.json();
+  // useEffect(() => {
+  //   const fetchRestaurants = async () => {
+  //     try {
+  //       const res = await fetch("http://localhost:3000/api/restaurants");
+  //       const data = await res.json();
   
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to fetch restaurants");
-        }
+  //       if (!res.ok) {
+  //         throw new Error(data.error || "Failed to fetch restaurants");
+  //       }
   
-        setRestaurants(data);
-      } catch (err) {
-        console.error("Failed to fetch restaurants:", err.message);
-      }
-    };
+  //       setRestaurants(data);
+  //     } catch (err) {
+  //       console.error("Failed to fetch restaurants:", err.message);
+  //     }
+  //   };
   
-    fetchRestaurants();
-  }, []);
+  //   fetchRestaurants();
+  // }, []);
+
+  // const filteredStores = useMemo(() => {
+  //   const q = query.trim().toLowerCase();
+  //   if (!q) return restaurants;
+  //   return restaurants.filter((s) =>
+  //     s.name.toLowerCase().includes(q)
+  //   );
+  // }, [query, restaurants]); // ✅ FIX
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return restaurants;
-    return restaurants.filter((s) =>
+    if (!q) return storeData;
+    return storeData.filter((s) =>
       s.name.toLowerCase().includes(q)
     );
-  }, [query, restaurants]); // ✅ FIX
+  }, [query]);
 
   return (
     <section className="p-6 space-y-8">
@@ -212,7 +220,7 @@ function CustomerDashboard() {
               className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col items-center cursor-pointer hover:shadow-lg transition"
             >
               <img
-                src={restaurants.profile_image}
+                src={restaurants.image_url}
                 alt={restaurants.name}
                 className="w-24 h-24 object-contain rounded mb-2"
               />
