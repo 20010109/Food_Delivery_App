@@ -2,7 +2,9 @@ import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 import authRoute from "./modules/Auth/auth.routes.js";
-import userRoute from "./modules/User/user.routes.js";                                
+import userRoute from "./modules/User/user.routes.js";   
+import restaurantRoutes from "./modules/Restaurant/restaurant.routes.js";
+import addressRoute from "./modules/Address/address.routes.js";                             
 
 const app = express();
 
@@ -14,6 +16,11 @@ app.use("/api/auth", authRoute);
 
 // user routes
 app.use("/api/users", userRoute);
+
+// restaurant routes
+app.use("/api/restaurants", restaurantRoutes);                             
+// address routes
+app.use("/api/addresses", addressRoute);
 
 // test route
 app.get("/", (req, res) => {

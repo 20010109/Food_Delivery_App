@@ -8,8 +8,7 @@ import {
   LuSettings,
 } from "react-icons/lu";
 
-// IMPORTANT: set this import to your merged logo filename exactly
-import logo from "../../assets/grubero-logo-merge-updated.png";
+import logoMerged from "../../assets/Grubero-logo-merge-updated.png"; 
 
 function Navbar() {
   const linkClass = ({ isActive }) =>
@@ -21,14 +20,14 @@ function Navbar() {
      }`;
 
   return (
-    <nav className="flex flex-col w-64 h-screen bg-gray-900 text-white p-6">
+    <nav className="flex flex-col w-64 h-screen bg-gray-900 text-white p-6 shrink-0">
       <div className="mb-8">
-        {/* LOGO AREA (merged icon + text) */}
-        <div className="mb-6">
+        {/* LOGO AREA */}
+        <div className="flex items-center gap-3 mb-6">
           <img
-            src={logo}
+            src={logoMerged}
             alt="Grubero"
-            className="h-12 w-auto object-contain"
+            className="h-10 w-auto object-contain"
           />
         </div>
 
@@ -39,30 +38,35 @@ function Navbar() {
               Home
             </NavLink>
           </li>
+
           <li>
             <NavLink to="/explore" className={linkClass}>
               <LuCompass />
               Explore
             </NavLink>
           </li>
+
           <li>
-            <NavLink to="/favorites" className={linkClass}>
+            <NavLink to="/favourites" className={linkClass}>
               <LuStar />
               Favourites
             </NavLink>
           </li>
+
           <li>
             <NavLink to="/orders" className={linkClass}>
               <LuShoppingCart />
               Orders
             </NavLink>
           </li>
+
           <li>
             <NavLink to="/messages" className={linkClass}>
               <LuMail />
               Messages
             </NavLink>
           </li>
+
           <li>
             <NavLink to="/settings" className={linkClass}>
               <LuSettings />

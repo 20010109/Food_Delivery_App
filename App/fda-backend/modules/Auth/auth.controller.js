@@ -12,7 +12,6 @@ export const signup = async (req, res) => {
     return res.json({
       message: 'User signed up successfully',
       user_id: user.id,
-      access_token: data.session?.access_token || null,
       data
     });
   } catch (error) {
