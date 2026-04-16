@@ -156,12 +156,20 @@ export default function StorePage() {
                       {item.description}
                     </p>
                   </div>
-
+{/* Bigger Heart */}
                   <button
-                    onClick={() => toggleDishFav(item.item_id)}
-                  >
-                    {isDishFav(item.item_id) ? "♥" : "♡"}
-                  </button>
+  type="button"
+  onClick={() => toggleDishFav(item.item_id)}
+  className={`h-10 w-10 flex items-center justify-center rounded-full transition
+    ${isDishFav(item.item_id) ? "text-red-600" : "text-gray-400 hover:text-red-500"}
+    hover:bg-red-50`}
+  aria-label="Toggle favourite"
+  title="Favourite"
+>
+  <span className="text-2xl leading-none">
+    {isDishFav(item.item_id) ? "♥" : "♡"}
+  </span>
+</button>
                 </div>
 
                 <div className="flex justify-between mt-3">
