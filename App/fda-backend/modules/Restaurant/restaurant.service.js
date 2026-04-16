@@ -4,6 +4,9 @@ const TABLE = "restaurants";
 
 // CREATE (you already fixed this)
 export const createRestaurant = async (supabase, userId, payload) => {
+  // console.log("SUPABASE USER:", await supabase.auth.getUser());
+  // console.log("USER ID:", userId);
+  // console.log("PAYLOAD:", payload);
   const { data, error } = await supabase
     .from(TABLE)
     .insert([
@@ -15,6 +18,7 @@ export const createRestaurant = async (supabase, userId, payload) => {
     ])
     .select()
     .single();
+
 
   if (error) throw error;
   return data;
