@@ -66,6 +66,7 @@ function Navbar() {
         </div>
 
         <ul className="space-y-2">
+
           <li>
             <NavLink to="/home" className={linkClass}>
               <LuHouse /> Home
@@ -84,6 +85,7 @@ function Navbar() {
             </NavLink>
           </li>
 
+          {/* ORDERS (KEEP THIS) */}
           <li>
             <NavLink to="/orders" className={linkClass}>
               <LuShoppingCart /> Orders

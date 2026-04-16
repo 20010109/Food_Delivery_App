@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./components/navbar.jsx";
+import CartDrawer from "./components/CartDrawer";
 import { storeData } from "./dummyData/storeData.js";
 import { LuSearch, LuSlidersHorizontal, LuShoppingCart } from "react-icons/lu";
 import "./styles/tailwind.css";
@@ -8,6 +9,9 @@ import "./styles/tailwind.css";
 export default function ExplorePage() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+
+  // ✅ CART DRAWER STATE (ADDED)
+  const [cartOpen, setCartOpen] = useState(false);
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -23,13 +27,12 @@ export default function ExplorePage() {
       {/* RIGHT CONTENT */}
       <main className="flex-1 overflow-auto">
         <section className="p-6 space-y-6">
+
           {/* TOP BAR */}
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              {/* optional address button space */}
-            </div>
-
             <div className="flex items-center gap-2 w-full max-w-xl ml-auto">
+
+              {/* SEARCH */}
               <div className="relative w-full">
                 <LuSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -40,6 +43,7 @@ export default function ExplorePage() {
                 />
               </div>
 
+              {/* FILTER */}
               <button
                 type="button"
                 className="h-10 w-10 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center"
@@ -49,14 +53,16 @@ export default function ExplorePage() {
                 <LuSlidersHorizontal />
               </button>
 
+              {/* CART BUTTON (FIXED) */}
               <button
                 type="button"
                 className="h-10 w-10 rounded-lg bg-red-600 text-white hover:bg-red-700 flex items-center justify-center"
-                onClick={() => navigate("/orders")}
-                title="Cart / Orders"
+                onClick={() => setCartOpen(true)}
+                title="Cart"
               >
                 <LuShoppingCart />
               </button>
+
             </div>
           </div>
 
@@ -73,7 +79,9 @@ export default function ExplorePage() {
               {filteredStores.map((restaurant) => (
                 <li
                   key={restaurant.restaurant_id}
-                  onClick={() => navigate(`/store/${restaurant.restaurant_id}`)}
+                  onClick={() =>
+                    navigate(`/store/${restaurant.restaurant_id}`)
+                  }
                   className="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition"
                 >
                   <div className="flex items-center gap-4">
@@ -93,7 +101,7 @@ export default function ExplorePage() {
             </ul>
           </div>
 
-          {/* POPULAR ORDERS (placeholder) */}
+          {/* POPULAR ORDERS */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Popular Orders</h2>
@@ -113,6 +121,12 @@ export default function ExplorePage() {
           </div>
         </section>
       </main>
+
+      {/* ✅ CART DRAWER */}
+      <CartDrawer
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+      />
     </div>
   );
 }
