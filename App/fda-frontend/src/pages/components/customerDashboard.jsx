@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { storeData } from "../dummyData/storeData.js";
 import {
@@ -16,6 +16,8 @@ import CartDrawer from "./CartDrawer";
 function CustomerDashboard() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+  // DYNAMIC Restaurants
+  //const [restaurants, setRestaurants] = useState([]);
 
   // CART STATE (NEW)
   const [cartOpen, setCartOpen] = useState(false);
@@ -29,10 +31,39 @@ function CustomerDashboard() {
     []
   );
 
+  // useEffect(() => {
+  //   const fetchRestaurants = async () => {
+  //     try {
+  //       const res = await fetch("http://localhost:3000/api/restaurants");
+  //       const data = await res.json();
+  
+  //       if (!res.ok) {
+  //         throw new Error(data.error || "Failed to fetch restaurants");
+  //       }
+  
+  //       setRestaurants(data);
+  //     } catch (err) {
+  //       console.error("Failed to fetch restaurants:", err.message);
+  //     }
+  //   };
+  
+  //   fetchRestaurants();
+  // }, []);
+
+  // const filteredStores = useMemo(() => {
+  //   const q = query.trim().toLowerCase();
+  //   if (!q) return restaurants;
+  //   return restaurants.filter((s) =>
+  //     s.name.toLowerCase().includes(q)
+  //   );
+  // }, [query, restaurants]); // ✅ FIX
+
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return storeData;
-    return storeData.filter((s) => s.name.toLowerCase().includes(q));
+    return storeData.filter((s) =>
+      s.name.toLowerCase().includes(q)
+    );
   }, [query]);
 
   return (
@@ -190,7 +221,7 @@ function CustomerDashboard() {
         </div>
 
         <ul className="grid grid-cols-3 gap-4">
-          {filteredStores.slice(0, 6).map((restaurant) => (
+          {filteredStores.slice(0, 6).map((restaurants) => (
             <li
               key={restaurant.restaurant_id}
               onClick={() =>
@@ -199,11 +230,11 @@ function CustomerDashboard() {
               className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col items-center cursor-pointer hover:shadow-lg transition"
             >
               <img
-                src={restaurant.image_url}
-                alt={restaurant.name}
+                src={restaurants.image_url}
+                alt={restaurants.name}
                 className="w-24 h-24 object-contain rounded mb-2"
               />
-              <span className="font-semibold">{restaurant.name}</span>
+              <span className="font-semibold">{restaurants.name}</span>
             </li>
           ))}
         </ul>

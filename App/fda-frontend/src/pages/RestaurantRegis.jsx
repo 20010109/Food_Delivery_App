@@ -65,7 +65,7 @@ export default function RestaurantRegistration() {
       const backgroundImageUrl = await uploadImage(backgroundFile, "background");
 
       // Send to backend
-      const res = await fetch("http://localhost:3000/api/restaurants", {
+      const res = await fetch("http://localhost:3000/api/restaurants/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
