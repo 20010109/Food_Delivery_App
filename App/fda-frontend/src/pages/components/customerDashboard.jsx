@@ -223,9 +223,9 @@ function CustomerDashboard() {
         <ul className="grid grid-cols-3 gap-4">
           {filteredStores.slice(0, 6).map((restaurants) => (
             <li
-              key={restaurant.restaurant_id}
+              key={restaurants.restaurant_id}
               onClick={() =>
-                navigate(`/store/${restaurant.restaurant_id}`)
+                navigate(`/store/${restaurants.restaurant_id}`)
               }
               className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col items-center cursor-pointer hover:shadow-lg transition"
             >
