@@ -1,5 +1,4 @@
 import * as service from "./restaurant.service.js";
-import { supabase } from "../../config/supabase.js";
 
 export const createRestaurant = async (req, res) => {
   try {

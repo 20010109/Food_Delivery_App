@@ -19,18 +19,14 @@ export const authenticate = async (req, res, next) => {
     }
   );
 
-  // 🔥 IMPORTANT: no token argument here
   const { data, error } = await supabase.auth.getUser();
 
   if (error || !data.user) {
-    console.log("AUTH ERROR:", error);
     return res.status(401).json({ error: "Unauthorized" });
   }
 
   req.user = data.user;
   req.supabase = supabase;
-
-  console.log("AUTH SUCCESS:", req.user.id);
 
   next();
 };

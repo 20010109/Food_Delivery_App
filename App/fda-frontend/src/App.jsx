@@ -10,6 +10,8 @@ import ProfilePage from "./pages/Profile.jsx";
 import RestaurantRegistration from "./pages/RestaurantRegis.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
 import UserSetup from "./pages/UserSetup.jsx";
+import CreateMenuItem from "./pages/CreateMenuItem.jsx"
+import MyRestaurant from "./pages/MyRestaurant.jsx";
 
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
@@ -38,7 +40,11 @@ function App() {
 
       {/* Other */}
       <Route path="/profile/:id" element={<ProfilePage />} />
+
+      {/* StoreOwner */}
       <Route path="/restaurantregis" element={<RestaurantRegistration />} />
+      <Route path="/myrestaurant" element={<MyRestaurant />}/>
+      <Route path="/myrestaurant/:restaurantId/createmenuitem" element={<CreateMenuItem />}/>
     </Routes>
   );
 }

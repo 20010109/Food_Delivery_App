@@ -3,12 +3,21 @@ import express from "express";
 import cors from "cors";
 import authRoute from "./modules/Auth/auth.routes.js";
 import userRoute from "./modules/User/user.routes.js";   
-import restaurantRoutes from "./modules/Restaurant/restaurant.routes.js";
+import restaurantRoute from "./modules/Restaurant/restaurant.routes.js";
 import addressRoute from "./modules/Address/address.routes.js";                             
+import menuRoute from "./modules/Menu/menu.routes.js"; 
+
+import { supabase } from "./config/supabase.js";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true
+  })
+);
+
 app.use(express.json());
 
 // auth routes
@@ -18,9 +27,12 @@ app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 
 // restaurant routes
-app.use("/api/restaurants", restaurantRoutes);                             
+app.use("/api/restaurants", restaurantRoute);                             
 // address routes
 app.use("/api/addresses", addressRoute);
+// menu routes
+app.use("/api/menu", menuRoute);
+
 
 // test route
 app.get("/", (req, res) => {
