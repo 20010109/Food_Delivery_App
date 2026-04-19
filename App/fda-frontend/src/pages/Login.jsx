@@ -24,18 +24,37 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({
+  
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
-    setLoading(false);
-
+  
     if (error) {
       alert(error.message);
+      return;
+    }
+  
+    const user = data.user;
+  
+    // ❌ Email not verified
+    if (!user.email_confirmed_at) {
+      alert("Please verify your email first.");
+      return;
+    }
+  
+    // ✅ Check if profile exists
+    const { data: profile, error: profileError } = await supabase
+      .from("user_profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+  
+    if (profileError || !profile) {
+      // 🚀 No profile → go to setup page
+      navigate("/usersetup");
     } else {
+      // ✅ Profile exists → go home
       navigate("/home");
     }
   };
