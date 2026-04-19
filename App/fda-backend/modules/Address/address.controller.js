@@ -5,7 +5,7 @@ export const createUserAddress = async (req, res) => {
     try {
         const { address_line, longitude, latitude } = req.body;
         const user_id = req.user.id;
-        if(!address_line || longitude == null || latitude == null) {
+        if(!address_line) {
             return res.status(400).json({ error: "All fields are required" });
         }
         

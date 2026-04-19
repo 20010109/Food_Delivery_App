@@ -9,6 +9,7 @@ import StorePage from "./pages/StorePage.jsx";
 import ProfilePage from "./pages/Profile.jsx";
 import RestaurantRegistration from "./pages/RestaurantRegis.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
+import UserSetup from "./pages/UserSetup.jsx";
 
 function App() {
   return (
@@ -16,6 +17,9 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+
+      {/* User Setup */}
+      <Route path="/usersetup" element={<UserSetup />} />
 
       {/* Customer */}
       <Route path="/home" element={<Home />} />
