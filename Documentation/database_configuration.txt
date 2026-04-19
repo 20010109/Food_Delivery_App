@@ -64,7 +64,7 @@ create table restaurants (
 create table menu_items (
   item_id uuid primary key default gen_random_uuid(),
   restaurant_id uuid references restaurants(restaurant_id) on delete cascade,
-  item_image string,
+  item_image text,
   name text not null,
   price numeric not null,
   description text
