@@ -1,4 +1,4 @@
-# 🍔 Grubero – Food Delivery App (SQA Project)
+<img src="Documentation/Grubero logo merge.png" alt="Grubero Logo" style="width: 100%; object-fit: cover; object-position: center;"/>
 
 **Grubero** is a full-stack food delivery web application developed as part of our **Software Quality Assurance (SQA)** course. The project simulates a real-world food ordering platform where users can browse restaurants, create orders, and track deliveries, while store owners manage menus and order fulfillment.
 
