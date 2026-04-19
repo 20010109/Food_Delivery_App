@@ -39,34 +39,12 @@ As an SQA-driven project, Grubero emphasizes:
 
 ---
 
-## 📌 Key Features
-
-- User authentication and role-based access
-- Restaurant registration and management
-- Dynamic menu creation and updates
-- Cart and order processing system
-- Order status tracking
-- Secure API integration with backend validation
-
----
-
-## 🎯 Objective
-
-The goal of Grubero is to demonstrate how **software quality assurance practices** can be applied in a real-world application to ensure:
-
-- Reliable system behavior  
-- High-quality user experience  
-- Secure and maintainable codebase  
-- Proper validation of business logic  
-
----
-
 ## 👨‍💻 Contributors
 
-- Add your names here
+- Lance Russel Cartagenas
+- John Lorenz Codilla
+- Aaron Damaolao
+- Guz Andre Noel
+- Ethan Daniel Saballa
 
 ---
-
-## 📖 Note
-
-This project is developed for academic purposes under the **Software Quality Assurance** subject and is intended to showcase both development and testing practices in a collaborative software environment.
