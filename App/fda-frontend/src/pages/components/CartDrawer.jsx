@@ -1,8 +1,10 @@
 import { useCart } from "../../context/CartContext";
 import { LuTrash2 } from "react-icons/lu";
+import { useNavigate } from "react-router-dom"; // ✅ NEW
 
 export default function CartDrawer({ open, onClose }) {
   const { cart, removeItem, updateQty } = useCart();
+  const navigate = useNavigate(); // ✅ NEW
 
   if (!open) return null;
 
@@ -44,12 +46,10 @@ export default function CartDrawer({ open, onClose }) {
             cart.map((store) => (
               <div key={store.storeId} className="space-y-3">
 
-                {/* STORE NAME */}
                 <div className="font-bold text-gray-700 border-b pb-1">
                   {store.storeName || `Store #${store.storeId}`}
                 </div>
 
-                {/* ITEMS */}
                 {store.items.map((item) => (
                   <div
                     key={item.id}
@@ -64,7 +64,6 @@ export default function CartDrawer({ open, onClose }) {
                         ₱{item.price}
                       </div>
 
-                      {/* QTY */}
                       <div className="flex items-center gap-2 mt-2">
                         <button
                           className="px-2 border rounded"
@@ -96,11 +95,10 @@ export default function CartDrawer({ open, onClose }) {
                       </div>
                     </div>
 
-                    {/* REMOVE */}
                     <button
                       className="text-red-500 ml-2 hover:text-red-700"
                       onClick={() =>
-                       removeItem(store.storeId, item.id)
+                        removeItem(store.storeId, item.id)
                       }
                     >
                       <LuTrash2 size={18} />
@@ -119,7 +117,12 @@ export default function CartDrawer({ open, onClose }) {
             <span>₱{total}</span>
           </div>
 
+          {/* ✅ UPDATED BUTTON */}
           <button
+            onClick={() => {
+              onClose(); // close drawer first
+              navigate("/checkout"); // go to checkout
+            }}
             className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700"
             disabled={cart.length === 0}
           >

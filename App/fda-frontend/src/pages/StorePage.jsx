@@ -41,7 +41,7 @@ export default function StorePage() {
     [storeId]
   );
 
-  // ✅ CART
+  // CART
   const { cart, addToCart, updateQty, removeItem } = useCart();
 
   const storeCart =
@@ -156,20 +156,20 @@ export default function StorePage() {
                       {item.description}
                     </p>
                   </div>
-{/* Bigger Heart */}
+
                   <button
-  type="button"
-  onClick={() => toggleDishFav(item.item_id)}
-  className={`h-10 w-10 flex items-center justify-center rounded-full transition
-    ${isDishFav(item.item_id) ? "text-red-600" : "text-gray-400 hover:text-red-500"}
-    hover:bg-red-50`}
-  aria-label="Toggle favourite"
-  title="Favourite"
->
-  <span className="text-2xl leading-none">
-    {isDishFav(item.item_id) ? "♥" : "♡"}
-  </span>
-</button>
+                    type="button"
+                    onClick={() => toggleDishFav(item.item_id)}
+                    className={`h-10 w-10 flex items-center justify-center rounded-full transition
+                      ${isDishFav(item.item_id) ? "text-red-600" : "text-gray-400 hover:text-red-500"}
+                      hover:bg-red-50`}
+                    aria-label="Toggle favourite"
+                    title="Favourite"
+                  >
+                    <span className="text-2xl leading-none">
+                      {isDishFav(item.item_id) ? "♥" : "♡"}
+                    </span>
+                  </button>
                 </div>
 
                 <div className="flex justify-between mt-3">
@@ -240,7 +240,11 @@ export default function StorePage() {
               Subtotal: ₱{subtotal}
             </div>
 
-            <button className="w-full bg-red-600 text-white py-3 rounded-lg mt-3">
+            {/* ✅ UPDATED BUTTON */}
+            <button
+              onClick={() => navigate("/checkout")}
+              className="w-full bg-red-600 text-white py-3 rounded-lg mt-3"
+            >
               Proceed to Checkout
             </button>
           </div>

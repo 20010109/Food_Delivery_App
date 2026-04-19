@@ -11,6 +11,9 @@ import RestaurantRegistration from "./pages/RestaurantRegis.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
 import UserSetup from "./pages/UserSetup.jsx";
 
+// ✅ NEW
+import CheckoutPage from "./pages/CheckoutPage.jsx";
+
 function App() {
   return (
     <Routes>
@@ -27,8 +30,11 @@ function App() {
       <Route path="/favourites" element={<Favourites />} />
       <Route path="/store/:id" element={<StorePage />} />
 
-      {/* ORDERS PAGE (RESTORED) */}
+      {/* ORDERS PAGE */}
       <Route path="/orders" element={<OrdersPage />} />
+
+      {/* ✅ NEW CHECKOUT */}
+      <Route path="/checkout" element={<CheckoutPage />} />
 
       {/* Other */}
       <Route path="/profile/:id" element={<ProfilePage />} />
