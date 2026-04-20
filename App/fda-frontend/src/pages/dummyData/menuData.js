@@ -6,7 +6,7 @@ export const menuData = [
       name: "Big Mac",
       price: 180,
       description: "Classic double patty burger with special sauce",
-      image_url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop"
+      image_url: "https://www.hapskorea.com/wp-content/uploads/2021/03/bigmac-korea.jpg"
     },
     {
       item_id: "2",
@@ -14,7 +14,7 @@ export const menuData = [
       name: "McChicken",
       price: 120,
       description: "Crispy chicken sandwich with mayo",
-      image_url: "https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400&h=300&fit=crop"
+      image_url: "https://www.allrecipes.com/thmb/cEaLfplaeP_pwhDKvB_vah_Ezwg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/8702751_CopycatMcChicken4x3-fd74c35c3fdc48538f4d3e95e7fda55a.jpg"
     },
     {
       item_id: "3",
@@ -32,7 +32,7 @@ export const menuData = [
       name: "Chickenjoy",
       price: 95,
       description: "Crispy juicy fried chicken",
-      image_url: "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400&h=300&fit=crop"
+      image_url: "https://images.yummy.ph/yummy/uploads/2023/05/jollibee-chickenjoymeal.jpg"
     },
     {
       item_id: "5",
@@ -40,7 +40,7 @@ export const menuData = [
       name: "Jolly Spaghetti",
       price: 75,
       description: "Sweet-style Filipino spaghetti",
-      image_url: "https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400&h=300&fit=crop"
+      image_url: "https://scontent.fmnl4-1.fna.fbcdn.net/v/t1.6435-9/55719554_2289421884437358_7269653076749844480_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=13d280&_nc_eui2=AeE2JhUJTa1SXiP1VZSHWNJ1wpRCNE3KhcvClEI0TcqFy7jyrslO793wH0V-szcZqBYLoEVTEL8GO6b_fQvHtJ4_&_nc_ohc=Lbm-_-sGOVcQ7kNvwGARI_6&_nc_oc=Adrg9d2aScFpmhuIbSFcOxkb3BvR_075Eb7LMcslzJ_G1mGPui7cji-rRsdjA64_rNA&_nc_zt=23&_nc_ht=scontent.fmnl4-1.fna&_nc_gid=N5avRD1n022WiOHvPFd73Q&_nc_ss=7a3a8&oh=00_Af0u66TOgLpK_WQGEye9NlW8sN_w0Pk30X3zP5iVBdEDiA&oe=6A0D9148"
     },
     {
       item_id: "6",
@@ -48,7 +48,7 @@ export const menuData = [
       name: "Yumburger",
       price: 65,
       description: "Signature beef burger",
-      image_url: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop"
+      image_url: "https://media.philstar.com/photos/2023/06/19/jollibee-yummy-together_2023-06-19_15-07-12.jpg"
     },
   
     // KFC (3)
