@@ -13,10 +13,7 @@ function CustomerDashboard() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
-  // CART STATE
   const [cartOpen, setCartOpen] = useState(false);
-
-  // ADDRESS STATE (now backend-driven)
   const [address, setAddress] = useState("");
   const [isEditingAddress, setIsEditingAddress] = useState(false);
 
@@ -41,7 +38,6 @@ function CustomerDashboard() {
 
   return (
     <section className="p-6 space-y-8">
-      {/* TOP BAR */}
       <TopBar
         query={query}
         onQueryChange={setQuery}
@@ -52,7 +48,6 @@ function CustomerDashboard() {
         onOpenAddress={() => setIsEditingAddress(true)}
       />
 
-      {/* ADDRESS MODAL */}
       <AddressModal
         open={isEditingAddress}
         address={address}
@@ -64,13 +59,12 @@ function CustomerDashboard() {
         }}
       />
 
-      {/* CATEGORIES */}
       <CategoryCarousel />
 
       {/* FEATURED STORES */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Featured Stores</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Featured Stores</h2>
           <button
             className="text-sm text-gray-500 hover:text-gray-700"
             onClick={() => navigate("/explore")}
@@ -79,19 +73,52 @@ function CustomerDashboard() {
           </button>
         </div>
 
-        <ul className="grid grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredStores.slice(0, 6).map((r) => (
             <li
               key={r.restaurant_id}
               onClick={() => navigate(`/store/${r.restaurant_id}`)}
-              className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col items-center cursor-pointer hover:shadow-lg transition"
+              className="bg-white rounded-2xl border border-gray-200 p-4 cursor-pointer hover:shadow-md transition"
             >
-              <img
-                src={r.image_url}
-                alt={r.name}
-                className="w-24 h-24 object-contain rounded mb-2"
-              />
-              <span className="font-semibold">{r.name}</span>
+              <div className="flex gap-4">
+                <img
+                  src={r.image_url}
+                  alt={r.name}
+                  className="w-24 h-24 object-contain rounded-xl bg-gray-50 border border-gray-100 p-2 shrink-0"
+                />
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 leading-tight">
+                        {r.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {r.cuisine} • {r.price_range}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
+                    <span>⭐ {r.rating}</span>
+                    <span>({r.reviews})</span>
+                    <span>{r.delivery_time}</span>
+                  </div>
+
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
+                    <span>{r.delivery_fee}</span>
+                    <span>{r.distance}</span>
+                  </div>
+
+                  {r.promo_tag && (
+                    <div className="mt-3">
+                      <span className="inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-600">
+                        {r.promo_tag}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </li>
           ))}
         </ul>
@@ -107,7 +134,6 @@ function CustomerDashboard() {
         </div>
       </div>
 
-      {/* CART DRAWER */}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </section>
   );
