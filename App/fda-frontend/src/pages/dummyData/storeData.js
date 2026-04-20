@@ -17,7 +17,7 @@ export const storeData = [
     image_url:
       "https://upload.wikimedia.org/wikipedia/en/thumb/8/84/Jollibee_2011_logo.svg/500px-Jollibee_2011_logo.svg.png",
     banner_url:
-      "https://images.1851franchise.com/544x306/filters:format(webp)/story1/2729653/1750283235_2729653.png",
+      "https://images.1851franchise.com/1280x720/filters:format(webp)/story1/2729653/1750283235_2729653.png",
     address_id: 3,
     created_at: "2024-06-02T12:30:00Z",
   },
