@@ -1,8 +1,10 @@
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 
 export default function CategoryCarousel() {
   const scrollRef = useRef(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
 
   const categories = useMemo(
     () => [
@@ -88,6 +90,32 @@ export default function CategoryCarousel() {
     []
   );
 
+  const updateArrowVisibility = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const isAtStart = el.scrollLeft <= 5;
+    const isAtEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 5;
+
+    setShowLeftArrow(!isAtStart);
+    setShowRightArrow(!isAtEnd);
+  };
+
+  useEffect(() => {
+    updateArrowVisibility();
+
+    const el = scrollRef.current;
+    if (!el) return;
+
+    el.addEventListener("scroll", updateArrowVisibility);
+    window.addEventListener("resize", updateArrowVisibility);
+
+    return () => {
+      el.removeEventListener("scroll", updateArrowVisibility);
+      window.removeEventListener("resize", updateArrowVisibility);
+    };
+  }, []);
+
   const scrollLeft = () => {
     scrollRef.current?.scrollBy({ left: -320, behavior: "smooth" });
   };
@@ -106,13 +134,15 @@ export default function CategoryCarousel() {
       <h2 className="text-xl font-semibold">Explore Categories</h2>
 
       <div className="relative">
-        <button
-          type="button"
-          onClick={scrollLeft}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 flex items-center justify-center"
-        >
-          <LuChevronLeft className="text-2xl" />
-        </button>
+        {showLeftArrow && (
+          <button
+            type="button"
+            onClick={scrollLeft}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 flex items-center justify-center"
+          >
+            <LuChevronLeft className="text-2xl" />
+          </button>
+        )}
 
         <div
           ref={scrollRef}
@@ -133,20 +163,22 @@ export default function CategoryCarousel() {
                 />
               </div>
 
-              <span className="text-red-600 text-lg font-medium">
+              <span className="text-red-500 text-lg font-medium">
                 {category.label}
               </span>
             </button>
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={scrollRight}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 flex items-center justify-center"
-        >
-          <LuChevronRight className="text-2xl" />
-        </button>
+        {showRightArrow && (
+          <button
+            type="button"
+            onClick={scrollRight}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 flex items-center justify-center"
+          >
+            <LuChevronRight className="text-2xl" />
+          </button>
+        )}
       </div>
     </div>
   );
