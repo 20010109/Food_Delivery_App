@@ -1,49 +1,49 @@
-import * as orderService from "./order.service.js";
+import { createUserOrder, getUserOrders, getUserOrderById, deleteUserOrder } from "./order.service.js";
 
 export const createOrder = async (req, res) => {
-  try {
-    const userId = req.user.id; // from auth middleware
-    const { restaurant_id, items } = req.body;
+    try {
+        const user_id = req.user.id;
+        const { restaurant_id, items, total_price} = req.body;
+        if(!restaurant_id || !items || !total_price){
+            return res.status(400).json({ error: 'restaurant_id, items, and total_price are required' });
+        }
 
-    const order = await orderService.createOrder(
-      userId,
-      restaurant_id,
-      items
-    );
-
-    res.status(201).json(order);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+        const order = await createUserOrder(req.supabase, { user_id, restaurant_id, items, total_price });
+        return res.status(201).json(order);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
 };
 
-
-export const getMyOrders = async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    const { data, error } = await orderService.getUserOrders(userId);
-
-    if (error) throw error;
-
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+export const getOrders = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const orders = await getUserOrders(req.supabase, user_id);
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
+export const getOrderById = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const order_id = req.params.id;
+        const order = await getUserOrderById(req.supabase, order_id, user_id);
+        return res.status(200).json(order);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
 
-export const updateStatus = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { status } = req.body;
-
-    const { data, error } = await orderService.updateOrderStatus(orderId, status);
-
-    if (error) throw error;
-
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+export const cancelOrder = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const order_id = req.params.id;
+        await deleteUserOrder(req.supabase, order_id, user_id);
+        return res.status(204).send();
+    }
+    catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
 };
