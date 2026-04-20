@@ -5,9 +5,8 @@ import CartDrawer from "./components/CartDrawer";
 import TopBar from "./components/TopBar.jsx";
 import AddressModal from "./components/AddressModal.jsx";
 import { storeData } from "./dummyData/storeData.js";
+import { getPrimaryAddress } from "../utils/addressApi.js";
 import "./styles/tailwind.css";
-
-const LS_ADDRESS_KEY = "grubero_address"; // shared key across pages
 
 export default function ExplorePage() {
   const navigate = useNavigate();
@@ -16,16 +15,22 @@ export default function ExplorePage() {
   // CART DRAWER STATE
   const [cartOpen, setCartOpen] = useState(false);
 
-  // ADDRESS STATE
-  const [address, setAddress] = useState(() => {
-    return localStorage.getItem(LS_ADDRESS_KEY) || "";
-  });
+  // ADDRESS STATE (now backend-driven)
+  const [address, setAddress] = useState("");
   const [isEditingAddress, setIsEditingAddress] = useState(false);
 
-  // keep localStorage in sync whenever address changes
   useEffect(() => {
-    localStorage.setItem(LS_ADDRESS_KEY, address);
-  }, [address]);
+    const loadAddress = async () => {
+      try {
+        const current = await getPrimaryAddress();
+        setAddress(current?.address_line || "");
+      } catch (err) {
+        console.error("Failed to load address:", err.message);
+      }
+    };
+
+    loadAddress();
+  }, []);
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -39,7 +44,6 @@ export default function ExplorePage() {
 
       <main className="flex-1 overflow-auto">
         <section className="p-6 space-y-6">
-
           {/* TOP BAR */}
           <TopBar
             query={query}
@@ -57,7 +61,10 @@ export default function ExplorePage() {
             address={address}
             setAddress={setAddress}
             onClose={() => setIsEditingAddress(false)}
-            onSave={() => setIsEditingAddress(false)}
+            onSave={(newAddress) => {
+              setAddress(newAddress);
+              setIsEditingAddress(false);
+            }}
           />
 
           {/* RESTAURANTS NEARBY */}
@@ -111,14 +118,11 @@ export default function ExplorePage() {
               <div className="h-40 rounded-xl bg-gray-100 border border-gray-200" />
             </div>
           </div>
-
         </section>
       </main>
 
-      {/* CART DRAWER — outside <main> to avoid nested scroll issues */}
+      {/* CART DRAWER */}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
-
-      {/* TODO (backend/settings): Replace localStorage address with user profile address from DB */}
     </div>
   );
 }

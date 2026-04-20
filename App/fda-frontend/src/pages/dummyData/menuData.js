@@ -58,7 +58,7 @@ export const menuData = [
       name: "Original Recipe Chicken",
       price: 110,
       description: "11 herbs and spices fried chicken",
-      image_url: "https://images.unsplash.com/photo-1587190175870-bf438d73b78f?w=400&h=300&fit=crop"
+      image_url: "https://cdn.tictuk.com/04d917c0-7bcd-6ced-acad-3e4db2bcbfd5/menus/BUCK10.jpg"
     },
     {
       item_id: "8",

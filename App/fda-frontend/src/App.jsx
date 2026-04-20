@@ -12,6 +12,7 @@ import OrdersPage from "./pages/OrdersPage.jsx";
 import UserSetup from "./pages/UserSetup.jsx";
 import CreateMenuItem from "./pages/CreateMenuItem.jsx"
 import MyRestaurant from "./pages/MyRestaurant.jsx";
+import SettingsPage from "./pages/SettingsPage.jsx";
 
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
@@ -45,6 +46,13 @@ function App() {
       <Route path="/restaurantregis" element={<RestaurantRegistration />} />
       <Route path="/myrestaurant" element={<MyRestaurant />}/>
       <Route path="/myrestaurant/:restaurantId/createmenuitem" element={<CreateMenuItem />}/>
+
+      {/* Settings */}
+      <Route path="/settings" element={<SettingsPage />} />
+
+
+
+
     </Routes>
   );
 }
