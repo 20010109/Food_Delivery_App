@@ -4,12 +4,10 @@ import { storeData } from "../dummyData/storeData.js";
 import "../styles/tailwind.css";
 
 import CategoryCarousel from "./CategoryCarousel.jsx";
-
 import TopBar from "./TopBar.jsx";
 import CartDrawer from "./CartDrawer";
 import AddressModal from "./AddressModal.jsx";
-
-const LS_ADDRESS_KEY = "grubero_address"; // shared key across pages
+import { getPrimaryAddress } from "../../utils/addressApi.js";
 
 function CustomerDashboard() {
   const navigate = useNavigate();
@@ -18,18 +16,22 @@ function CustomerDashboard() {
   // CART STATE
   const [cartOpen, setCartOpen] = useState(false);
 
-  // ADDRESS STATE
-  const [address, setAddress] = useState(() => {
-    return localStorage.getItem(LS_ADDRESS_KEY) || "";
-  });
+  // ADDRESS STATE (now backend-driven)
+  const [address, setAddress] = useState("");
   const [isEditingAddress, setIsEditingAddress] = useState(false);
 
-  // keep localStorage in sync whenever address changes
   useEffect(() => {
-    localStorage.setItem(LS_ADDRESS_KEY, address);
-  }, [address]);
+    const loadAddress = async () => {
+      try {
+        const current = await getPrimaryAddress();
+        setAddress(current?.address_line || "");
+      } catch (err) {
+        console.error("Failed to load address:", err.message);
+      }
+    };
 
- 
+    loadAddress();
+  }, []);
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -39,7 +41,6 @@ function CustomerDashboard() {
 
   return (
     <section className="p-6 space-y-8">
-
       {/* TOP BAR */}
       <TopBar
         query={query}
@@ -57,10 +58,13 @@ function CustomerDashboard() {
         address={address}
         setAddress={setAddress}
         onClose={() => setIsEditingAddress(false)}
-        onSave={() => setIsEditingAddress(false)}
+        onSave={(newAddress) => {
+          setAddress(newAddress);
+          setIsEditingAddress(false);
+        }}
       />
 
-            {/* CATEGORIES */}
+      {/* CATEGORIES */}
       <CategoryCarousel />
 
       {/* FEATURED STORES */}
@@ -105,9 +109,6 @@ function CustomerDashboard() {
 
       {/* CART DRAWER */}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
-
-      {/* TODO (backend/settings): Replace localStorage address with user profile address from DB */}
-      {/* TODO (backend): Filters should come from API (cuisines/tags/distance/etc.) */}
     </section>
   );
 }

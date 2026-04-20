@@ -146,7 +146,7 @@ export default function CategoryCarousel() {
 
         <div
           ref={scrollRef}
-          className="mx-14 flex gap-8 overflow-x-auto scroll-smooth no-scrollbar"
+          className="ml-2 mr-14 flex gap-8 overflow-x-auto scroll-smooth no-scrollbar"
         >
           {categories.map((category) => (
             <button
