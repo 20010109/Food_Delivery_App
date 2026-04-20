@@ -126,7 +126,7 @@ function CustomerDashboard() {
 
       {/* ORDER AGAIN */}
       <div className="space-y-3">
-        <h2 className="text-xl font-semibold">Order Again</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Order Again</h2>
         <div className="grid grid-cols-3 gap-4">
           <div className="h-40 rounded-xl bg-gray-100 border border-gray-200" />
           <div className="h-40 rounded-xl bg-gray-100 border border-gray-200" />

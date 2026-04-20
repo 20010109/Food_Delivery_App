@@ -131,7 +131,7 @@ export default function CategoryCarousel() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Explore Categories</h2>
+      <h2 className="text-2xl font-bold text-gray-900">Explore Categories</h2>
 
       <div className="relative">
         {showLeftArrow && (
@@ -146,7 +146,7 @@ export default function CategoryCarousel() {
 
         <div
           ref={scrollRef}
-          className="ml-2 mr-14 flex gap-8 overflow-x-auto scroll-smooth no-scrollbar"
+          className="ml-0 mr-14 flex gap-8 overflow-x-auto scroll-smooth no-scrollbar"
         >
           {categories.map((category) => (
             <button
