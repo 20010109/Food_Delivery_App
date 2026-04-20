@@ -66,7 +66,7 @@ export const menuData = [
       name: "Zinger Burger",
       price: 150,
       description: "Spicy chicken fillet burger",
-      image_url: "https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400&h=300&fit=crop"
+      image_url: "https://miro.medium.com/v2/1*Qwxo-poZCz12k2ck5ZE3xg.jpeg"
     },
   
     // Mang Inasal (4)
@@ -76,7 +76,7 @@ export const menuData = [
       name: "Chicken Inasal",
       price: 130,
       description: "Grilled chicken with rice",
-      image_url: "https://images.unsplash.com/photo-1598514982901-9df91e1aa9de?w=400&h=300&fit=crop"
+      image_url: "https://www.manginasal.ph/wp-content/uploads/2023/09/chicken-insal-regular-3.png?q=80&w=1200&h=630"
     },
     {
       item_id: "10",
@@ -84,7 +84,7 @@ export const menuData = [
       name: "Pork BBQ",
       price: 85,
       description: "Sweet Filipino-style pork barbecue",
-      image_url: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=400&h=300&fit=crop"
+      image_url: "https://www.manginasal.ph/wp-content/uploads/2023/09/2-pc-Pork-BBQ-with-Spiced-Vinegar-2.png?q=80&w=1200&h=630"
     },
   
     // Chowking (5)
