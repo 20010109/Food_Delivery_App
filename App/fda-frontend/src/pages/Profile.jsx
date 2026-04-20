@@ -7,29 +7,56 @@ const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [addresses, setAddresses] = useState([]);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndAddress = async () => {
       try {
+        // ✅ Get authenticated user
         const { data, error } = await supabase.auth.getUser();
-
+  
         if (error || !data.user) {
           navigate("/login");
           return;
         }
-
+  
         const authUser = data.user;
-
+  
+        // ✅ Get profile details
         const { data: profileDetails } = await supabase
           .from("user_profiles")
           .select("*")
           .eq("user_id", authUser.id)
           .maybeSingle();
+  
+        // ✅ Get session (for token)
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
 
+        console.log("FRONTEND TOKEN:", token);
+  
+        // ✅ Fetch addresses from YOUR BACKEND
+        const res = await fetch("http://localhost:3000/api/addresses", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!res.ok) {
+          throw new Error("Failed to fetch addresses");
+        }
+  
+        const addressData = await res.json();
+  
         setUser({
           ...authUser,
           ...(profileDetails || {}),
         });
+  
+        setAddresses(addressData);
+  
       } catch (err) {
         console.error(err);
         navigate("/login");
@@ -37,9 +64,12 @@ const Profile = () => {
         setLoading(false);
       }
     };
-
-    fetchUser();
+  
+    fetchUserAndAddress();
   }, [navigate]);
+
+  
+  
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -139,6 +169,31 @@ const Profile = () => {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* ADDRESS INFO */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+              Addresses
+            </h3>
+
+            {addresses.length === 0 ? (
+              <p className="text-gray-500 text-sm">No addresses found</p>
+            ) : (
+              <div className="space-y-3">
+                {addresses.map((addr) => (
+                  <div
+                    key={addr.address_id}
+                    className="p-3 bg-gray-50 rounded-lg text-sm"
+                  >
+                    <p className="font-medium">{addr.address_line}</p>
+                    <p className="text-gray-500 text-xs">
+                      Lat: {addr.latitude} | Lng: {addr.longitude}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ACTIONS */}
