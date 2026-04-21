@@ -119,7 +119,7 @@ export const storeData = [
     image_url:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Pizza_hut_logo_international.svg/960px-Pizza_hut_logo_international.svg.png",
     banner_url:
-      "https://commons.wikimedia.org/wiki/Special:FilePath/Pizza_Hut_(SM_City_BF_Parañaque_branch)_storefront.jpg?width=1600",
+      "https://www.airasia.com/aa/images/web-apps/food-merchant/PizzaHut/herobanner-mobile.jpg",
     address_id: 7,
     created_at: "2024-06-07T16:25:00Z",
     cuisine: "Pizza",
@@ -137,7 +137,7 @@ export const storeData = [
     contact_info: "612-9901",
     image_url: "https://upload.wikimedia.org/wikipedia/commons/c/cc/Burger_King_2020.svg",
     banner_url:
-      "https://commons.wikimedia.org/wiki/Special:FilePath/Burger_King_Festival_Supermall_exterior.jpg?width=1600",
+      "https://cdn.sanity.io/images/smy79myr/production/aa437e0b82266e93a200c64b94d6a1fbb5dceaf9-1920x420.jpg?w=1920&h=420&q=75&auto=format",
     address_id: 8,
     created_at: "2024-06-08T13:50:00Z",
     cuisine: "Burgers",
