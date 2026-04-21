@@ -10,7 +10,7 @@ import {
   LuTags,
 } from "react-icons/lu";
 
-import Navbar from "./components/navbar.jsx";
+import Navbar from "./components/Navbar.jsx";
 import TopBar from "./components/TopBar.jsx";
 import SavedAddressModal from "./components/SavedAddressModal.jsx";
 import MarketingPreferencesModal from "./components/MarketingPreferencesModal.jsx";

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import Navbar from "./components/navbar.jsx";
+import Navbar from "./components/Navbar.jsx";
 
 /**
  * TODO (backend):

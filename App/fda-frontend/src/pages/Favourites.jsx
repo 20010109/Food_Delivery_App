@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import Navbar from "./components/navbar.jsx";
+import Navbar from "./components/Navbar.jsx";
 import { useNavigate } from "react-router-dom";
 import { storeData } from "./dummyData/storeData.js";
 import { menuData } from "./dummyData/menuData.js";

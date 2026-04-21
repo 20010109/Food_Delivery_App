@@ -8,7 +8,7 @@ import {
   LuSettings,
 } from "react-icons/lu";
 import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabase";
+import { supabase } from "../../utils/supabase.js";
 
 import logoMerged from "../../assets/Grubero-logo-merge-updated.png";
 import DefaultProfile from "../../assets/Stock_User.jpg";

@@ -1,35 +1,63 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../utils/supabase.js";
+import DefaultProfile from "../assets/Stock_User.jpg"
 import "./styles/tailwind.css";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [addresses, setAddresses] = useState([]);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndAddress = async () => {
       try {
+        // ✅ Get authenticated user
         const { data, error } = await supabase.auth.getUser();
-
+  
         if (error || !data.user) {
           navigate("/login");
           return;
         }
-
+  
         const authUser = data.user;
-
+  
+        // ✅ Get profile details
         const { data: profileDetails } = await supabase
           .from("user_profiles")
           .select("*")
           .eq("user_id", authUser.id)
           .maybeSingle();
+  
+        // ✅ Get session (for token)
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
 
+        console.log("FRONTEND TOKEN:", token);
+  
+        // ✅ Fetch addresses from YOUR BACKEND
+        const res = await fetch("http://localhost:3000/api/addresses", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+  
+        if (!res.ok) {
+          throw new Error("Failed to fetch addresses");
+        }
+  
+        const addressData = await res.json();
+  
         setUser({
           ...authUser,
           ...(profileDetails || {}),
         });
+  
+        setAddresses(addressData);
+  
       } catch (err) {
         console.error(err);
         navigate("/login");
@@ -37,9 +65,12 @@ const Profile = () => {
         setLoading(false);
       }
     };
-
-    fetchUser();
+  
+    fetchUserAndAddress();
   }, [navigate]);
+
+  
+  
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -62,8 +93,21 @@ const Profile = () => {
     );
   }
 
-  const initials =
-    (user.first_name?.[0] || "") + (user.last_name?.[0] || "");
+  function getRoleLabel(userRole){
+    switch (user.role) {
+      case "storeowner":
+        return "Store Owner";
+      case "customer":
+        return "Customer";
+      case "admin":
+        return "Admin";
+      case "rider":
+        return "Rider";
+      default:
+        return "Guest";
+    }
+  }
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-start p-6">
@@ -72,9 +116,11 @@ const Profile = () => {
         {/* HEADER */}
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white text-blue-600 flex items-center justify-center text-xl font-bold">
-              {initials || "U"}
-            </div>
+            <img
+              src={user?.profile_image || DefaultProfile}
+              alt="Profile"
+              className="w-16 h-16 rounded-full object-cover"
+            />
 
             <div>
               <h2 className="text-xl font-bold">
@@ -83,7 +129,7 @@ const Profile = () => {
               <p className="text-sm opacity-90">{user.email}</p>
 
               <span className="inline-block mt-1 px-2 py-1 text-xs bg-white text-blue-600 rounded-full font-medium">
-                {user.role || "No role"}
+                {getRoleLabel(user.role)}
               </span>
             </div>
           </div>
@@ -139,6 +185,31 @@ const Profile = () => {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* ADDRESS INFO */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+              Addresses
+            </h3>
+
+            {addresses.length === 0 ? (
+              <p className="text-gray-500 text-sm">No addresses found</p>
+            ) : (
+              <div className="space-y-3">
+                {addresses.map((addr) => (
+                  <div
+                    key={addr.address_id}
+                    className="p-3 bg-gray-50 rounded-lg text-sm"
+                  >
+                    <p className="font-medium">{addr.address_line}</p>
+                    <p className="text-gray-500 text-xs">
+                      Lat: {addr.latitude} | Lng: {addr.longitude}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ACTIONS */}
