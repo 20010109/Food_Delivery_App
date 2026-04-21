@@ -1,8 +1,8 @@
 import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from './components/navbar.jsx';
-import CustomerDashboard from './components/customerDashboard.jsx';
+import Navbar from './components/Navbar.jsx';
+import CustomerDashboard from './components/CustomerDashboard.jsx';
 import './styles/tailwind.css'
 
 function HomePage() {

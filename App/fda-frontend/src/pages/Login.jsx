@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../utils/supabase.js";
 import { useNavigate } from "react-router-dom";
-import "./styles/tailwind.css";
 import slide1 from "../assets/slide1.jpg";
 import slide2 from "../assets/slide2.jpg";
 import slide3 from "../assets/slide3.jpg";
@@ -10,8 +9,9 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+
   const slides = [slide1, slide2, slide3];
   const navigate = useNavigate();
 
@@ -24,97 +24,83 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-  
+    setIsLoading(true);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-  
+
     if (error) {
       alert(error.message);
+      setIsLoading(false);
       return;
     }
-  
+
     const user = data.user;
-  
-    // ❌ Email not verified
+
     if (!user.email_confirmed_at) {
       alert("Please verify your email first.");
+      setIsLoading(false);
       return;
     }
-  
-    // ✅ Check if profile exists
+
     const { data: profile, error: profileError } = await supabase
       .from("user_profiles")
       .select("*")
       .eq("user_id", user.id)
       .single();
-  
+
     if (profileError || !profile) {
-      // 🚀 No profile → go to setup page
       navigate("/usersetup");
     } else {
-      // ✅ Profile exists → go home
       navigate("/home");
     }
+
+    setIsLoading(false);
   };
 
   return (
-    <div className="h-screen bg-gray-100 flex items-center justify-center">
-      <div className="flex w-[55%] max-w-[1200px] h-[65%] bg-gray-50 rounded-4xl shadow-lg overflow-hidden flex-col md:flex-row">
-  
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="flex flex-col md:flex-row bg-white rounded-4xl shadow-lg overflow-hidden w-[90%] max-w-4xl h-[1000px] md:h-[600px]">
+
         {/* LEFT SIDE */}
-        <div className="flex-1 p-10 flex flex-col justify-center bg-white">
-          <h2 className="text-4xl font-bold mb-2 text-gray-800 text-center">
-            Welcome Back!
-          </h2>
-  
-          <p className="mb-5 text-gray-500 text-center pb-6">
-            Sign in with your email and password
+        <div className="flex-1 p-8 flex flex-col gap-4 justify-center">
+          <h2 className="text-4xl font-bold text-center">Welcome Back</h2>
+          <p className="text-sm text-gray-500 text-center -mt-2">
+            Login with your email and password
           </p>
-  
-          <form onSubmit={handleLogin} className="flex flex-col">
+
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mb-4 p-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
-  
+
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mb-4 p-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
-  
+
             {/* OPTIONS */}
-            <div className="flex justify-between text-xs mb-4 rounded-xl">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
+            <div className="flex justify-between text-xs">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
-                  className="sr-only"
                 />
-                <div
-                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-                    remember ? "bg-red-600 border-red-600" : "bg-white border-gray-400"
-                  }`}
-                >
-                  {remember && (
-                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </div>
                 Remember me
               </label>
-  
+
               <span
                 className="text-red-500 cursor-pointer"
                 onClick={() => navigate("/reset-password")}
@@ -122,24 +108,26 @@ export default function Login() {
                 Forgot password?
               </span>
             </div>
-  
+
             {/* LOGIN BUTTON */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-full bg-red-600 text-white font-bold text-lg hover:bg-red-800 transition"
+              disabled={isLoading}
+              className={`bg-red-600 text-white rounded-full py-2 font-semibold hover:bg-red-700 transition ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              {loading ? "Logging in..." : "Login"}
+              {isLoading ? "Logging in..." : "Login"}
             </button>
           </form>
-  
+
           {/* DIVIDER */}
-          <div className="flex items-center my-4">
-            <span className="flex-1 h-px bg-gray-400"></span>
-            <p className="mx-3 text-xs">or login with</p>
-            <span className="flex-1 h-px bg-gray-400"></span>
+          <div className="flex items-center">
+            <span className="flex-1 h-px bg-gray-300"></span>
+            <p className="mx-3 text-xs text-gray-400">or continue with</p>
+            <span className="flex-1 h-px bg-gray-300"></span>
           </div>
-  
+
           {/* SOCIAL BUTTONS */}
           <div className="flex gap-2">
             <button className="flex-1 py-2 rounded-full bg-white shadow text-sm hover:bg-gray-100 flex flex-row items-center justify-center gap-2">
@@ -164,20 +152,20 @@ export default function Login() {
               <span>Apple</span>
             </button>
           </div>
-  
+
           {/* REGISTER */}
-          <p className="text-xs text-center mt-4">
+          <p className="text-xs text-center text-gray-500">
             Don’t have an account?{" "}
             <span
               className="text-red-500 cursor-pointer"
               onClick={() => navigate("/signup")}
             >
-              Register Now
+              Register
             </span>
           </p>
         </div>
-  
-        {/* RIGHT SIDE */}
+
+        {/* RIGHT SIDE (UNCHANGED) */}
         <div className="flex-1 relative bg-gray-200 overflow-hidden">
           <div
             className="absolute inset-0 flex transition-transform duration-700 ease-in-out"
@@ -192,18 +180,20 @@ export default function Login() {
               />
             ))}
           </div>
+
           <div className="absolute bottom-4 flex gap-2 justify-center w-full">
             {slides.map((_, i) => (
               <span
                 key={i}
-                className={`w-3 h-3 rounded-full cursor-pointer ${
-                  i === currentSlide ? "bg-red-600" : "bg-gray-400"
-                }`}
                 onClick={() => setCurrentSlide(i)}
+                className={`w-3 h-3 rounded-full cursor-pointer ${
+                  i === currentSlide ? "bg-red-600" : "bg-gray-500"
+                }`}
               ></span>
             ))}
           </div>
         </div>
+
       </div>
     </div>
   );

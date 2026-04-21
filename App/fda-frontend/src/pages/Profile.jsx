@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../utils/supabase.js";
+import DefaultProfile from "../assets/Stock_User.jpg"
 import "./styles/tailwind.css";
 
 const Profile = () => {
@@ -92,8 +93,21 @@ const Profile = () => {
     );
   }
 
-  const initials =
-    (user.first_name?.[0] || "") + (user.last_name?.[0] || "");
+  function getRoleLabel(userRole){
+    switch (user.role) {
+      case "storeowner":
+        return "Store Owner";
+      case "customer":
+        return "Customer";
+      case "admin":
+        return "Admin";
+      case "rider":
+        return "Rider";
+      default:
+        return "Guest";
+    }
+  }
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-start p-6">
@@ -102,9 +116,11 @@ const Profile = () => {
         {/* HEADER */}
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white text-blue-600 flex items-center justify-center text-xl font-bold">
-              {initials || "U"}
-            </div>
+            <img
+              src={user?.profile_image || DefaultProfile}
+              alt="Profile"
+              className="w-16 h-16 rounded-full object-cover"
+            />
 
             <div>
               <h2 className="text-xl font-bold">
@@ -113,7 +129,7 @@ const Profile = () => {
               <p className="text-sm opacity-90">{user.email}</p>
 
               <span className="inline-block mt-1 px-2 py-1 text-xs bg-white text-blue-600 rounded-full font-medium">
-                {user.role || "No role"}
+                {getRoleLabel(user.role)}
               </span>
             </div>
           </div>

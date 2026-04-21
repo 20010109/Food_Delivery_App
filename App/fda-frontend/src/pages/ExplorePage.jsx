@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "./components/navbar.jsx";
+import Navbar from "./components/Navbar.jsx";
 import CartDrawer from "./components/CartDrawer";
 import TopBar from "./components/TopBar.jsx";
 import AddressModal from "./components/AddressModal.jsx";

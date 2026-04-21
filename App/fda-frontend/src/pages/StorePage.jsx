@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Navbar from "./components/navbar.jsx";
+import Navbar from "./components/Navbar.jsx";
 import AddToCartModal from "./components/AddToCartModal.jsx";
 
 import { storeData } from "./dummyData/storeData.js";

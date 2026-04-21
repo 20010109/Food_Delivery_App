@@ -5,7 +5,7 @@ import "../styles/tailwind.css";
 
 import CategoryCarousel from "./CategoryCarousel.jsx";
 import TopBar from "./TopBar.jsx";
-import CartDrawer from "./CartDrawer";
+import CartDrawer from "./CartDrawer.jsx";
 import AddressModal from "./AddressModal.jsx";
 import { getPrimaryAddress } from "../../utils/addressApi.js";
 
