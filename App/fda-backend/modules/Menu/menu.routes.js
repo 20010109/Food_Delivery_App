@@ -7,14 +7,14 @@ const router = express.Router();
 
 const storeownerOnly = [authenticate, roleCheck("storeowner")];
 
+// PUBLIC
+router.get("/public/:restaurantId", menuController.getPublicMenu);
+
 // CREATE
 router.post("/", ...storeownerOnly, menuController.createItem);
 
 // GET OWN MENU
 router.get("/:restaurantId", ...storeownerOnly, menuController.getItems);
-
-// PUBLIC
-router.get("/public/:restaurantId", menuController.getPublicMenu);
 
 // UPDATE
 router.put("/:itemId", ...storeownerOnly, menuController.updateItem);

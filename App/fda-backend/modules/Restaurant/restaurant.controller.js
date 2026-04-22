@@ -28,6 +28,10 @@ export const getMyRestaurants = async (req, res) => {
 
 export const updateRestaurant = async (req, res) => {
   try {
+    // console.log("UPDATE BODY:", req.body);
+    // console.log("PARAM ID:", req.params.restaurant_id);
+    // console.log("USER ID:", req.user.id);
+
     const updated = await service.updateRestaurant(
       req.supabase,
       req.params.restaurant_id,
@@ -54,14 +58,13 @@ export const deleteRestaurant = async (req, res) => {
 };
 
 // PUBLIC (no role check needed)
-export const getApprovedRestaurants = async (supabase) => {
-  const { data, error } = await supabase
-    .from("restaurants")
-    .select("*")
-    .eq("status", "approved");
-
-  if (error) throw error;
-  return data;
+export const getApprovedRestaurants = async (req, res) => {
+  try {
+    const data = await service.getApprovedRestaurants(req.supabase);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 export const getRestaurantById = async (req, res) => {
