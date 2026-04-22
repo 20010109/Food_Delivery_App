@@ -379,7 +379,7 @@ export const menuData = [
     price: 195,
     description: "Espresso with steamed milk and caramel drizzle",
     image_url:
-      "https://images.unsplash.com/photo-1485808191679-5f86510bd9d4?w=400&h=300&fit=crop",
+      "https://www.starbucksathome.com/au/sites/default/files/2024-08/Caramel%20Macchiato_1842x1542_No%20Shadow.png",
     category: "Coffee",
     rating: 4.9,
     reviews: 1200,
@@ -393,7 +393,7 @@ export const menuData = [
     price: 215,
     description: "Blended matcha with milk and whipped cream",
     image_url:
-      "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=300&fit=crop",
+      "https://imgix.bustle.com/uploads/image/2024/3/13/71a23208-7b03-4949-9d7e-3d897dc28d3c-starbucks-luck-of-the-matcha-creme-frappuccino.jpg",
     category: "Frappuccino",
     rating: 4.8,
     reviews: 940,
@@ -407,7 +407,7 @@ export const menuData = [
     price: 95,
     description: "Moist chocolate cake on a stick",
     image_url:
-      "https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?w=400&h=300&fit=crop",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK_rxi8seaEEunP3iiKTjHFy4ZuDPLV9bC-g&s",
     category: "Dessert",
     rating: 4.6,
     reviews: 410,
