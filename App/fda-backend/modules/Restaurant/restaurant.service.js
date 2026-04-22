@@ -37,6 +37,8 @@ export const getRestaurantsByOwner = async (supabase, userId) => {
 
 // UPDATE
 export const updateRestaurant = async (supabase, restaurantId, userId, payload) => {
+  // console.log("Updating ID:", restaurantId);
+  // console.log("User ID:", userId);
   const { data, error } = await supabase
     .from(TABLE)
     .update(payload)
@@ -45,6 +47,7 @@ export const updateRestaurant = async (supabase, restaurantId, userId, payload) 
     .select()
     .single();
 
+    //console.log("UPDATE RESULT:", data);
   if (error) throw error;
   return data;
 };

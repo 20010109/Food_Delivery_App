@@ -15,12 +15,14 @@ export const roleCheck = (requiredRoles) => {
         .eq("user_id", req.user.id)
         .maybeSingle();
 
-        console.log("ROLE CHECK DEBUG:");
-        console.log("USER ID:", req.user.id);
-        console.log("DATA:", data);
-        console.log("ERROR:", error);
-        const test = await req.supabase.auth.getUser();
-        console.log("AUTH INSIDE SUPABASE:", test);
+        console.log("Role check in use...")
+
+        // console.log("ROLE CHECK DEBUG:");
+        // console.log("USER ID:", req.user.id);
+        // console.log("DATA:", data);
+        // console.log("ERROR:", error);
+        // const test = await req.supabase.auth.getUser();
+        // console.log("AUTH INSIDE SUPABASE:", test);
 
       if (error || !data) {
         return res.status(403).json({ error: "No profile found" });

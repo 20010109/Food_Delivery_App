@@ -5,18 +5,25 @@ import * as menuService from "./menu.service.js";
  */
 export const createItem = async (req, res) => {
   try {
-    const { restaurantId, ...payload } = req.body;
+    const restaurant_id = req.body.restaurant_id || req.body.restaurantId;
 
-    // console.log("BODY:", req.body);
-    // console.log("USER:", req.user);
+    if (!restaurant_id) {
+      throw new Error("restaurant_id is required");
+    }
+
+    const payload = {
+      name: req.body.name,
+      price: req.body.price,
+      description: req.body.description,
+      item_image: req.body.item_image,
+    };
 
     const data = await menuService.createMenuItem(
       req.supabase,
       req.user.id,
-      restaurantId,
+      restaurant_id,
       payload
     );
-    
 
     return res.status(201).json(data);
   } catch (err) {
@@ -29,12 +36,12 @@ export const createItem = async (req, res) => {
  */
 export const getItems = async (req, res) => {
   try {
-    const { restaurantId } = req.params;
+    const restaurant_id = req.params.restaurantId;
 
     const data = await menuService.getMenuItems(
       req.supabase,
       req.user.id,
-      restaurantId
+      restaurant_id
     );
 
     return res.status(200).json(data);

@@ -33,7 +33,10 @@ export const createMenuItem = async (client, userId, restaurantId, payload) => {
 
   const { data, error } = await client
     .from("menu_items")
-    .insert([{ ...payload, restaurant_id: restaurantId }])
+    .insert([{
+      ...payload,
+      restaurant_id: restaurantId
+    }])
     .select()
     .single();
 
