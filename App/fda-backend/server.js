@@ -6,6 +6,7 @@ import userRoute from "./modules/User/user.routes.js";
 import restaurantRoute from "./modules/Restaurant/restaurant.routes.js";
 import addressRoute from "./modules/Address/address.routes.js";                             
 import menuRoute from "./modules/Menu/menu.routes.js"; 
+import orderRoute from "./modules/Order/order.routes.js";
 
 import { supabase } from "./config/supabase.js";
 
@@ -22,16 +23,16 @@ app.use(express.json());
 
 // auth routes
 app.use("/api/auth", authRoute);
-
 // user routes
 app.use("/api/users", userRoute);
-
 // restaurant routes
 app.use("/api/restaurants", restaurantRoute);                             
 // address routes
 app.use("/api/addresses", addressRoute);
 // menu routes
 app.use("/api/menu", menuRoute);
+// order routes
+app.use('/api/orders', orderRoute);
 
 
 // test route
