@@ -3,7 +3,7 @@
 -- =========================
 create type user_role as enum ('customer', 'admin', 'rider', 'storeowner');
 
-create type order_status as enum ('pending', 'preparing', 'completed', 'cancelled');
+create type order_status as enum ('pending', 'preparing', 'out_for_delivery', 'completed', 'cancelled' );
 
 create type payment_method as enum ('gcash', 'cash', 'card');
 
