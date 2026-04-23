@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { LuX, LuArrowRight, LuMapPin } from "react-icons/lu";
-import { getPrimaryAddress, savePrimaryAddress } from "../../utils/addressApi.js";
+import { getPrimaryAddress, createUserAddress } from "../../utils/addressApi.js";
 
 export default function AddressModal({
   open,
@@ -47,7 +47,7 @@ export default function AddressModal({
       setLoading(true);
       setError("");
 
-      const saved = await savePrimaryAddress(trimmed);
+      const saved = await createUserAddress(trimmed);
       setSavedAddress(saved);
 
       if (onSave) {
@@ -107,9 +107,7 @@ export default function AddressModal({
               </button>
             </div>
 
-            {error && (
-              <p className="mt-3 text-sm text-red-500">{error}</p>
-            )}
+            {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
 
             <div className="mt-4">
               <p className="text-sm font-semibold text-gray-700 mb-2">
@@ -136,8 +134,6 @@ export default function AddressModal({
                 </button>
               </div>
             </div>
-
-            {/* TODO (backend/settings): later support multiple saved addresses if needed */}
           </>
         )}
       </div>
