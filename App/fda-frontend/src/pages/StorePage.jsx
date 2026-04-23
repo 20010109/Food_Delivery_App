@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  IoHeart,
+  IoHeartOutline,
+} from "react-icons/io5";
+import {
+  LuPhone,
+  LuMinus,
+  LuPlus,
+  LuTrash2,
+} from "react-icons/lu";
+
 import Navbar from "./components/Navbar.jsx";
 import AddToCartModal from "./components/AddToCartModal.jsx";
 
@@ -41,16 +52,11 @@ export default function StorePage() {
     [storeId]
   );
 
-  // CART
   const { cart, addToCart, updateQty, removeItem } = useCart();
 
-  const storeCart =
-    cart.find((s) => s.storeId === storeId)?.items || [];
+  const storeCart = cart.find((s) => s.storeId === storeId)?.items || [];
 
-  const subtotal = storeCart.reduce(
-    (sum, i) => sum + i.price * i.qty,
-    0
-  );
+  const subtotal = storeCart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -75,7 +81,10 @@ export default function StorePage() {
     const favs = readLSArray(LS_FAV_STORES_KEY);
 
     if (favs.includes(storeId)) {
-      writeLSArray(LS_FAV_STORES_KEY, favs.filter((x) => x !== storeId));
+      writeLSArray(
+        LS_FAV_STORES_KEY,
+        favs.filter((x) => x !== storeId)
+      );
       setIsFavStore(false);
     } else {
       writeLSArray(LS_FAV_STORES_KEY, [...favs, storeId]);
@@ -103,56 +112,75 @@ export default function StorePage() {
       <Navbar />
 
       <main className="flex-1 overflow-y-auto">
-
         {/* HEADER */}
-        <div className="bg-white shadow">
+        <div className="bg-white shadow-sm border-b border-gray-200">
           <img
             src={store.banner_url || store.image_url}
             className="w-full h-64 object-cover"
             alt={store.name}
           />
 
-          <div className="p-6 flex justify-between">
+          <div className="p-6 flex items-start justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-bold">{store.name}</h1>
-              <p className="text-gray-500">
-                📞 {store.contact_info}
-              </p>
+              <h1 className="text-3xl font-bold text-gray-900">{store.name}</h1>
+
+              <div className="mt-2 flex items-center gap-2 text-gray-500">
+                <LuPhone className="text-red-500" />
+                <span>{store.contact_info}</span>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500">
+                <span>{store.cuisine}</span>
+                <span>•</span>
+                <span>{store.price_range}</span>
+                <span>•</span>
+                <span>⭐ {store.rating}</span>
+                <span>({store.reviews})</span>
+                <span>•</span>
+                <span>{store.delivery_time}</span>
+              </div>
             </div>
 
             <button
               onClick={toggleStoreFav}
-              className={`px-4 py-2 rounded-lg border ${
-                isFavStore
-                  ? "bg-red-600 text-white border-red-600"
-                  : "bg-white"
-              }`}
+              className="shrink-0 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
             >
-              {isFavStore ? "Favourited ✓" : "Add to favourites"}
+              {isFavStore ? (
+                <>
+                  <IoHeart className="text-red-500 text-lg" />
+                  <span>Favourited</span>
+                </>
+              ) : (
+                <>
+                  <IoHeartOutline className="text-gray-400 text-lg" />
+                  <span>Add to favourites</span>
+                </>
+              )}
             </button>
           </div>
         </div>
 
         {/* CONTENT */}
         <div className="p-6 grid grid-cols-12 gap-6">
-
           {/* MENU */}
-          <div className="col-span-8 grid grid-cols-2 gap-4">
+          <div className="col-span-8 grid grid-cols-2 gap-5">
             {menu.map((item) => (
               <div
                 key={item.item_id}
-                className="bg-white rounded-xl border p-3"
+                className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition"
               >
                 <img
                   src={item.image_url}
-                  className="h-40 w-full object-cover rounded"
+                  className="h-44 w-full object-cover rounded-xl"
                   alt={item.name}
                 />
 
-                <div className="mt-2 flex justify-between">
-                  <div>
-                    <h3 className="font-semibold">{item.name}</h3>
-                    <p className="text-sm text-gray-500">
+                <div className="mt-4 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      {item.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
                       {item.description}
                     </p>
                   </div>
@@ -160,20 +188,20 @@ export default function StorePage() {
                   <button
                     type="button"
                     onClick={() => toggleDishFav(item.item_id)}
-                    className={`h-10 w-10 flex items-center justify-center rounded-full transition
-                      ${isDishFav(item.item_id) ? "text-red-600" : "text-gray-400 hover:text-red-500"}
-                      hover:bg-red-50`}
+                    className="h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 flex items-center justify-center transition"
                     aria-label="Toggle favourite"
                     title="Favourite"
                   >
-                    <span className="text-2xl leading-none">
-                      {isDishFav(item.item_id) ? "♥" : "♡"}
-                    </span>
+                    {isDishFav(item.item_id) ? (
+                      <IoHeart className="text-red-500 text-xl" />
+                    ) : (
+                      <IoHeartOutline className="text-gray-400 text-xl" />
+                    )}
                   </button>
                 </div>
 
-                <div className="flex justify-between mt-3">
-                  <span className="font-bold text-green-600">
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="font-bold text-2xl text-green-600">
                     ₱{item.price}
                   </span>
 
@@ -182,9 +210,9 @@ export default function StorePage() {
                       setSelectedItem(item);
                       setModalOpen(true);
                     }}
-                    className="bg-red-600 text-white px-3 py-1 rounded"
+                    className="h-12 w-12 rounded-xl bg-red-600 text-white hover:bg-red-700 flex items-center justify-center transition"
                   >
-                    +
+                    <LuPlus className="text-xl" />
                   </button>
                 </div>
               </div>
@@ -192,61 +220,80 @@ export default function StorePage() {
           </div>
 
           {/* CART */}
-          <div className="col-span-4 bg-white p-4 rounded-xl border sticky top-6">
-            <h2 className="font-bold mb-3">Your Items</h2>
+          <div className="col-span-4 bg-white p-5 rounded-2xl border border-gray-200 sticky top-6 h-fit shadow-sm">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Items</h2>
 
             {storeCart.length === 0 ? (
               <p className="text-gray-400">Cart is empty</p>
             ) : (
-              storeCart.map((ci) => (
-                <div key={ci.id} className="flex justify-between mb-2">
-                  <div>
-                    <p className="font-semibold">{ci.name}</p>
-                    <p className="text-sm text-gray-500">
-                      ₱{ci.price} x {ci.qty}
-                    </p>
+              <div className="space-y-4">
+                {storeCart.map((ci) => (
+                  <div
+                    key={ci.id}
+                    className="rounded-xl border border-gray-200 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900">{ci.name}</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          ₱{ci.price} x {ci.qty}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => removeItem(storeId, ci.id)}
+                        className="h-9 w-9 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 flex items-center justify-center transition"
+                        title="Remove item"
+                      >
+                        <LuTrash2 size={16} />
+                      </button>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="inline-flex items-center rounded-xl border border-gray-200 overflow-hidden">
+                        <button
+                          onClick={() => updateQty(storeId, ci.id, ci.qty - 1)}
+                          className="h-10 w-10 flex items-center justify-center hover:bg-gray-50 transition"
+                          title="Decrease quantity"
+                        >
+                          <LuMinus size={16} />
+                        </button>
+
+                        <div className="w-10 text-center font-semibold text-gray-900">
+                          {ci.qty}
+                        </div>
+
+                        <button
+                          onClick={() => updateQty(storeId, ci.id, ci.qty + 1)}
+                          className="h-10 w-10 flex items-center justify-center hover:bg-gray-50 transition"
+                          title="Increase quantity"
+                        >
+                          <LuPlus size={16} />
+                        </button>
+                      </div>
+
+                      <div className="font-semibold text-gray-900">
+                        ₱{ci.price * ci.qty}
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        updateQty(storeId, ci.id, ci.qty - 1)
-                      }
-                    >
-                      -
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        updateQty(storeId, ci.id, ci.qty + 1)
-                      }
-                    >
-                      +
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        removeItem(storeId, ci.id)
-                      }
-                    >
-                      x
-                    </button>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
 
-            <div className="mt-4 font-bold">
-              Subtotal: ₱{subtotal}
-            </div>
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between text-xl font-bold text-gray-900">
+                <span>Subtotal</span>
+                <span>₱{subtotal}</span>
+              </div>
 
-            {/* ✅ UPDATED BUTTON */}
-            <button
-              onClick={() => navigate("/checkout")}
-              className="w-full bg-red-600 text-white py-3 rounded-lg mt-3"
-            >
-              Proceed to Checkout
-            </button>
+              <button
+                onClick={() => navigate("/checkout")}
+                className="w-full bg-red-600 text-white py-3 rounded-xl mt-4 font-semibold hover:bg-red-700 transition"
+              >
+                Proceed to Checkout
+              </button>
+            </div>
           </div>
         </div>
 
