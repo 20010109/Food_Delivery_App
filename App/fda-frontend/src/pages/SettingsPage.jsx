@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   LuChevronRight,
-  LuCircleUserRound,
   LuMapPinned,
   LuBadgePercent,
   LuCreditCard,
@@ -15,11 +14,28 @@ import TopBar from "./components/TopBar.jsx";
 import SavedAddressModal from "./components/SavedAddressModal.jsx";
 import MarketingPreferencesModal from "./components/MarketingPreferencesModal.jsx";
 
+const LS_SELECTED_ADDRESS_KEY = "grubero_selected_address";
+
 export default function SettingsPage() {
   const [query, setQuery] = useState("");
 
   const [addressOpen, setAddressOpen] = useState(false);
   const [marketingOpen, setMarketingOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState("Set address");
+
+  useEffect(() => {
+    const saved = localStorage.getItem(LS_SELECTED_ADDRESS_KEY);
+    if (saved) {
+      setSelectedAddress(saved);
+    }
+  }, []);
+
+  const handleAddressChange = (newAddress) => {
+    const nextAddress = newAddress || "Set address";
+    setSelectedAddress(nextAddress);
+    localStorage.setItem(LS_SELECTED_ADDRESS_KEY, nextAddress);
+    setAddressOpen(false);
+  };
 
   const settingsGroups = [
     {
@@ -28,11 +44,16 @@ export default function SettingsPage() {
         {
           label: "Saved Addresses",
           icon: <LuMapPinned className="text-gray-600" />,
+          description:
+            selectedAddress && selectedAddress !== "Set address"
+              ? selectedAddress
+              : "Manage your saved addresses",
           onClick: () => setAddressOpen(true),
         },
         {
           label: "Marketing Preferences",
           icon: <LuBadgePercent className="text-gray-600" />,
+          description: "Email updates, promos, and notifications",
           onClick: () => setMarketingOpen(true),
         },
       ],
@@ -43,11 +64,13 @@ export default function SettingsPage() {
         {
           label: "Payment Methods",
           icon: <LuCreditCard className="text-gray-600" />,
+          description: "Manage your payment options",
           onClick: () => alert("Payment methods not connected yet"),
         },
         {
           label: "My Cards",
           icon: <LuWallet className="text-gray-600" />,
+          description: "View saved cards",
           onClick: () => alert("Cards not connected yet"),
         },
       ],
@@ -58,11 +81,13 @@ export default function SettingsPage() {
         {
           label: "Support",
           icon: <LuLifeBuoy className="text-gray-600" />,
+          description: "Get help and contact support",
           onClick: () => alert("Support page not connected yet"),
         },
         {
           label: "Discounts",
           icon: <LuTags className="text-gray-600" />,
+          description: "View your available deals",
           onClick: () => alert("Discounts page not connected yet"),
         },
       ],
@@ -83,8 +108,8 @@ export default function SettingsPage() {
             showAddressButton={false}
           />
 
-          <div className="w-full max-w-8xl">
-            <h1 className="text-3xl font-bold mb-6">Settings</h1>
+          <div className="w-full max-w-7xl">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">Settings</h1>
 
             <div className="space-y-8">
               {settingsGroups.map((group) => (
@@ -101,14 +126,22 @@ export default function SettingsPage() {
                         onClick={item.onClick}
                         className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition text-left"
                       >
-                        <div className="flex items-center gap-3">
-                          {item.icon}
-                          <span className="text-gray-800 font-medium">
-                            {item.label}
-                          </span>
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5">{item.icon}</div>
+
+                          <div>
+                            <span className="block text-gray-800 font-medium">
+                              {item.label}
+                            </span>
+                            {item.description && (
+                              <span className="block text-sm text-gray-500 mt-1">
+                                {item.description}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
-                        <LuChevronRight className="text-gray-400" />
+                        <LuChevronRight className="text-gray-400 shrink-0" />
                       </button>
                     ))}
                   </div>
@@ -117,13 +150,10 @@ export default function SettingsPage() {
             </div>
           </div>
 
-
           <SavedAddressModal
             open={addressOpen}
             onClose={() => setAddressOpen(false)}
-            onSaved={() => {
-              // later we can trigger a shared refresh here
-            }}
+            onAddressChange={handleAddressChange}
           />
 
           <MarketingPreferencesModal
