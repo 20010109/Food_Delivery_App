@@ -65,7 +65,7 @@ function StoreOwnerCreateStoreModal({ open, onClose, onSuccess }) {
 
       // create restaurant
       const res = await fetch(
-        "http://localhost:3000/api/restaurants/create",
+        "http://localhost:3000/api/restaurants/storeowner/create",
         {
           method: "POST",
           headers: {

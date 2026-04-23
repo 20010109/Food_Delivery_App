@@ -13,9 +13,6 @@ import {
 
 import Navbar from "./components/Navbar.jsx";
 import AddToCartModal from "./components/AddToCartModal.jsx";
-
-import { storeData } from "./dummyData/storeData.js";
-import { menuData } from "./dummyData/menuData.js";
 import "./styles/tailwind.css";
 
 import { useCart } from "../context/CartContext";
@@ -40,23 +37,22 @@ function writeLSArray(key, arr) {
 export default function StorePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const storeId = Number(id);
 
-  const store = useMemo(
-    () => storeData.find((s) => s.restaurant_id === storeId),
-    [storeId]
-  );
+  const storeId = id;
 
-  const menu = useMemo(
-    () => menuData.filter((m) => m.restaurant_id === storeId),
-    [storeId]
-  );
+  const [store, setStore] = useState(null);
+  const [menu, setMenu] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const { cart, addToCart, updateQty, removeItem } = useCart();
 
-  const storeCart = cart.find((s) => s.storeId === storeId)?.items || [];
+  const storeCart =
+    cart.find((s) => s.storeId === storeId)?.items || [];
 
-  const subtotal = storeCart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const subtotal = storeCart.reduce(
+    (sum, i) => sum + i.price * i.qty,
+    0
+  );
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -64,10 +60,53 @@ export default function StorePage() {
   const [isFavStore, setIsFavStore] = useState(false);
   const [, forceRerender] = useState(0);
 
+  // FETCH
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const res = await fetch(
+          `http://localhost:3000/api/restaurants/${storeId}`
+        );
+
+        if (!res.ok) throw new Error("Store fetch failed");
+
+        const storeData = await res.json();
+        setStore(storeData);
+
+        const menuRes = await fetch(
+          `http://localhost:3000/api/menu/public/${storeId}`
+        );
+
+        if (!menuRes.ok) throw new Error("Menu fetch failed");
+
+        const menuData = await menuRes.json();
+        setMenu(menuData || []);
+      } catch (err) {
+        console.error(err.message);
+        setStore(null);
+        setMenu([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [storeId]);
+
   useEffect(() => {
     const favStores = readLSArray(LS_FAV_STORES_KEY);
     setIsFavStore(favStores.includes(storeId));
   }, [storeId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500">
+        Loading store...
+      </div>
+    );
+  }
 
   if (!store) {
     return (
@@ -112,17 +151,20 @@ export default function StorePage() {
       <Navbar />
 
       <main className="flex-1 overflow-y-auto">
-        {/* HEADER */}
+
+        {/* HEADER (UNCHANGED STRUCTURE) */}
         <div className="bg-white shadow-sm border-b border-gray-200">
           <img
-            src={store.banner_url || store.image_url}
+            src={store.background_image || store.profile_image}
             className="w-full h-64 object-cover"
             alt={store.name}
           />
 
           <div className="p-6 flex items-start justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{store.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {store.name}
+              </h1>
 
               <div className="mt-2 flex items-center gap-2 text-gray-500">
                 <LuPhone className="text-red-500" />
@@ -130,14 +172,14 @@ export default function StorePage() {
               </div>
 
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500">
-                <span>{store.cuisine}</span>
+                <span>Cuisine: {store.cuisine || "Not specified"}</span>
                 <span>•</span>
-                <span>{store.price_range}</span>
+                <span>Price Range: {store.price_range || "Not specified"}</span>
                 <span>•</span>
-                <span>⭐ {store.rating}</span>
-                <span>({store.reviews})</span>
-                <span>•</span>
-                <span>{store.delivery_time}</span>
+                <span>Rating: ⭐ {store.rating || "Not specified"}</span>
+                <span>Reviews: {store.reviews || "Not specified"}</span>
+                <span>•</span> 
+                <span>Delivery Time: {store.delivery_time || "20-30 mins"}</span>
               </div>
             </div>
 
@@ -160,8 +202,9 @@ export default function StorePage() {
           </div>
         </div>
 
-        {/* CONTENT */}
+        {/* CONTENT (UNCHANGED GRID STRUCTURE) */}
         <div className="p-6 grid grid-cols-12 gap-6">
+
           {/* MENU */}
           <div className="col-span-8 grid grid-cols-2 gap-5">
             {menu.map((item) => (
@@ -170,7 +213,7 @@ export default function StorePage() {
                 className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition"
               >
                 <img
-                  src={item.image_url}
+                  src={item.item_image}
                   className="h-44 w-full object-cover rounded-xl"
                   alt={item.name}
                 />
@@ -186,16 +229,13 @@ export default function StorePage() {
                   </div>
 
                   <button
-                    type="button"
                     onClick={() => toggleDishFav(item.item_id)}
-                    className="h-10 w-10 shrink-0 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 flex items-center justify-center transition"
-                    aria-label="Toggle favourite"
-                    title="Favourite"
+                    className="h-10 w-10 rounded-full border border-gray-200 flex items-center justify-center"
                   >
                     {isDishFav(item.item_id) ? (
-                      <IoHeart className="text-red-500 text-xl" />
+                      <IoHeart className="text-red-500" />
                     ) : (
-                      <IoHeartOutline className="text-gray-400 text-xl" />
+                      <IoHeartOutline className="text-gray-400" />
                     )}
                   </button>
                 </div>
@@ -210,9 +250,9 @@ export default function StorePage() {
                       setSelectedItem(item);
                       setModalOpen(true);
                     }}
-                    className="h-12 w-12 rounded-xl bg-red-600 text-white hover:bg-red-700 flex items-center justify-center transition"
+                    className="h-12 w-12 rounded-xl bg-red-600 text-white flex items-center justify-center"
                   >
-                    <LuPlus className="text-xl" />
+                    <LuPlus />
                   </button>
                 </div>
               </div>
@@ -220,80 +260,33 @@ export default function StorePage() {
           </div>
 
           {/* CART */}
-          <div className="col-span-4 bg-white p-5 rounded-2xl border border-gray-200 sticky top-6 h-fit shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Items</h2>
+          <div className="col-span-4 bg-white p-5 rounded-2xl border border-gray-200 sticky top-6 h-fit">
+
+            <h2 className="text-2xl font-bold mb-4">Your Items</h2>
 
             {storeCart.length === 0 ? (
               <p className="text-gray-400">Cart is empty</p>
             ) : (
-              <div className="space-y-4">
-                {storeCart.map((ci) => (
-                  <div
-                    key={ci.id}
-                    className="rounded-xl border border-gray-200 p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900">{ci.name}</p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          ₱{ci.price} x {ci.qty}
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => removeItem(storeId, ci.id)}
-                        className="h-9 w-9 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 flex items-center justify-center transition"
-                        title="Remove item"
-                      >
-                        <LuTrash2 size={16} />
-                      </button>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="inline-flex items-center rounded-xl border border-gray-200 overflow-hidden">
-                        <button
-                          onClick={() => updateQty(storeId, ci.id, ci.qty - 1)}
-                          className="h-10 w-10 flex items-center justify-center hover:bg-gray-50 transition"
-                          title="Decrease quantity"
-                        >
-                          <LuMinus size={16} />
-                        </button>
-
-                        <div className="w-10 text-center font-semibold text-gray-900">
-                          {ci.qty}
-                        </div>
-
-                        <button
-                          onClick={() => updateQty(storeId, ci.id, ci.qty + 1)}
-                          className="h-10 w-10 flex items-center justify-center hover:bg-gray-50 transition"
-                          title="Increase quantity"
-                        >
-                          <LuPlus size={16} />
-                        </button>
-                      </div>
-
-                      <div className="font-semibold text-gray-900">
-                        ₱{ci.price * ci.qty}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              storeCart.map((ci) => (
+                <div key={ci.id} className="border p-4 rounded-xl mb-3">
+                  <p className="font-semibold">{ci.name}</p>
+                  <p className="text-sm text-gray-500">
+                    ₱{ci.price} x {ci.qty}
+                  </p>
+                </div>
+              ))
             )}
 
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <div className="flex items-center justify-between text-xl font-bold text-gray-900">
-                <span>Subtotal</span>
-                <span>₱{subtotal}</span>
-              </div>
-
-              <button
-                onClick={() => navigate("/checkout")}
-                className="w-full bg-red-600 text-white py-3 rounded-xl mt-4 font-semibold hover:bg-red-700 transition"
-              >
-                Proceed to Checkout
-              </button>
+            <div className="mt-6 border-t pt-4 font-bold text-xl">
+              Subtotal: ₱{subtotal}
             </div>
+
+            <button
+              onClick={() => navigate("/checkout")}
+              className="w-full bg-red-600 text-white py-3 rounded-xl mt-4"
+            >
+              Checkout
+            </button>
           </div>
         </div>
 
@@ -302,7 +295,7 @@ export default function StorePage() {
           open={modalOpen}
           item={selectedItem}
           onClose={() => setModalOpen(false)}
-          onConfirm={({ qty, notes, unavailableAction }) => {
+          onConfirm={({ qty }) => {
             if (!selectedItem) return;
 
             addToCart({
@@ -311,10 +304,8 @@ export default function StorePage() {
               id: selectedItem.item_id,
               name: selectedItem.name,
               price: selectedItem.price,
-              image_url: selectedItem.image_url,
+              item_image: selectedItem.item_image,
               qty,
-              notes,
-              unavailableAction: unavailableAction || "remove",
             });
 
             setModalOpen(false);

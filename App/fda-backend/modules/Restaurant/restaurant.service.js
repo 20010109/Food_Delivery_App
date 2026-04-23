@@ -74,11 +74,11 @@ export const getApprovedRestaurants = async () => {
   return data;
 };
 
-export const getRestaurantById = async (supabase, id) => {
+export const getRestaurantById = async (supabase, restaurantId) => {
   const { data, error } = await supabase
-    .from("restaurants")
+    .from(TABLE)
     .select("*")
-    .eq("restaurant_id", id)
+    .eq("restaurant_id", restaurantId)
     .eq("status", "approved") // 🔥 important for public access
     .single();
 
