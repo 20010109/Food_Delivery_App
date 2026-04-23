@@ -9,6 +9,7 @@ import { storeData } from "./dummyData/storeData.js";
 import { menuData } from "./dummyData/menuData.js";
 import { getPrimaryAddress } from "../utils/addressApi.js";
 import "./styles/tailwind.css";
+import SearchFiltersModal from "./components/SearchFiltersModal.jsx";
 
 const LS_FAV_STORES_KEY = "favStores";
 const LS_FAV_DISHES_KEY = "favDishes";
@@ -37,6 +38,8 @@ export default function ExplorePage() {
   const [favDishIds, setFavDishIds] = useState(() =>
     readLSArray(LS_FAV_DISHES_KEY)
   );
+  const [filters, setFilters] = useState({});
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     const loadAddress = async () => {
@@ -75,16 +78,30 @@ export default function ExplorePage() {
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return storeData;
+    let results = storeData;
 
-    return storeData.filter((s) => {
-      return (
+    if (filters.cuisine) {
+      results = results.filter((s) => s.cuisine === filters.cuisine);
+    }
+
+    if (filters.priceRange) {
+      results = results.filter((s) => s.price_range === filters.priceRange);
+    }
+
+    if (filters.deliveryTime) {
+      results = results.filter((s) => s.delivery_time === filters.deliveryTime);
+    }
+
+    if (q) {
+      results = results.filter((s) =>
         s.name.toLowerCase().includes(q) ||
         s.cuisine?.toLowerCase().includes(q) ||
         s.promo_tag?.toLowerCase().includes(q)
       );
-    });
-  }, [query]);
+    }
+
+    return results;
+  }, [query, filters]);
 
   const popularOrders = useMemo(() => {
     const merged = menuData
@@ -125,11 +142,18 @@ export default function ExplorePage() {
           <TopBar
             query={query}
             onQueryChange={setQuery}
-            onOpenFilters={() => alert("Filters not implemented yet")}
+            onOpenFilters={() => setFiltersOpen(true)}
             onOpenCart={() => setCartOpen(true)}
             showAddressButton={true}
             addressLabel={address || "Set address"}
             onOpenAddress={() => setIsEditingAddress(true)}
+          />
+
+          <SearchFiltersModal
+            open={filtersOpen}
+            onClose={() => setFiltersOpen(false)}
+            onApplyFilters={setFilters}
+            initialFilters={filters}
           />
 
           <AddressModal

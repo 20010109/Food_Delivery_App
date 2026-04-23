@@ -10,6 +10,7 @@ import TopBar from "./TopBar.jsx";
 import CartDrawer from "./CartDrawer.jsx";
 import AddressModal from "./AddressModal.jsx";
 import { getPrimaryAddress } from "../../utils/addressApi.js";
+import SearchFiltersModal from "./SearchFiltersModal.jsx";
 
 const LS_FAV_STORES_KEY = "favStores";
 const LS_FAV_DISHES_KEY = "favDishes";
@@ -33,6 +34,8 @@ function CustomerDashboard() {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({});
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [favStoreIds, setFavStoreIds] = useState(() =>
     readLSArray(LS_FAV_STORES_KEY)
@@ -97,18 +100,26 @@ function CustomerDashboard() {
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
+    let results = restaurants;
   
-    const source = restaurants; // 🔥 now from backend
-  
-    if (!q) return source;
-  
-    return source.filter((s) => {
-      return (
-        s.name?.toLowerCase().includes(q) ||
-        s.address_line?.toLowerCase().includes(q)
-      );
-    });
-  }, [query, restaurants]);
+     if (filters.cuisine) {
+    results = results.filter((s) => s.cuisine === filters.cuisine);
+  }
+  if (filters.priceRange) {
+    results = results.filter((s) => s.price_range === filters.priceRange);
+  }
+  if (filters.deliveryTime) {
+    results = results.filter((s) => s.delivery_time === filters.deliveryTime);
+  }
+  if (q) {
+    results = results.filter((s) =>
+      s.name?.toLowerCase().includes(q) ||
+      s.address_line?.toLowerCase().includes(q)
+    );
+  }
+
+  return results;
+}, [query, filters, restaurants]);
 
   const orderAgainItems = useMemo(() => {
     const merged = menuData
@@ -153,11 +164,18 @@ function CustomerDashboard() {
       <TopBar
         query={query}
         onQueryChange={setQuery}
-        onOpenFilters={() => alert("Filters not implemented yet")}
+        onOpenFilters={() => setFiltersOpen(true)}
         onOpenCart={() => setCartOpen(true)}
         showAddressButton={true}
         addressLabel={address || "Set address"}
         onOpenAddress={() => setIsEditingAddress(true)}
+      />
+
+      <SearchFiltersModal
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        onApplyFilters={setFilters}
+        initialFilters={filters}
       />
 
       <AddressModal
