@@ -12,6 +12,7 @@ import UserSetup from "./pages/UserSetup.jsx";
 import CreateMenuItem from "./pages/CreateMenuItem.jsx"
 import StoreOwnerHome from "./pages/StoreOwnerHomePage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
+import Messages from "./pages/Messages.jsx";
 
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
@@ -31,6 +32,7 @@ function App() {
       <Route path="/explore" element={<ExplorePage />} />
       <Route path="/favourites" element={<Favourites />} />
       <Route path="/store/:id" element={<StorePage />} />
+      <Route path="/messages" element={<Messages />} />
 
       {/* ORDERS PAGE */}
       <Route path="/orders" element={<OrdersPage />} />
