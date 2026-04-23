@@ -6,6 +6,7 @@ import {
   LuShoppingCart,
   LuMail,
   LuSettings,
+  LuStore,
 } from "react-icons/lu";
 import { useEffect, useState } from "react";
 import { supabase } from "../../utils/supabase.js";
@@ -102,17 +103,24 @@ function Navbar() {
               <LuSettings /> Settings
             </NavLink>
           </li>
+          {user?.role === "storeowner" && (
+            <li>
+              <NavLink to="/storeownerhome" className={linkClass}>
+                <LuStore /> Manage
+              </NavLink>
+            </li>
+          )}
         </ul>
       </div>
 
-      {/* MIDDLE */}
-      <div className="my-4 min-h-[250px]">
+      {/* MIDDLE  PROMO CARD*/}
+      {/* <div className="my-4 min-h-[250px]">
         {showPromo ? (
           <SidebarPromoCard onClose={() => setShowPromo(false)} />
         ) : (
           <div className="h-[250px]" />
         )}
-      </div>
+      </div> */}
 
       {/* BOTTOM */}
       <div
