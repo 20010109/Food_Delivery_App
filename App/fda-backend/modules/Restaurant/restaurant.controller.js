@@ -1,4 +1,5 @@
 import * as service from "./restaurant.service.js";
+import { supabase } from "../../config/supabase.js";
 
 export const createRestaurant = async (req, res) => {
   try {
@@ -58,9 +59,23 @@ export const deleteRestaurant = async (req, res) => {
 };
 
 // PUBLIC (no role check needed)
+// export const getApprovedRestaurants = async (req, res) => {
+//   try {
+//     const data = await service.getApprovedRestaurants(req.supabase);
+//     res.json(data);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 export const getApprovedRestaurants = async (req, res) => {
   try {
-    const data = await service.getApprovedRestaurants(req.supabase);
+    const { data, error } = await supabase.rpc(
+      "get_restaurants_with_details"
+    );
+
+    if (error) throw error;
+
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -70,7 +85,7 @@ export const getApprovedRestaurants = async (req, res) => {
 export const getRestaurantById = async (req, res) => {
   try {
     const data = await service.getRestaurantById(
-      req.supabase, // ✅ correct
+      supabase,
       req.params.restaurant_id
     );
 

@@ -31,6 +31,8 @@ function CustomerDashboard() {
   const [cartOpen, setCartOpen] = useState(false);
   const [address, setAddress] = useState("");
   const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [favStoreIds, setFavStoreIds] = useState(() =>
     readLSArray(LS_FAV_STORES_KEY)
@@ -50,6 +52,25 @@ function CustomerDashboard() {
     };
 
     loadAddress();
+  }, []);
+
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/restaurants");
+        const data = await res.json();
+  
+        // IMPORTANT: ensure it's always an array
+        setRestaurants(Array.isArray(data) ? data : data?.data || []);
+      } catch (err) {
+        console.error("Failed to fetch restaurants:", err.message);
+        setRestaurants([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchRestaurants();
   }, []);
 
   const toggleStoreFavorite = (restaurantId) => {
@@ -76,21 +97,23 @@ function CustomerDashboard() {
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return storeData;
-
-    return storeData.filter((s) => {
+  
+    const source = restaurants; // 🔥 now from backend
+  
+    if (!q) return source;
+  
+    return source.filter((s) => {
       return (
-        s.name.toLowerCase().includes(q) ||
-        s.cuisine?.toLowerCase().includes(q) ||
-        s.promo_tag?.toLowerCase().includes(q)
+        s.name?.toLowerCase().includes(q) ||
+        s.address_line?.toLowerCase().includes(q)
       );
     });
-  }, [query]);
+  }, [query, restaurants]);
 
   const orderAgainItems = useMemo(() => {
     const merged = menuData
       .map((item, index) => {
-        const restaurant = storeData.find(
+        const restaurant = restaurants.find(
           (store) => store.restaurant_id === item.restaurant_id
         );
 
@@ -120,7 +143,11 @@ function CustomerDashboard() {
       );
     });
   }, [query]);
-
+  
+  
+  if (loading) {
+    return <p className="p-6">Loading restaurants...</p>;
+  } 
   return (
     <section className="p-6 space-y-8">
       <TopBar
@@ -158,72 +185,59 @@ function CustomerDashboard() {
         </div>
 
         <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {filteredStores.slice(0, 6).map((r) => {
-            const isFav = favStoreIds.includes(r.restaurant_id);
+        {filteredStores.slice(0, 6).map((r) => {
+          const isFav = favStoreIds.includes(r.restaurant_id);
 
-            return (
-              <li
-                key={r.restaurant_id}
-                onClick={() => navigate(`/store/${r.restaurant_id}`)}
-                className="relative bg-white rounded-2xl border border-gray-200 p-4 cursor-pointer hover:shadow-md transition"
+          return (
+            <li
+              key={r.restaurant_id}
+              onClick={() => navigate(`/store/${r.restaurant_id}`)}
+              className="relative bg-white rounded-2xl border border-gray-200 p-4 cursor-pointer hover:shadow-md transition"
+            >
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleStoreFavorite(r.restaurant_id);
+                }}
+                className="absolute top-3 right-3 z-10 h-10 w-10 rounded-full bg-white/95 border border-gray-200 shadow-sm hover:bg-gray-50 flex items-center justify-center"
               >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleStoreFavorite(r.restaurant_id);
-                  }}
-                  className="absolute top-3 right-3 z-10 h-10 w-10 rounded-full bg-white/95 border border-gray-200 shadow-sm hover:bg-gray-50 flex items-center justify-center"
-                  aria-label={
-                    isFav ? "Remove from favourites" : "Add to favourites"
-                  }
-                >
-                  {isFav ? (
-                    <IoHeart className="text-red-500 text-xl" />
-                  ) : (
-                    <IoHeartOutline className="text-gray-400 text-xl" />
-                  )}
-                </button>
+                {isFav ? (
+                  <IoHeart className="text-red-500 text-xl" />
+                ) : (
+                  <IoHeartOutline className="text-gray-400 text-xl" />
+                )}
+              </button>
 
-                <div className="flex gap-4 pr-10">
-                  <img
-                    src={r.image_url}
-                    alt={r.name}
-                    className="w-24 h-24 object-contain rounded-xl bg-gray-50 border border-gray-100 p-2 shrink-0"
-                  />
+              <div className="flex gap-4 pr-10">
+                <img
+                  src={r.profile_image || "https://via.placeholder.com/100"}
+                  alt={r.name}
+                  className="w-24 h-24 object-contain rounded-xl bg-gray-50 border border-gray-100 p-2 shrink-0"
+                />
 
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 leading-tight">
-                      {r.name}
-                    </h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {r.name}
+                  </h3>
 
-                    <p className="text-sm text-gray-500 mt-1">
-                      {r.cuisine} • {r.price_range}
-                    </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {r.address_line || "No address available"}
+                  </p>
 
-                    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
-                      <span>⭐ {r.rating}</span>
-                      <span>({r.reviews})</span>
-                      <span>{r.delivery_time}</span>
-                    </div>
+                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
+                    <span>⭐ {r.rating ?? 0}</span>
+                    <span>({r.review_count ?? 0})</span>
+                  </div>
 
-                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
-                      <span>{r.delivery_fee}</span>
-                      <span>{r.distance}</span>
-                    </div>
-
-                    {r.promo_tag && (
-                      <div className="mt-3">
-                        <span className="inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-600">
-                          {r.promo_tag}
-                        </span>
-                      </div>
-                    )}
+                  <div className="mt-1 text-sm text-gray-500">
+                    {r.delivery_time || "20–30 min delivery"}
                   </div>
                 </div>
-              </li>
-            );
-          })}
+              </div>
+            </li>
+          );
+        })}
         </ul>
       </div>
 

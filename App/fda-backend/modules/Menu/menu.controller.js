@@ -1,5 +1,6 @@
 import * as menuService from "./menu.service.js";
 
+
 /**
  * CREATE MENU ITEM
  */
@@ -92,18 +93,9 @@ export const deleteItem = async (req, res) => {
 
 export const getPublicMenu = async (req, res) => {
   try {
-    const { restaurantId } = req.params;
-
-    const { data, error } = await req.supabase
-      .from("menu_items")
-      .select("*")
-      .eq("restaurant_id", restaurantId)
-      .eq("is_available", true); // optional but recommended
-
-    if (error) throw error;
-
-    return res.status(200).json(data);
+    const data = await menuService.getPublicMenu(req.params.restaurantId);
+    res.json(data);
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
