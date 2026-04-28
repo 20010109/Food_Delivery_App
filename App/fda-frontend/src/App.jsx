@@ -13,6 +13,8 @@ import CreateMenuItem from "./pages/CreateMenuItem.jsx"
 import StoreOwnerHome from "./pages/StoreOwnerHomePage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import Messages from "./pages/Messages.jsx";
+import AdminHomePage from "./pages/admin/AdminHomePage.jsx";
+import AdminRestaurantsPage from "./pages/Admin/AdminRestaurantsPage.jsx"
 
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
@@ -20,10 +22,17 @@ import CheckoutPage from "./pages/CheckoutPage.jsx";
 function App() {
   return (
     <Routes>
+
       <Route path="/" element={<LandingPage />} />
+
+      {/* AUTH */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
+      {/* ADMIN */}
+      <Route path="/admin" element={<AdminHomePage/>}/>
+      <Route path="/admin/restaurants" element={<AdminRestaurantsPage/>}/>
+      
       {/* User Setup */}
       <Route path="/usersetup" element={<UserSetup />} />
 
@@ -44,7 +53,7 @@ function App() {
       <Route path="/profile/:id" element={<ProfilePage />} />
 
       {/* StoreOwner */}
-      <Route path="/storeownerhome" element={<StoreOwnerHome />} />
+      <Route path="/storeowner/home" element={<StoreOwnerHome />} />
       <Route path="/myrestaurant/:restaurantId/createmenuitem" element={<CreateMenuItem />}/>
 
       {/* Settings */}

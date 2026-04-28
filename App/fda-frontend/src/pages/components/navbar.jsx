@@ -105,7 +105,7 @@ function Navbar() {
           </li>
           {user?.role === "storeowner" && (
             <li>
-              <NavLink to="/storeownerhome" className={linkClass}>
+              <NavLink to="/storeowner/home" className={linkClass}>
                 <LuStore /> Manage
               </NavLink>
             </li>
