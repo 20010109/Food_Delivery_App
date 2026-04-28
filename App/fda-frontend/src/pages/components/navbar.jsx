@@ -54,7 +54,7 @@ function Navbar() {
     if (!user) return;
     navigate(`/profile/${user.id}`);
   };
-
+ 
   return (
     <nav className="flex flex-col w-64 h-screen bg-gray-900 text-white p-5 shrink-0">
       {/* TOP */}

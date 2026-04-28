@@ -18,10 +18,6 @@ console.log("restaurantId:", restaurantId);
     throw new Error("Unauthorized");
   }
 
-  if (data.status !== "approved") {
-    throw new Error("Restaurant not approved");
-  }
-
   return data;
 };
 
