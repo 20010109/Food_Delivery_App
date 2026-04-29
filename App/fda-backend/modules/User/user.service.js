@@ -44,6 +44,78 @@ export const updateUserProfile = async (supabase, user_id, { first_name, last_na
 };
 
 
+// SETUP USER
+
+export const setupUserService = async (supabase, user_id, payload) => {
+    const {
+      first_name,
+      last_name,
+      contact_number,
+      role = "customer",
+  
+      house_no,
+      street,
+      barangay,
+      city,
+      province,
+      postal_code,
+    } = payload;
+  
+    // 1. UPSERT PROFILE
+    const { data: profile, error: profileError } = await supabase
+      .from("user_profiles")
+      .upsert(
+        {
+          user_id,
+          first_name,
+          last_name,
+          contact_number,
+          role,
+        },
+        { onConflict: "user_id" }
+      )
+      .select()
+      .single();
+  
+    if (profileError) {
+      throw new Error(profileError.message);
+    }
+  
+    // 2. CREATE ADDRESS
+    const { data: address, error: addressError } = await supabase
+      .from("addresses_v2")
+      .insert([
+        {
+          user_id,
+          house_no,
+          street,
+          barangay,
+          city,
+          province,
+          postal_code,
+          country: "Philippines",
+          is_default: true,
+        },
+      ])
+      .select()
+      .single();
+  
+    if (addressError) {
+      // OPTIONAL CLEANUP (important for consistency)
+      await supabase
+        .from("user_profiles")
+        .delete()
+        .eq("user_id", user_id);
+  
+      throw new Error(addressError.message);
+    }
+  
+    return {
+      profile,
+      address,
+    };
+  };
+
 
 
 

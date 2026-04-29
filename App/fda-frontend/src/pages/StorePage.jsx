@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   IoHeart,
   IoHeartOutline,
+  IoChevronForward,
 } from "react-icons/io5";
 import {
   LuPhone,
@@ -60,7 +61,6 @@ export default function StorePage() {
   const [isFavStore, setIsFavStore] = useState(false);
   const [, forceRerender] = useState(0);
 
-  // FETCH
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -152,15 +152,38 @@ export default function StorePage() {
 
       <main className="flex-1 overflow-y-auto">
 
-        {/* HEADER (UNCHANGED STRUCTURE) */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
-          <img
-            src={store.background_image || store.profile_image}
-            className="w-full h-64 object-cover"
-            alt={store.name}
-          />
+        {/* BREADCRUMB */}
+        <div className="px-6 pt-4 flex items-center gap-2 text-sm text-gray-500">
+          <span
+            onClick={() => navigate("/explore")}
+            className="cursor-pointer hover:text-red-600"
+          >
+            Explore
+          </span>
 
-          <div className="p-6 flex items-start justify-between gap-6">
+          <IoChevronForward size={14} />
+
+          <span>{store.name}</span>
+        </div>
+
+        {/* HEADER */}
+        <div className="bg-white shadow-sm border-b border-gray-200 mt-3">
+          <div className="relative">
+            <img
+              src={store.background_image || store.profile_image}
+              className="w-full h-64 object-cover"
+              alt={store.name}
+            />
+
+            {/* PROFILE IMAGE */}
+            <img
+              src={store.profile_image}
+              alt={store.name}
+              className="absolute left-6 bottom-[-35px] w-50 h-50 rounded-2xl border-4 border-white bg-white object-cover shadow-lg"
+            />
+          </div>
+
+          <div className="p-6 pt-12 flex items-start justify-between gap-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
                 {store.name}
@@ -172,14 +195,33 @@ export default function StorePage() {
               </div>
 
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500">
-                <span>Cuisine: {store.cuisine || "Not specified"}</span>
+                <span>
+                  Cuisine: {store.cuisine || "Not specified"}
+                </span>
+
                 <span>•</span>
-                <span>Price Range: {store.price_range || "Not specified"}</span>
+
+                <span>
+                  Price Range:{" "}
+                  {store.price_range || "Not specified"}
+                </span>
+
                 <span>•</span>
-                <span>Rating: ⭐ {store.rating || "Not specified"}</span>
-                <span>Reviews: {store.reviews || "Not specified"}</span>
-                <span>•</span> 
-                <span>Delivery Time: {store.delivery_time || "20-30 mins"}</span>
+
+                <span>
+                  Rating: ⭐ {store.rating || "Not specified"}
+                </span>
+
+                <span>
+                  Reviews: {store.reviews || "Not specified"}
+                </span>
+
+                <span>•</span>
+
+                <span>
+                  Delivery Time:{" "}
+                  {store.delivery_time || "20-30 mins"}
+                </span>
               </div>
             </div>
 
@@ -202,7 +244,7 @@ export default function StorePage() {
           </div>
         </div>
 
-        {/* CONTENT (UNCHANGED GRID STRUCTURE) */}
+        {/* CONTENT */}
         <div className="p-6 grid grid-cols-12 gap-6">
 
           {/* MENU */}
@@ -223,13 +265,16 @@ export default function StorePage() {
                     <h3 className="text-xl font-semibold text-gray-900">
                       {item.name}
                     </h3>
+
                     <p className="text-sm text-gray-500 mt-1">
                       {item.description}
                     </p>
                   </div>
 
                   <button
-                    onClick={() => toggleDishFav(item.item_id)}
+                    onClick={() =>
+                      toggleDishFav(item.item_id)
+                    }
                     className="h-10 w-10 rounded-full border border-gray-200 flex items-center justify-center"
                   >
                     {isDishFav(item.item_id) ? (
@@ -261,15 +306,24 @@ export default function StorePage() {
 
           {/* CART */}
           <div className="col-span-4 bg-white p-5 rounded-2xl border border-gray-200 sticky top-6 h-fit">
-
-            <h2 className="text-2xl font-bold mb-4">Your Items</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              Your Items
+            </h2>
 
             {storeCart.length === 0 ? (
-              <p className="text-gray-400">Cart is empty</p>
+              <p className="text-gray-400">
+                Cart is empty
+              </p>
             ) : (
               storeCart.map((ci) => (
-                <div key={ci.id} className="border p-4 rounded-xl mb-3">
-                  <p className="font-semibold">{ci.name}</p>
+                <div
+                  key={ci.id}
+                  className="border p-4 rounded-xl mb-3"
+                >
+                  <p className="font-semibold">
+                    {ci.name}
+                  </p>
+
                   <p className="text-sm text-gray-500">
                     ₱{ci.price} x {ci.qty}
                   </p>

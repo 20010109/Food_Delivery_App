@@ -228,7 +228,7 @@ const Profile = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {addresses.map((addr, index) => (
+                    {addresses.map((addr) => (
                       <div
                         key={addr.address_id}
                         className="rounded-xl bg-white border border-gray-200 p-4"
@@ -236,23 +236,24 @@ const Profile = () => {
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className="font-semibold text-gray-900">
-                              {addr.address_line}
+                              {addr.house_no} {addr.street}, {addr.barangay}
                             </p>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Address {index + 1}
+
+                            <p className="text-sm text-gray-600">
+                              {addr.city}, {addr.province}, {addr.postal_code}
+                            </p>
+
+                            <p className="text-xs text-gray-400 mt-1">
+                              {addr.country}
                             </p>
                           </div>
 
-                          {index === 0 && (
+                          {addr.is_default && (
                             <span className="inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600">
                               Primary
                             </span>
                           )}
                         </div>
-
-                        <p className="text-xs text-gray-400 mt-3">
-                          Lat: {addr.latitude || "-"} | Lng: {addr.longitude || "-"}
-                        </p>
                       </div>
                     ))}
                   </div>
