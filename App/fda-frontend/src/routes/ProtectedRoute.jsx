@@ -1,19 +1,42 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { supabase } from "../utils/supabase";
+import { useEffect, useState } from "react";
 
-export default function ProtectedRoute() {
+export default function ProtectedRoute({ allowedRoles }) {
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState(null);
+  const [role, setRole] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
+
+      if (!data.user) {
+        setRole(null);
+        setLoading(false);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("role")
+        .eq("user_id", data.user.id)
+        .single();
+
+      setRole(profile?.role);
       setLoading(false);
-    });
+    };
+
+    checkUser();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return null;
 
-  return session ? <Outlet /> : <Navigate to="/login" replace />;
+  if (!role) return <Navigate to="/login" />;
+
+  // 🔐 ROLE CHECK
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    return <Navigate to="/home" />;
+  }
+
+  return <Outlet />;
 }

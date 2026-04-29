@@ -94,3 +94,29 @@ export const getRestaurantById = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getAllRestaurants = async (req, res) => {
+  try {
+    const data = await service.getAllRestaurants(req.supabase);
+    console.log("ADMIN RESTAURANTS:", JSON.stringify(data, null, 2));
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateRestaurantStatus = async (req, res) => {
+  try {
+    const updated = await service.updateRestaurantStatus(
+      req.supabase,
+      req.user.id,
+      req.params.restaurant_id,
+      req.body.status
+    );
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+

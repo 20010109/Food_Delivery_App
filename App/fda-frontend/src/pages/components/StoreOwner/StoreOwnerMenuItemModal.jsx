@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabase.js";
+import { supabase } from "../../../utils/supabase.js";
 
 function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
   const [items, setItems] = useState([]);
@@ -9,6 +9,7 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
     name: "",
     price: "",
     description: "",
+    category: "food",
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -83,7 +84,13 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
   };
 
   const resetForm = () => {
-    setForm({ name: "", price: "", description: "" });
+    setForm({
+      name: "",
+      price: "",
+      description: "",
+      category: "food",
+    });
+
     setImageFile(null);
     setEditingId(null);
   };
@@ -98,6 +105,7 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
         name: form.name,
         price: Number(form.price),
         description: form.description,
+        category: form.category,
       };
 
       if (imageUrl) payload.item_image = imageUrl;
@@ -142,6 +150,7 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
       name: item.name,
       price: item.price,
       description: item.description,
+      category: item.category || "food",
     });
 
     setImageFile(null);
@@ -152,10 +161,9 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 py-6">
-
       <div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-800 bg-gray-900 text-white shadow-2xl">
 
-        {/* HEADER (DARK) */}
+        {/* HEADER */}
         <div className="border-b border-gray-800 bg-gray-950 px-8 py-6">
           <div className="flex items-start justify-between">
             <div>
@@ -176,10 +184,10 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
           </div>
         </div>
 
-        {/* BODY (WHITE STYLE INSIDE DARK UI) */}
+        {/* BODY */}
         <div className="grid gap-6 p-8 lg:grid-cols-[380px_1fr]">
 
-          {/* FORM PANEL */}
+          {/* FORM */}
           <div className={`${cardClass} p-6 space-y-4`}>
 
             <h3 className="text-lg font-semibold">
@@ -205,6 +213,21 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
               }
             />
 
+            {/* CATEGORY */}
+            <select
+              className={inputClass}
+              value={form.category}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  category: e.target.value,
+                })
+              }
+            >
+              <option value="food">Food</option>
+              <option value="drink">Drink</option>
+            </select>
+
             <textarea
               className={`${inputClass} resize-none`}
               rows="4"
@@ -218,9 +241,10 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
               }
             />
 
-            {/* IMAGE */}
             <label className="block cursor-pointer rounded-xl border border-dashed border-gray-700 bg-gray-800 p-4 text-center hover:border-red-500 transition">
-              <p className="text-sm font-medium">Upload Image</p>
+              <p className="text-sm font-medium">
+                Upload Image
+              </p>
 
               {imageFile && (
                 <p className="text-xs text-red-400 mt-1 truncate">
@@ -255,7 +279,7 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
             )}
           </div>
 
-          {/* LIST PANEL */}
+          {/* LIST */}
           <div className={`${cardClass} p-6`}>
 
             <div className="flex justify-between mb-4">
@@ -284,7 +308,6 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
                     key={item.item_id}
                     className="flex justify-between items-center bg-gray-800 p-4 rounded-2xl border border-gray-700"
                   >
-
                     <div className="flex gap-3 items-center">
 
                       <div className="w-12 h-12 rounded-lg bg-gray-700 overflow-hidden">
@@ -304,11 +327,15 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
                         <p className="font-semibold">
                           {item.name}
                         </p>
+
                         <p className="text-sm text-red-400">
                           ₱{item.price}
                         </p>
-                      </div>
 
+                        <p className="text-xs text-gray-400 capitalize">
+                          {item.category}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="flex gap-2">
@@ -330,7 +357,6 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
                       </button>
 
                     </div>
-
                   </div>
                 ))}
 

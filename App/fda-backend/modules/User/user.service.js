@@ -83,7 +83,7 @@ export const setupUserService = async (supabase, user_id, payload) => {
   
     // 2. CREATE ADDRESS
     const { data: address, error: addressError } = await supabase
-      .from("addresses_v2")
+      .from("addresses")
       .insert([
         {
           user_id,

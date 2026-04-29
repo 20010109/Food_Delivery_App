@@ -88,3 +88,60 @@ export const getRestaurantById = async (supabase, restaurantId) => {
   if (error) throw error;
   return data;
 };
+
+export const getAllRestaurants = async (supabase) => {
+  const { data, error } = await supabase
+    .from("restaurants")
+    .select(`
+      restaurant_id,
+      name,
+      contact_info,
+      status,
+      created_at,
+      user_profiles (
+        first_name,
+        last_name
+      )
+    `)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+export const updateRestaurantStatus = async (
+  supabase,
+  userId,
+  restaurantId,
+  status
+) => {
+  // get role from user_profiles
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("role")
+    .eq("user_id", userId)
+    .single();
+
+  if (profileError) throw profileError;
+
+  if (profile.role !== "admin") {
+    throw new Error("Unauthorized");
+  }
+
+  const allowedStatuses = ["approved", "denied", "pending"];
+
+  if (!allowedStatuses.includes(status)) {
+    throw new Error("Invalid status");
+  }
+
+  const { data, error } = await supabase
+    .from("restaurants")
+    .update({ status })
+    .eq("restaurant_id", restaurantId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+};

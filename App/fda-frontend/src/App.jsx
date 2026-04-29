@@ -16,6 +16,7 @@ import SettingsPage from "./pages/SettingsPage.jsx";
 import Messages from "./pages/Messages.jsx";
 import AdminHomePage from "./pages/admin/AdminHomePage.jsx";
 import AdminRestaurantsPage from "./pages/Admin/AdminRestaurantsPage.jsx"
+import AdminUsersPage from "./pages/Admin/AdminUsersPage.jsx"
 
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
@@ -30,15 +31,19 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
+      {/* User Setup */}
+      <Route path="/usersetup" element={<UserSetup />} />
+
       {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
 
         {/* ADMIN */}
-        <Route path="/admin" element={<AdminHomePage />} />
-        <Route path="/admin/restaurants" element={<AdminRestaurantsPage />} />
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route path="/admin" element={<AdminHomePage />} />
+          <Route path="/admin/restaurants" element={<AdminRestaurantsPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+        </Route>
 
-        {/* User Setup */}
-        <Route path="/usersetup" element={<UserSetup />} />
 
         {/* Customer */}
         <Route path="/home" element={<Home />} />
