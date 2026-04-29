@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabase.js";
+import { supabase } from "../../../utils/supabase.js";
 
 function StoreOwnerCreateStoreModal({ open, onClose, onSuccess }) {
   const [profileFile, setProfileFile] = useState(null);

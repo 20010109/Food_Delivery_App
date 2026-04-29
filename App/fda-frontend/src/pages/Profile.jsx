@@ -81,6 +81,14 @@ const Profile = () => {
     navigate("/login");
   };
 
+  const handleBack = () => {
+    if (user?.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/home");
+    }
+  };
+
   const getRoleLabel = (role) => {
     switch (role) {
       case "storeowner":
@@ -115,14 +123,14 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-100 px-6 py-8">
       <div className="max-w-6xl mx-auto">
-        <button
-          type="button"
-          onClick={() => navigate("/home")}
-          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition mb-6"
-        >
-          <LuArrowLeft />
-          Back to Home
-        </button>
+      <button
+        type="button"
+        onClick={handleBack}
+        className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-red-600 transition mb-6"
+      >
+        <LuArrowLeft />
+        Back
+      </button>
 
         <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
           {/* Top Banner */}

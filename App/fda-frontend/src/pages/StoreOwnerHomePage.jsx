@@ -1,6 +1,6 @@
 import React from "react";
 import Navbar from './components/Navbar.jsx';
-import StoreOwnerDashboard from "./components/StoreOwnerDashboard.jsx";
+import StoreOwnerDashboard from "./components/StoreOwner/StoreOwnerDashboard.jsx";
 import './styles/tailwind.css'
 
 function StoreOwnerHomePage() {

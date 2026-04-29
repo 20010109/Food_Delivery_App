@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../utils/supabase.js";
+import { supabase } from "../../../utils/supabase.js";
 import StoreOwnerEditStoreModal from "./StoreOwnerEditStoreModal.jsx";
 import StoreOwnerCreateStoreModal from "./StoreOwnerCreateStoreModal.jsx";
 import StoreOwnerMenuItemModal from "./StoreOwnerMenuItemModal.jsx";
-import "../styles/tailwind.css";
+import "../../styles/tailwind.css";
 
 function StoreOwnerDashboard() {
   const navigate = useNavigate();

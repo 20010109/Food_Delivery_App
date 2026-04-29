@@ -13,6 +13,8 @@ create type delivery_status as enum ('assigned', 'picked_up', 'delivered');
 
 create type store_approval_status as enum ('denied', 'pending', 'approved');
 
+CREATE TYPE menu_category_type AS ENUM ('food', 'drink');
+
 
 -- =========================
 -- ADDRESSES (SHARED)
@@ -20,9 +22,13 @@ create type store_approval_status as enum ('denied', 'pending', 'approved');
 create table addresses (
   address_id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
-  address_line text not null,
-  latitude numeric,
-  longitude numeric,
+  house_no text,
+  street text not null,
+  barangay text,
+  city text not null,
+  province text,
+  postal_code text,
+  is_default boolean default false,
   created_at timestamp default now()
 );
 
@@ -47,7 +53,7 @@ create table user_profiles (
 -- =========================
 create table restaurants (
   restaurant_id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete cascade,
+  user_id uuid references user_profiles(user_id) on delete cascade,
   name text not null,
   contact_info text not null,
   address_id uuid references addresses(address_id),
@@ -68,6 +74,7 @@ create table menu_items (
   name text not null,
   price numeric not null,
   description text
+  category menu_category_type not null default 'food'
 );
 
 
