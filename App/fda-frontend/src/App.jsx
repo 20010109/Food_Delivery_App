@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import Home from "./pages/Home.jsx";
@@ -19,48 +20,47 @@ import AdminRestaurantsPage from "./pages/Admin/AdminRestaurantsPage.jsx"
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 
+
 function App() {
   return (
     <Routes>
 
+      {/* Public */}
       <Route path="/" element={<LandingPage />} />
-
-      {/* AUTH */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      {/* ADMIN */}
-      <Route path="/admin" element={<AdminHomePage/>}/>
-      <Route path="/admin/restaurants" element={<AdminRestaurantsPage/>}/>
-      
-      {/* User Setup */}
-      <Route path="/usersetup" element={<UserSetup />} />
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute />}>
 
-      {/* Customer */}
-      <Route path="/home" element={<Home />} />
-      <Route path="/explore" element={<ExplorePage />} />
-      <Route path="/favourites" element={<Favourites />} />
-      <Route path="/store/:id" element={<StorePage />} />
-      <Route path="/messages" element={<Messages />} />
+        {/* ADMIN */}
+        <Route path="/admin" element={<AdminHomePage />} />
+        <Route path="/admin/restaurants" element={<AdminRestaurantsPage />} />
 
-      {/* ORDERS PAGE */}
-      <Route path="/orders" element={<OrdersPage />} />
+        {/* User Setup */}
+        <Route path="/usersetup" element={<UserSetup />} />
 
-      {/* ✅ NEW CHECKOUT */}
-      <Route path="/checkout" element={<CheckoutPage />} />
+        {/* Customer */}
+        <Route path="/home" element={<Home />} />
+        <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/favourites" element={<Favourites />} />
+        <Route path="/store/:id" element={<StorePage />} />
+        <Route path="/messages" element={<Messages />} />
+        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/profile/:id" element={<ProfilePage />} />
 
-      {/* Other */}
-      <Route path="/profile/:id" element={<ProfilePage />} />
+        {/* Store Owner */}
+        <Route path="/storeowner/home" element={<StoreOwnerHome />} />
+        <Route
+          path="/myrestaurant/:restaurantId/createmenuitem"
+          element={<CreateMenuItem />}
+        />
 
-      {/* StoreOwner */}
-      <Route path="/storeowner/home" element={<StoreOwnerHome />} />
-      <Route path="/myrestaurant/:restaurantId/createmenuitem" element={<CreateMenuItem />}/>
+        {/* Settings */}
+        <Route path="/settings" element={<SettingsPage />} />
 
-      {/* Settings */}
-      <Route path="/settings" element={<SettingsPage />} />
-
-
-
+      </Route>
 
     </Routes>
   );

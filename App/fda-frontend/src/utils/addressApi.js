@@ -28,7 +28,16 @@ export async function getAddresses() {
   return res.json();
 }
 
-export async function createUserAddress(addressLine, latitude = null, longitude = null) {
+export async function createUserAddress({
+  house_no,
+  street,
+  barangay,
+  city,
+  province,
+  postal_code,
+  country = "Philippines",
+  is_default = false,
+}) {
   const token = await getAuthToken();
 
   const res = await fetch(API_BASE, {
@@ -38,9 +47,14 @@ export async function createUserAddress(addressLine, latitude = null, longitude 
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      address_line: addressLine,
-      latitude,
-      longitude,
+      house_no,
+      street,
+      barangay,
+      city,
+      province,
+      postal_code,
+      country,
+      is_default,
     }),
   });
 
@@ -51,7 +65,19 @@ export async function createUserAddress(addressLine, latitude = null, longitude 
   return res.json();
 }
 
-export async function updateUserAddress(addressId, addressLine, latitude = null, longitude = null) {
+export async function updateUserAddress(
+  addressId,
+  {
+    house_no,
+    street,
+    barangay,
+    city,
+    province,
+    postal_code,
+    country,
+    is_default,
+  }
+) {
   const token = await getAuthToken();
 
   const res = await fetch(`${API_BASE}/${addressId}`, {
@@ -61,9 +87,14 @@ export async function updateUserAddress(addressId, addressLine, latitude = null,
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      address_line: addressLine,
-      latitude,
-      longitude,
+      house_no,
+      street,
+      barangay,
+      city,
+      province,
+      postal_code,
+      country,
+      is_default,
     }),
   });
 
@@ -91,18 +122,40 @@ export async function deleteUserAddress(addressId) {
     try {
       const errorData = await res.json();
       message = errorData?.error || message;
-    } catch {
-      // ignore if no json body
-    }
+    } catch {}
 
     throw new Error(message);
   }
 
-  // DELETE returns 204 No Content, so do not call res.json()
   return true;
 }
 
 export async function getPrimaryAddress() {
   const addresses = await getAddresses();
-  return addresses?.[0] || null;
+
+  return (
+    addresses.find((addr) => addr.is_default === true) ||
+    addresses?.[0] ||
+    null
+  );
 }
+
+export const setDefaultAddress = async (addressId) => {
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_BASE}/${addressId}/default`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.error || "Failed to set default address");
+  }
+
+  return data;
+};

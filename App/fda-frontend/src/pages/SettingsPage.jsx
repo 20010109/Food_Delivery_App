@@ -21,19 +21,23 @@ export default function SettingsPage() {
 
   const [addressOpen, setAddressOpen] = useState(false);
   const [marketingOpen, setMarketingOpen] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState("Set address");
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(LS_SELECTED_ADDRESS_KEY);
     if (saved) {
-      setSelectedAddress(saved);
+      setSelectedAddressId(saved);
     }
   }, []);
 
-  const handleAddressChange = (newAddress) => {
-    const nextAddress = newAddress || "Set address";
-    setSelectedAddress(nextAddress);
-    localStorage.setItem(LS_SELECTED_ADDRESS_KEY, nextAddress);
+  const handleAddressChange = (address) => {
+    if (!address) return;
+  
+    const id = address.address_id;
+  
+    setSelectedAddressId(id);
+    localStorage.setItem(LS_SELECTED_ADDRESS_KEY, id);
+  
     setAddressOpen(false);
   };
 
@@ -45,8 +49,8 @@ export default function SettingsPage() {
           label: "Saved Addresses",
           icon: <LuMapPinned className="text-gray-600" />,
           description:
-            selectedAddress && selectedAddress !== "Set address"
-              ? selectedAddress
+            selectedAddressId
+              ? "Tap to change saved address"
               : "Manage your saved addresses",
           onClick: () => setAddressOpen(true),
         },

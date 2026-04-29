@@ -1,21 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { LuMapPin, LuPlus, LuTrash2, LuX } from "react-icons/lu";
+import { LuMapPin, LuPlus, LuTrash2, LuX, LuCheck } from "react-icons/lu";
 import {
   getAddresses,
   createUserAddress,
   deleteUserAddress,
+  setDefaultAddress,
 } from "../../utils/addressApi.js";
-
-const LS_SELECTED_ADDRESS_KEY = "grubero_selected_address";
 
 export default function SavedAddressModal({ open, onClose, onAddressChange }) {
   const [addresses, setAddresses] = useState([]);
-  const [newAddress, setNewAddress] = useState("");
+  const [newAddress, setNewAddress] = useState({
+    house_no: "",
+    street: "",
+    barangay: "",
+    city: "",
+    province: "",
+    postal_code: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
-  const selectedAddress = localStorage.getItem(LS_SELECTED_ADDRESS_KEY) || "";
 
   const loadAddresses = async () => {
     try {
@@ -31,19 +36,35 @@ export default function SavedAddressModal({ open, onClose, onAddressChange }) {
   };
 
   useEffect(() => {
-    if (open) {
-      loadAddresses();
-    }
+    if (open) loadAddresses();
   }, [open]);
 
+  const formatAddress = (a) =>
+    `${a.house_no || ""} ${a.street || ""}, Brgy. ${a.barangay || ""}, ${
+      a.city || ""
+    }, ${a.province || ""}, ${a.postal_code || ""}`;
+
   const handleAddAddress = async () => {
-    if (!newAddress.trim()) return;
+    if (!newAddress.street || !newAddress.city) {
+      setError("Street and City are required");
+      return;
+    }
 
     try {
       setSaving(true);
       setError("");
-      await createUserAddress(newAddress.trim());
-      setNewAddress("");
+
+      await createUserAddress(newAddress);
+
+      setNewAddress({
+        house_no: "",
+        street: "",
+        barangay: "",
+        city: "",
+        province: "",
+        postal_code: "",
+      });
+
       await loadAddresses();
     } catch (err) {
       setError(err.message || "Failed to save address");
@@ -52,136 +73,182 @@ export default function SavedAddressModal({ open, onClose, onAddressChange }) {
     }
   };
 
-  const handleDeleteAddress = async (addressId) => {
+  const handleDeleteAddress = async (id) => {
     try {
-      setError("");
-      await deleteUserAddress(addressId);
+      await deleteUserAddress(id);
       await loadAddresses();
     } catch (err) {
       setError(err.message || "Failed to delete address");
     }
   };
 
-  const handleSelectAddress = (addressLine) => {
-    localStorage.setItem(LS_SELECTED_ADDRESS_KEY, addressLine);
-    if (onAddressChange) onAddressChange(addressLine);
-    onClose();
+  const handleSelectAddress = async (address) => {
+    // keep snapshot for rollback
+    const previous = [...addresses];
+  
+    try {
+      // 1. Optimistic UI update (instant highlight)
+      setAddresses((prev) =>
+        prev.map((a) => ({
+          ...a,
+          is_default: a.address_id === address.address_id,
+        }))
+      );
+  
+      // 2. backend update
+      await setDefaultAddress(address.address_id);
+  
+      // 3. notify parent safely
+      onAddressChange?.({
+        ...address,
+        formatted: formatAddress(address),
+      });
+  
+      // 4. close modal AFTER state settles (prevents flicker/bug)
+      setTimeout(() => {
+        onClose();
+      }, 50);
+    } catch (err) {
+      // rollback if backend fails
+      setAddresses(previous);
+  
+      setError(err.message || "Failed to set default address");
+  
+      // resync with server to avoid mismatch
+      await loadAddresses();
+    }
   };
 
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center px-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6"
+        className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-2xl font-bold text-gray-900">Saved Addresses</h2>
+        {/* HEADER */}
+        <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
+          <h2 className="text-xl font-bold text-gray-900">
+            Saved Addresses
+          </h2>
+
           <button
-            type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-700"
+            className="p-2 rounded-lg hover:bg-gray-200 transition"
           >
-            <LuX className="text-2xl" />
+            <LuX className="text-xl text-gray-600" />
           </button>
         </div>
 
-        <div className="space-y-3 mb-5">
-          <label className="block text-sm font-semibold text-gray-700">
-            Add New Address
-          </label>
+        <div className="p-6 space-y-6">
+          {/* ADD ADDRESS */}
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3 shadow-sm">
+            <p className="font-semibold text-gray-800">
+              Add New Address
+            </p>
 
-          <div className="flex gap-3">
-            <input
-              value={newAddress}
-              onChange={(e) => setNewAddress(e.target.value)}
-              placeholder="Enter a new address"
-              className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-200"
-            />
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                ["House No.", "house_no"],
+                ["Street", "street"],
+                ["Barangay", "barangay"],
+                ["City", "city"],
+                ["Province", "province"],
+                ["Postal Code", "postal_code"],
+              ].map(([placeholder, key]) => (
+                <input
+                  key={key}
+                  placeholder={placeholder}
+                  value={newAddress[key]}
+                  onChange={(e) =>
+                    setNewAddress({
+                      ...newAddress,
+                      [key]: e.target.value,
+                    })
+                  }
+                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm
+                  focus:ring-2 focus:ring-red-400 focus:border-red-400
+                  hover:border-gray-300 transition outline-none"
+                />
+              ))}
+            </div>
 
             <button
-              type="button"
               onClick={handleAddAddress}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-red-600 text-white px-4 py-3 font-semibold hover:bg-red-700 disabled:opacity-60"
+              className="w-full flex items-center justify-center gap-2 bg-red-600 text-white py-2.5 rounded-lg font-medium hover:bg-red-700 transition disabled:opacity-50"
             >
               <LuPlus />
-              Add
+              Add Address
             </button>
           </div>
-        </div>
 
-        {error && (
-          <p className="text-sm text-red-500 mb-4">{error}</p>
-        )}
+          {error && (
+            <p className="text-sm text-red-500">{error}</p>
+          )}
 
-        <div>
-          <p className="text-sm font-semibold text-gray-700 mb-3">
-            Your Saved Addresses
-          </p>
+          {/* LIST */}
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-gray-700">
+              Your Saved Addresses
+            </p>
 
-          {loading ? (
-            <div className="text-sm text-gray-500">Loading addresses...</div>
-          ) : addresses.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-300 p-4 text-sm text-gray-500">
-              No saved addresses yet.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {addresses.map((addr, index) => {
-                const isSelected = selectedAddress === addr.address_line;
+            {loading ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : addresses.length === 0 ? (
+              <div className="text-sm text-gray-500 border border-dashed border-gray-300 p-4 rounded-xl">
+                No saved addresses yet.
+              </div>
+            ) : (
+              addresses.map((addr) => {
+                const isSelected = addr.is_default;
 
                 return (
                   <div
                     key={addr.address_id}
-                    className={`rounded-xl border p-4 flex items-center justify-between gap-4 ${
+                    className={`flex items-center justify-between rounded-xl px-4 py-4 border transition
+                    ${
                       isSelected
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-200 bg-white"
+                        ? "bg-red-50 border-red-200"
+                        : "bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm"
                     }`}
                   >
                     <button
-                      type="button"
-                      onClick={() => handleSelectAddress(addr.address_line)}
-                      className="flex-1 text-left"
+                      onClick={() => handleSelectAddress(addr)}
+                      className="flex items-center gap-3 text-left flex-1"
                     >
-                      <div className="flex items-center gap-3">
-                        <LuMapPin className="text-gray-500 shrink-0" />
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            {addr.address_line}
+                      <LuMapPin className="text-gray-400" />
+
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">
+                          {formatAddress(addr)}
+                        </p>
+
+                        {isSelected && (
+                          <p className="text-xs text-red-500 mt-1">
+                            Default address
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Address {index + 1}
-                          </p>
-                        </div>
+                        )}
                       </div>
                     </button>
 
-                    <div className="flex items-center gap-2">
-                      {isSelected && (
-                        <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600">
-                          Selected
-                        </span>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteAddress(addr.address_id)}
-                        className="h-10 w-10 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 flex items-center justify-center"
-                      >
-                        <LuTrash2 />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() =>
+                        handleDeleteAddress(addr.address_id)
+                      }
+                      className="text-gray-400 hover:text-red-600 transition p-2 rounded-lg hover:bg-red-50"
+                    >
+                      <LuTrash2 size={18} />
+                    </button>
                   </div>
                 );
-              })}
-            </div>
-          )}
+              })
+            )}
+          </div>
         </div>
       </div>
     </div>

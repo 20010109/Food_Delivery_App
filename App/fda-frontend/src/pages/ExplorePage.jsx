@@ -4,7 +4,7 @@ import { IoHeart, IoHeartOutline } from "react-icons/io5";
 import Navbar from "./components/Navbar.jsx";
 import CartDrawer from "./components/CartDrawer";
 import TopBar from "./components/TopBar.jsx";
-import AddressModal from "./components/AddressModal.jsx";
+import AddressModal from "./components/HomeAddressModal.jsx";
 import { storeData } from "./dummyData/storeData.js";
 import { menuData } from "./dummyData/menuData.js";
 import { getPrimaryAddress } from "../utils/addressApi.js";

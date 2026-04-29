@@ -24,28 +24,28 @@ function StoreOwnerCreateStoreModal({ open, onClose, onSuccess }) {
   const fetchAddresses = async () => {
     try {
       setLoadingAddresses(true);
-
+  
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
+  
       if (!user) return;
-
+  
       const { data, error } = await supabase
         .from("addresses")
-        .select("address_id, address_line")
+        .select("address_id, house_no, street, barangay, city, province, postal_code")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-
+  
       if (error) throw error;
-
+  
       setAddresses(data || []);
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingAddresses(false);
     }
-  };
+  };  
 
   if (!open) return null;
 
@@ -237,14 +237,15 @@ function StoreOwnerCreateStoreModal({ open, onClose, onSuccess }) {
                       : "Choose saved address"}
                   </option>
 
-                  {addresses.map((address) => (
-                    <option
-                      key={address.address_id}
-                      value={address.address_id}
-                    >
-                      {address.address_line}
-                    </option>
-                  ))}
+                  {addresses.map((address) => {
+                    const formatted = `${address.house_no || ""} ${address.street || ""}, ${address.barangay || ""}, ${address.city || ""}, ${address.province || ""}`;
+
+                    return (
+                      <option key={address.address_id} value={address.address_id}>
+                        {formatted}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>

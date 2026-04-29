@@ -1,4 +1,4 @@
-import { createUserProfile, getUserProfile, updateUserProfile, updateUserRole } from "./user.service.js";
+import { createUserProfile, getUserProfile, updateUserProfile, updateUserRole, setupUserService } from "./user.service.js";
 
 export const createProfile = async (req, res) => {
     try {
@@ -62,6 +62,23 @@ export const updateProfile = async (req, res) => {
     }
 }
 
+// SETUP USER
+
+export const setupUser = async (req, res) => {
+  try {
+    const user_id = req.user.id;
+
+    const result = await setupUserService(
+      req.supabase,
+      user_id,
+      req.body
+    );
+
+    return res.status(201).json(result);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
 
 
 // CUSTOMER RESGISTER AS STOREOWNER
@@ -91,3 +108,5 @@ export const becomeStoreOwner = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
