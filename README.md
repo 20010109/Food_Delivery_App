@@ -16,19 +16,6 @@ Grubero is designed to replicate a modern food delivery ecosystem with multiple 
 
 ---
 
-## 🧪 SQA Focus
-
-As an SQA-driven project, Grubero emphasizes:
-
-- ✔️ Functional testing (unit & integration testing of core features)
-- ✔️ API validation and error handling
-- ✔️ Role-based access control testing
-- ✔️ Input validation and security checks
-- ✔️ Usability and system reliability evaluation
-- ✔️ Bug tracking and continuous improvement
-
----
-
 ## 🛠️ Tech Stack
 
 - **Frontend:** React (Vite), Tailwind CSS  

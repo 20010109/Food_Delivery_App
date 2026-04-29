@@ -56,13 +56,29 @@ function StoreOwnerDashboard() {
   const handleDelete = async (id) => {
     const confirmDelete = confirm("Delete this restaurant?");
     if (!confirmDelete) return;
-
+  
     try {
-      await fetch(`/api/restaurants/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+  
+      const token = session?.access_token;
+  
+      const res = await fetch(
+        `http://localhost:3000/api/restaurants/storeowner/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      if (!res.ok) {
+        throw new Error("Failed to delete restaurant");
+      }
+  
+      // remove from UI only after backend success
       setRestaurants((prev) =>
         prev.filter((r) => r.restaurant_id !== id)
       );

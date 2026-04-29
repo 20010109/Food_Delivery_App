@@ -3,13 +3,22 @@ import { supabase } from "../../utils/supabase.js";
 
 function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     price: "",
     description: "",
   });
+
   const [imageFile, setImageFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
+
+  const inputClass =
+    "w-full rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-white placeholder:text-gray-400 outline-none transition focus:border-red-500 focus:ring-4 focus:ring-red-500/20";
+
+  const cardClass =
+    "rounded-2xl border border-gray-800 bg-gray-900";
 
   const sessionToken = async () => {
     const { data } = await supabase.auth.getSession();
@@ -19,17 +28,34 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
   const fetchItems = async () => {
     if (!restaurantId) return;
 
-    const token = await sessionToken();
+    try {
+      setLoading(true);
 
-    const res = await fetch(
-      `http://localhost:3000/api/menu/${restaurantId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
+      const token = await sessionToken();
+
+      const res = await fetch(
+        `http://localhost:3000/api/menu/${restaurantId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !Array.isArray(data)) {
+        setItems([]);
+        return;
       }
-    );
 
-    const data = await res.json();
-    setItems(data);
+      setItems(data);
+    } catch (err) {
+      console.error(err);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -56,41 +82,46 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
     return data.publicUrl;
   };
 
-  const handleSubmit = async () => {
-    const token = await sessionToken();
-    const imageUrl = await uploadImage();
-
-    const payload = {
-    restaurant_id: restaurantId,
-    name: form.name,
-    price: Number(form.price),
-    description: form.description,
-    };
-
-    // only overwrite image if user uploaded a new one
-    if (imageUrl) {
-    payload.item_image = imageUrl;
-    }
-
-    const url = editingId
-        ? `http://localhost:3000/api/menu/${editingId}`
-        : `http://localhost:3000/api/menu`;
-
-    const method = editingId ? "PUT" : "POST";
-
-    await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
+  const resetForm = () => {
     setForm({ name: "", price: "", description: "" });
     setImageFile(null);
     setEditingId(null);
-    fetchItems();
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const token = await sessionToken();
+      const imageUrl = await uploadImage();
+
+      const payload = {
+        restaurant_id: restaurantId,
+        name: form.name,
+        price: Number(form.price),
+        description: form.description,
+      };
+
+      if (imageUrl) payload.item_image = imageUrl;
+
+      const url = editingId
+        ? `http://localhost:3000/api/menu/${editingId}`
+        : `http://localhost:3000/api/menu`;
+
+      const method = editingId ? "PUT" : "POST";
+
+      await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      resetForm();
+      fetchItems();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -112,115 +143,202 @@ function StoreOwnerMenuModal({ open, onClose, restaurantId }) {
       price: item.price,
       description: item.description,
     });
-  
-    setImageFile(null); // ✅ important
+
+    setImageFile(null);
     setEditingId(item.item_id);
   };
 
-  // ✅ SAFE EARLY RETURN (AFTER HOOKS)
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white w-full max-w-2xl p-6 rounded-xl space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 py-6">
 
-        {/* HEADER */}
-        <div className="flex justify-between">
-          <h2 className="text-xl font-bold">Menu Manager</h2>
-          <button onClick={onClose}>✕</button>
-        </div>
+      <div className="w-full max-w-5xl overflow-hidden rounded-3xl border border-gray-800 bg-gray-900 text-white shadow-2xl">
 
-        {/* FORM */}
-        <div className="grid gap-2">
-          <input
-            placeholder="Name"
-            value={form.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
-          />
-
-          <input
-            placeholder="Price"
-            type="number"
-            value={form.price}
-            onChange={(e) =>
-              setForm({ ...form, price: e.target.value })
-            }
-          />
-
-          <textarea
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) =>
-              setForm({ ...form, description: e.target.value })
-            }
-          />
-
-          <input
-            type="file"
-            onChange={(e) => setImageFile(e.target.files[0])}
-          />
-
-          <button
-            onClick={handleSubmit}
-            className="bg-blue-500 text-white p-2 rounded"
-          >
-            {editingId ? "Update Item" : "Create Item"}
-          </button>
-          <button
-            onClick={() => {
-                setForm({ name: "", price: "", description: "" });
-                setImageFile(null);
-                setEditingId(null);
-            }}
-            className="text-sm text-gray-500"
-          >
-            Cancel Edit
-          </button>
-        </div>
-
-        {/* LIST */}
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {items.map((item) => (
-            <div
-              key={item.item_id}
-              className="flex justify-between border p-2 rounded"
-            >
-                
-                <div className="flex items-center gap-3">
-                    {/* IMAGE */}
-                    <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
-                        {item.item_image ? (
-                        <img
-                            src={item.item_image}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                        />
-                        ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
-                            No img
-                        </div>
-                        )}
-                    </div>
-
-                    {/* TEXT */}
-                    <div>
-                        <p className="font-bold">{item.name}</p>
-                        <p className="text-sm text-gray-500">₱{item.price}</p>
-                    </div>
-                    </div>
-
-              <div className="flex gap-2">
-                <button onClick={() => handleEdit(item)}>Edit</button>
-                <button onClick={() => handleDelete(item.item_id)}>
-                  Delete
-                </button>
-              </div>
+        {/* HEADER (DARK) */}
+        <div className="border-b border-gray-800 bg-gray-950 px-8 py-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">
+                Menu Manager
+              </h2>
+              <p className="text-sm text-gray-400 mt-1">
+                Create and manage your restaurant menu items
+              </p>
             </div>
-          ))}
+
+            <button
+              onClick={onClose}
+              className="h-10 w-10 rounded-full bg-gray-800 text-gray-300 hover:bg-red-600 hover:text-white transition"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
+        {/* BODY (WHITE STYLE INSIDE DARK UI) */}
+        <div className="grid gap-6 p-8 lg:grid-cols-[380px_1fr]">
+
+          {/* FORM PANEL */}
+          <div className={`${cardClass} p-6 space-y-4`}>
+
+            <h3 className="text-lg font-semibold">
+              {editingId ? "Edit Item" : "Add Item"}
+            </h3>
+
+            <input
+              className={inputClass}
+              placeholder="Item name"
+              value={form.name}
+              onChange={(e) =>
+                setForm({ ...form, name: e.target.value })
+              }
+            />
+
+            <input
+              className={inputClass}
+              type="number"
+              placeholder="Price"
+              value={form.price}
+              onChange={(e) =>
+                setForm({ ...form, price: e.target.value })
+              }
+            />
+
+            <textarea
+              className={`${inputClass} resize-none`}
+              rows="4"
+              placeholder="Description"
+              value={form.description}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  description: e.target.value,
+                })
+              }
+            />
+
+            {/* IMAGE */}
+            <label className="block cursor-pointer rounded-xl border border-dashed border-gray-700 bg-gray-800 p-4 text-center hover:border-red-500 transition">
+              <p className="text-sm font-medium">Upload Image</p>
+
+              {imageFile && (
+                <p className="text-xs text-red-400 mt-1 truncate">
+                  {imageFile.name}
+                </p>
+              )}
+
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) =>
+                  setImageFile(e.target.files[0])
+                }
+              />
+            </label>
+
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-red-600 hover:bg-red-700 rounded-xl py-3 font-semibold transition"
+            >
+              {editingId ? "Update Item" : "Create Item"}
+            </button>
+
+            {editingId && (
+              <button
+                onClick={resetForm}
+                className="w-full text-sm text-gray-400 hover:text-white"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
+
+          {/* LIST PANEL */}
+          <div className={`${cardClass} p-6`}>
+
+            <div className="flex justify-between mb-4">
+              <h3 className="text-lg font-semibold">
+                Current Menu
+              </h3>
+
+              <span className="text-xs bg-gray-800 px-3 py-1 rounded-full text-gray-400">
+                {items.length} items
+              </span>
+            </div>
+
+            {loading ? (
+              <p className="text-gray-400 text-sm">
+                Loading...
+              </p>
+            ) : items.length === 0 ? (
+              <p className="text-gray-400 text-sm">
+                No items yet.
+              </p>
+            ) : (
+              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+
+                {items.map((item) => (
+                  <div
+                    key={item.item_id}
+                    className="flex justify-between items-center bg-gray-800 p-4 rounded-2xl border border-gray-700"
+                  >
+
+                    <div className="flex gap-3 items-center">
+
+                      <div className="w-12 h-12 rounded-lg bg-gray-700 overflow-hidden">
+                        {item.item_image ? (
+                          <img
+                            src={item.item_image}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-xs flex items-center justify-center h-full text-gray-400">
+                            No img
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="font-semibold">
+                          {item.name}
+                        </p>
+                        <p className="text-sm text-red-400">
+                          ₱{item.price}
+                        </p>
+                      </div>
+
+                    </div>
+
+                    <div className="flex gap-2">
+
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="px-3 py-1 bg-gray-700 rounded-lg text-sm hover:bg-gray-600"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          handleDelete(item.item_id)
+                        }
+                        className="px-3 py-1 bg-red-600 rounded-lg text-sm hover:bg-red-700"
+                      >
+                        Delete
+                      </button>
+
+                    </div>
+
+                  </div>
+                ))}
+
+              </div>
+            )}
+
+          </div>
+        </div>
       </div>
     </div>
   );
