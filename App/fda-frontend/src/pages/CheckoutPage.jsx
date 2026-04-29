@@ -11,15 +11,21 @@ export default function CheckoutPage() {
   );
 
   const [addressType, setAddressType] = useState("home");
+  const [deliveryType, setDeliveryType] = useState("regular");
+  const [tip, setTip] = useState(0);
 
-  // 🚚 SIMPLE DELIVERY FEE LOGIC (replace later with map API)
-  const deliveryFee = {
+  // 🚚 Delivery Fee Logic
+  const baseDeliveryFee = {
     home: 30,
     work: 20,
     other: 40,
   }[addressType];
 
-  const total = subtotal + deliveryFee;
+  const priorityFee = deliveryType === "priority" ? 19 : 0;
+
+  const deliveryFee = baseDeliveryFee + priorityFee;
+
+  const total = subtotal + deliveryFee + tip;
 
   return (
     <div className="bg-gray-100 min-h-screen p-6">
@@ -37,12 +43,22 @@ export default function CheckoutPage() {
             <h2 className="font-bold mb-3">Delivery Option</h2>
 
             <label className="block border p-3 rounded mb-2">
-              <input type="radio" name="delivery" defaultChecked />
+              <input
+                type="radio"
+                name="delivery"
+                checked={deliveryType === "regular"}
+                onChange={() => setDeliveryType("regular")}
+              />
               <span className="ml-2">Regular 5–20 mins</span>
             </label>
 
             <label className="block border p-3 rounded">
-              <input type="radio" name="delivery" />
+              <input
+                type="radio"
+                name="delivery"
+                checked={deliveryType === "priority"}
+                onChange={() => setDeliveryType("priority")}
+              />
               <span className="ml-2">
                 Priority Delivery (+₱19)
               </span>
@@ -88,14 +104,13 @@ export default function CheckoutPage() {
             />
           </div>
 
-          {/* PERSONAL DETAILS (AUTO) */}
+          {/* PERSONAL DETAILS */}
           <div className="bg-white p-5 rounded-2xl shadow">
             <h2 className="font-bold mb-3">Personal Details</h2>
 
             <p className="text-gray-600">Jessica Codilla</p>
             <p className="text-gray-600">jessica@email.com</p>
             <p className="text-gray-600">09123456789</p>
-
           </div>
 
           {/* PAYMENT */}
@@ -123,10 +138,17 @@ export default function CheckoutPage() {
             <h2 className="font-bold mb-3">Tip your rider</h2>
 
             <div className="flex gap-2">
-              <button className="border px-3 py-1 rounded">No</button>
-              <button className="border px-3 py-1 rounded">₱5</button>
-              <button className="border px-3 py-1 rounded">₱20</button>
-              <button className="border px-3 py-1 rounded">₱30</button>
+              {[0, 5, 20, 30].map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => setTip(amount)}
+                  className={`border px-3 py-1 rounded ${
+                    tip === amount ? "bg-red-500 text-white" : ""
+                  }`}
+                >
+                  {amount === 0 ? "No" : `₱${amount}`}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -160,6 +182,11 @@ export default function CheckoutPage() {
             <div className="flex justify-between text-sm text-gray-500">
               <span>Delivery</span>
               <span>₱{deliveryFee}</span>
+            </div>
+
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>Tip</span>
+              <span>₱{tip}</span>
             </div>
 
             <hr className="my-3" />
