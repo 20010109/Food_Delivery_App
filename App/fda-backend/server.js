@@ -7,6 +7,7 @@ import restaurantRoute from "./modules/Restaurant/restaurant.routes.js";
 import addressRoute from "./modules/Address/address.routes.js";                             
 import menuRoute from "./modules/Menu/menu.routes.js"; 
 import orderRoute from "./modules/Order/order.routes.js";
+import paymentRoute from "./modules/Payments/payments.routes.js";
 
 import { supabase } from "./config/supabase.js";
 
@@ -33,6 +34,8 @@ app.use("/api/addresses", addressRoute);
 app.use("/api/menu", menuRoute);
 // order routes
 app.use('/api/orders', orderRoute);
+// payment route
+app.use('/api/payments', paymentRoute);
 
 
 // test route

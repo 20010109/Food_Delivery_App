@@ -1,10 +1,9 @@
 import express from 'express';
-import { createOrder, getOrders, getOrderById, updateOrderStatus, cancelOrder } from './order.controller.js';
+import { getOrders, getOrderById, updateOrderStatus, cancelOrder } from './order.controller.js';
 import { authenticate } from '../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/order', authenticate, createOrder);
 router.get('/orders', authenticate, getOrders);
 router.get('/order/:id', authenticate, getOrderById);
 router.put('/order/:id/status', authenticate, updateOrderStatus);

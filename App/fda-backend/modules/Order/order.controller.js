@@ -1,20 +1,5 @@
 import { createUserOrder, getUserOrders, getUserOrderById, updateUserOrderStatus, deleteUserOrder } from "./order.service.js";
 
-export const createOrder = async (req, res) => {
-    try {
-        const user_id = req.user.id;
-        const { restaurant_id, items} = req.body;
-        if(!restaurant_id || !items){
-            return res.status(400).json({ error: 'restaurant_id and items are required' });
-        }
-
-        const order = await createUserOrder(req.supabase, { user_id, restaurant_id, items });
-        return res.status(201).json(order);
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
-};
-
 export const getOrders = async (req, res) => {
     try {
         const user_id = req.user.id;
