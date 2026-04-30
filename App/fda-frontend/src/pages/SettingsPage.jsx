@@ -13,6 +13,7 @@ import Navbar from "./components/Navbar.jsx";
 import TopBar from "./components/TopBar.jsx";
 import SavedAddressModal from "./components/SavedAddressModal.jsx";
 import MarketingPreferencesModal from "./components/MarketingPreferencesModal.jsx";
+import StoreOwnerCreateStoreModal from "./components/StoreOwner/StoreOwnerCreateStoreModal.jsx";
 
 const LS_SELECTED_ADDRESS_KEY = "grubero_selected_address";
 
@@ -22,6 +23,7 @@ export default function SettingsPage() {
   const [addressOpen, setAddressOpen] = useState(false);
   const [marketingOpen, setMarketingOpen] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [createStoreOpen, setCreateStoreOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(LS_SELECTED_ADDRESS_KEY);
@@ -59,6 +61,12 @@ export default function SettingsPage() {
           icon: <LuBadgePercent className="text-gray-600" />,
           description: "Email updates, promos, and notifications",
           onClick: () => setMarketingOpen(true),
+        },
+        {
+          label: "Become a Store Owner",
+          icon: <LuTags className="text-orange-600" />,
+          description: "Start selling food on the platform",
+          onClick: () => setCreateStoreOpen(true),
         },
       ],
     },
@@ -163,6 +171,14 @@ export default function SettingsPage() {
           <MarketingPreferencesModal
             open={marketingOpen}
             onClose={() => setMarketingOpen(false)}
+          />
+
+          <StoreOwnerCreateStoreModal
+            open={createStoreOpen}
+            onClose={() => setCreateStoreOpen(false)}
+            onSuccess={() => {
+              setCreateStoreOpen(false);
+            }}
           />
         </section>
       </main>

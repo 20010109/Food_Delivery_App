@@ -5,6 +5,7 @@ import { roleCheck } from "../../middleware/roleCheck.js";
 
 const router = express.Router();
 
+const customerOnly = [authenticate, roleCheck("customer")]
 const storeownerOnly = [authenticate, roleCheck("storeowner")];
 const adminOnly = [authenticate, roleCheck("admin")];
 
@@ -12,9 +13,12 @@ const adminOnly = [authenticate, roleCheck("admin")];
 router.get("/admin", ...adminOnly, controller.getAllRestaurants);
 router.patch("/admin/:restaurant_id/status", ...adminOnly, controller.updateRestaurantStatus);
 
+// APPLY AS STOREOWNER
+router.post("/apply-storeowner", ...customerOnly ,controller.applyStoreOwner);
+
 // STOREOWNER
 router.get("/storeowner/", ...storeownerOnly, controller.getMyRestaurants);
-router.post("/storeowner/create", ...storeownerOnly, controller.createRestaurant);
+//router.post("/create", ...storeownerOnly, controller.createRestaurant); // OBSOLETE
 router.put("/storeowner/:restaurant_id", ...storeownerOnly, controller.updateRestaurant);
 router.delete("/storeowner/:restaurant_id", ...storeownerOnly, controller.deleteRestaurant);
 

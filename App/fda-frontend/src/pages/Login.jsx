@@ -64,7 +64,7 @@ export default function Login() {
           break;
 
         case "storeowner":
-          navigate("/storeowner/home");
+          navigate("/home");
           break;
 
         case "rider":
