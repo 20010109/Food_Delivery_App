@@ -5,8 +5,8 @@ import Navbar from "./components/Navbar.jsx";
 import CartDrawer from "./components/CartDrawer";
 import TopBar from "./components/TopBar.jsx";
 import AddressModal from "./components/HomeAddressModal.jsx";
-import { storeData } from "./dummyData/storeData.js";
-import { menuData } from "./dummyData/menuData.js";
+// import { storeData } from "./dummyData/storeData.js";
+// import { menuData } from "./dummyData/menuData.js";
 import { getPrimaryAddress } from "../utils/addressApi.js";
 import "./styles/tailwind.css";
 import SearchFiltersModal from "./components/SearchFiltersModal.jsx";
@@ -32,6 +32,10 @@ export default function ExplorePage() {
   const [address, setAddress] = useState("");
   const [isEditingAddress, setIsEditingAddress] = useState(false);
 
+  const [restaurants, setRestaurants] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [favStoreIds, setFavStoreIds] = useState(() =>
     readLSArray(LS_FAV_STORES_KEY)
   );
@@ -40,6 +44,31 @@ export default function ExplorePage() {
   );
   const [filters, setFilters] = useState({});
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [resStores, resMenu] = await Promise.all([
+          fetch("http://localhost:3000/api/restaurants"),
+          fetch("http://localhost:3000/api/menu-items"),
+        ]);
+  
+        const storesData = await resStores.json();
+        const menuData = await resMenu.json();
+  
+        setRestaurants(Array.isArray(storesData) ? storesData : storesData?.data || []);
+        setMenuItems(Array.isArray(menuData) ? menuData : menuData?.data || []);
+      } catch (err) {
+        console.error("Failed to fetch explore data:", err.message);
+        setRestaurants([]);
+        setMenuItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const loadAddress = async () => {
@@ -78,61 +107,70 @@ export default function ExplorePage() {
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let results = storeData;
-
+    let results = restaurants;
+  
     if (filters.cuisine) {
       results = results.filter((s) => s.cuisine === filters.cuisine);
     }
-
+  
     if (filters.priceRange) {
       results = results.filter((s) => s.price_range === filters.priceRange);
     }
-
+  
     if (filters.deliveryTime) {
       results = results.filter((s) => s.delivery_time === filters.deliveryTime);
     }
-
+  
     if (q) {
       results = results.filter((s) =>
-        s.name.toLowerCase().includes(q) ||
+        s.name?.toLowerCase().includes(q) ||
         s.cuisine?.toLowerCase().includes(q) ||
         s.promo_tag?.toLowerCase().includes(q)
       );
     }
-
+  
     return results;
-  }, [query, filters]);
+  }, [query, filters, restaurants]);
 
   const popularOrders = useMemo(() => {
-    const merged = menuData
+    const merged = menuItems
       .map((item) => {
-        const restaurant = storeData.find(
+        const restaurant = restaurants.find(
           (store) => store.restaurant_id === item.restaurant_id
         );
-
+  
         if (!restaurant) return null;
-
+  
         return {
           ...item,
           restaurant,
         };
       })
       .filter(Boolean);
-
+  
     if (!query.trim()) return merged.slice(0, 6);
-
+  
     const q = query.trim().toLowerCase();
+  
     return merged.filter((item) => {
       return (
-        item.name.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
+        item.name?.toLowerCase().includes(q) ||
+        item.description?.toLowerCase().includes(q) ||
         item.category?.toLowerCase().includes(q) ||
-        item.restaurant.name.toLowerCase().includes(q) ||
-        item.restaurant.cuisine.toLowerCase().includes(q)
+        item.restaurant.name?.toLowerCase().includes(q) ||
+        item.restaurant.cuisine?.toLowerCase().includes(q)
       );
     });
-  }, [query]);
+  }, [query, menuItems, restaurants]);
 
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center text-gray-500">
+        Loading explore data...
+      </div>
+    );
+  }
   return (
     <div className="flex h-screen bg-gray-50">
       <Navbar />
