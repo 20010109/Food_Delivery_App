@@ -53,7 +53,7 @@ create table user_profiles (
 -- =========================
 create table restaurants (
   restaurant_id uuid primary key default gen_random_uuid(),
-  user_id uuid references user_profiles(user_id) on delete cascade,
+  user_id uuid unique references user_profiles(user_id) on delete cascade,
   name text not null,
   contact_info text not null,
   address_id uuid references addresses(address_id),
@@ -73,7 +73,7 @@ create table menu_items (
   item_image text,
   name text not null,
   price numeric not null,
-  description text
+  description text,
   category menu_category_type not null default 'food'
 );
 

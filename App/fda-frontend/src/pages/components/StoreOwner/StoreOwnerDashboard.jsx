@@ -1,239 +1,234 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../utils/supabase.js";
+
 import StoreOwnerEditStoreModal from "./StoreOwnerEditStoreModal.jsx";
 import StoreOwnerCreateStoreModal from "./StoreOwnerCreateStoreModal.jsx";
-import StoreOwnerMenuItemModal from "./StoreOwnerMenuItemModal.jsx";
-import "../../styles/tailwind.css";
+import MenuSection from "./MenuSection.jsx";
 
 function StoreOwnerDashboard() {
-  const navigate = useNavigate();
-
-  const [restaurants, setRestaurants] = useState([]);
+  const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+
   const [editOpen, setEditOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
 
-  // 🔥 Fetch owner restaurants
-  const fetchRestaurants = async () => {
+  // ================= FETCH RESTAURANT =================
+  const fetchRestaurant = async () => {
     try {
       setLoading(true);
-  
+
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
-  
-      if (!token) {
-        throw new Error("No authenticated session");
-      }
-  
-      const res = await fetch("http://localhost:3000/api/restaurants/storeowner", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-  
-      if (!res.ok) {
-        throw new Error("Request failed");
-      }
-  
+
+      if (!token) return;
+
+      const res = await fetch(
+        "http://localhost:3000/api/restaurants/storeowner",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
       const data = await res.json();
-      setRestaurants(data);
+
+      const normalized =
+        Array.isArray(data) ? data[0] : data?.restaurant || data || null;
+
+      setRestaurant(normalized);
     } catch (err) {
-      console.error("Failed to fetch restaurants:", err);
+      console.error(err);
+      setRestaurant(null);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchRestaurants();
-  }, []);
-
-  // ❌ Delete
-  const handleDelete = async (id) => {
-    const confirmDelete = confirm("Delete this restaurant?");
-    if (!confirmDelete) return;
-  
+  const handleUpdateRestaurant = async (updatedData) => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
   
-      const token = session?.access_token;
+      if (!token || !restaurant) return;
   
       const res = await fetch(
-        `http://localhost:3000/api/restaurants/storeowner/${id}`,
+        `http://localhost:3000/api/restaurants/storeowner/${restaurant.restaurant_id}`,
         {
-          method: "DELETE",
+          method: "PUT",
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify(updatedData),
         }
       );
   
-      if (!res.ok) {
-        throw new Error("Failed to delete restaurant");
-      }
+      const data = await res.json();
   
-      // remove from UI only after backend success
-      setRestaurants((prev) =>
-        prev.filter((r) => r.restaurant_id !== id)
-      );
+      // refresh UI
+      setRestaurant(data || updatedData);
+      setEditOpen(false);
     } catch (err) {
-      console.error("Delete failed:", err);
+      console.error(err);
     }
   };
 
+  useEffect(() => {
+    fetchRestaurant();
+  }, []);
+
+  // ================= DELETE =================
+  const handleDelete = async () => {
+    if (!restaurant) return;
+
+    const ok = confirm("Delete your restaurant?");
+    if (!ok) return;
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+
+    await fetch(
+      `http://localhost:3000/api/restaurants/storeowner/${restaurant.restaurant_id}`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    setRestaurant(null);
+  };
+
   return (
-    <section className="p-6 space-y-8">
-      {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">
-          My Restaurants
-        </h1>
+    <div className="p-6 space-y-10">
 
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition"
-        >
-          + Add Restaurant
-        </button>
-      </div>
+      {/* ================= HERO ================= */}
+      {restaurant && (
+        <div className="relative bg-white border rounded-2xl overflow-hidden">
 
-      {/* LOADING */}
-      {loading ? (
-        <p className="text-gray-500">Loading...</p>
-      ) : restaurants.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 text-center">
-          <p className="text-gray-500">
-            You don’t have any restaurants yet.
-          </p>
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="mt-4 text-red-500 hover:text-red-700 text-sm"
+          {/* COVER */}
+          <div
+            className="h-72 bg-cover bg-center relative"
+            style={{
+              backgroundImage: `url(${
+                restaurant.background_image ||
+                "https://via.placeholder.com/1200x400"
+              })`,
+            }}
           >
-            Create your first restaurant
-          </button>
-        </div>
-      ) : (
-        <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {restaurants.map((r) => (
-            <li
-              key={r.restaurant_id}
-              className="bg-white rounded-2xl border border-gray-200 p-4 hover:shadow-md transition"
+
+            {/* EDIT BUTTON */}
+            <button
+              onClick={() => setEditOpen(true)}
+              className="absolute top-4 right-4 bg-white/90 hover:bg-white px-4 py-2 rounded-xl text-sm shadow"
             >
-              {/* IMAGE */}
-              <div
-                className="w-full h-40 rounded-xl mb-3 bg-gray-100 bg-center bg-cover relative"
-                style={{
-                  backgroundImage: `url(${r.background_image || r.profile_image || "https://via.placeholder.com/400"})`,
-                }}
-              >
-                {/* optional overlay for readability */}
-                <div className="absolute inset-0 bg-black/10 rounded-xl" />
+              Edit Store
+            </button>
+
+            {/* PROFILE INFO */}
+            <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/60 to-transparent flex items-end gap-4">
+
+              <div className="h-20 w-20 rounded-2xl overflow-hidden border-4 border-white bg-gray-200">
+                <img
+                  src={restaurant.profile_image}
+                  className="w-full h-full object-cover"
+                />
               </div>
 
-              {/* INFO */}
-              <h3 className="text-lg font-semibold text-gray-900">
-                {r.name}
-              </h3>
+              <div className="text-white">
+                <h1 className="text-2xl font-bold">
+                  {restaurant.name}
+                </h1>
 
-              <p className="text-sm text-gray-500 mt-1">
-                {r.description || "No description"}
-              </p>
+                <p className="text-sm text-white/80">
+                  {restaurant.contact_info}
+                </p>
 
-              {/* STATUS BADGE */}
-              <div className="mt-3">
-                <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                    r.status === "approved"
-                      ? "bg-green-50 text-green-600"
-                      : r.status === "pending"
-                      ? "bg-yellow-50 text-yellow-600"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {r.status}
+                <span className="inline-block mt-2 text-xs px-3 py-1 rounded-full bg-white/20">
+                  {restaurant.status}
                 </span>
               </div>
 
-              {/* ACTIONS */}
-              <div className="mt-4 flex gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedRestaurant(r);
-                    setEditOpen(true);
-                  }}
-                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm py-2 rounded-lg"
-                >
-                  Edit
-                </button>
+            </div>
 
-                <button
-                  onClick={() => {
-                    setSelectedRestaurantId(r.restaurant_id);
-                    setMenuOpen(true);
-                  }}
-                  className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm py-2 rounded-lg"
-                >
-                  Menu
-                </button>
+          </div>
 
-                <button
-                  onClick={() => handleDelete(r.restaurant_id)}
-                  className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 text-sm py-2 rounded-lg"
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        </div>
       )}
 
+      {/* ================= STATS ================= */}
+      {restaurant && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-      {/* MODALS */}
+          <Stat label="Orders Today" value="0" />
+          <Stat label="Revenue" value="₱0" />
+          <Stat label="Menu Items" value="0" />
+          <Stat label="Rating" value="⭐ 0.0" />
+
+        </div>
+      )}
+
+      {/* ================= MENU SECTION ================= */}
+      {restaurant && (
+        <div className="bg-white border rounded-2xl p-6">
+
+          <MenuSection restaurantId={restaurant.restaurant_id} />
+
+        </div>
+      )}
+
+      {/* ================= EMPTY STATE ================= */}
+      {!loading && !restaurant && (
+        <div className="bg-white border rounded-2xl p-10 text-center space-y-3">
+
+          <h2 className="text-lg font-semibold">
+            No restaurant found
+          </h2>
+
+          <p className="text-gray-500">
+            Create your restaurant to start managing orders and menu.
+          </p>
+
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="bg-red-500 text-white px-4 py-2 rounded-xl"
+          >
+            Create Restaurant
+          </button>
+
+        </div>
+      )}
+
+      {/* ================= LOADING ================= */}
+      {loading && (
+        <div className="bg-white border rounded-2xl p-6 animate-pulse">
+          Loading dashboard...
+        </div>
+      )}
+
+      {/* ================= MODALS ================= */}
       <StoreOwnerEditStoreModal
         open={editOpen}
-        restaurant={selectedRestaurant}
+        restaurant={restaurant}
         onClose={() => setEditOpen(false)}
-        onSave={async (updatedData) => {
-          try {
-            await fetch(
-              `http://localhost:3000/api/restaurants/storeowner/${selectedRestaurant.restaurant_id}`,
-              {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${await supabase.auth.getSession().then(s => s.data.session.access_token)}`,
-                },
-                body: JSON.stringify(updatedData),
-              }
-            );
-
-            fetchRestaurants(); // refresh list
-            setEditOpen(false);
-          } catch (err) {
-            console.error("Update failed:", err);
-          }
-        }}
+        onSave={handleUpdateRestaurant}
       />
 
       <StoreOwnerCreateStoreModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onSuccess={fetchRestaurants}
+        onSuccess={fetchRestaurant}
       />
 
-      <StoreOwnerMenuItemModal
-        open={menuOpen}
-        restaurantId={selectedRestaurantId}
-        onClose={() => setMenuOpen(false)}
-      />
-    </section>
+    </div>
+  );
+}
+
+// ================= STAT COMPONENT =================
+function Stat({ label, value }) {
+  return (
+    <div className="bg-white border rounded-2xl p-4">
+      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-2xl font-bold">{value}</p>
+    </div>
   );
 }
 

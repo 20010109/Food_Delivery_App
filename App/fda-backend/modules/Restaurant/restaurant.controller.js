@@ -98,7 +98,7 @@ export const getRestaurantById = async (req, res) => {
 export const getAllRestaurants = async (req, res) => {
   try {
     const data = await service.getAllRestaurants(req.supabase);
-    console.log("ADMIN RESTAURANTS:", JSON.stringify(data, null, 2));
+    //console.log("ADMIN RESTAURANTS:", JSON.stringify(data, null, 2));
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -109,14 +109,60 @@ export const updateRestaurantStatus = async (req, res) => {
   try {
     const updated = await service.updateRestaurantStatus(
       req.supabase,
-      req.user.id,
-      req.params.restaurant_id,
-      req.body.status
+      req.params.restaurant_id,   
+      req.body.status             
     );
 
     res.json(updated);
   } catch (err) {
+    console.error("UPDATE STATUS ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
+export const applyStoreOwner = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const supabase = req.supabase; // or however you inject it
+
+    const { name, contact_info, address_id, profile_image, background_image } =
+      req.body;
+
+    // 1. Check if user already has a restaurant
+    const { data: existing } = await supabase
+      .from("restaurants")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (existing) {
+      return res.status(400).json({
+        error: "You already have a restaurant or pending application",
+      });
+    }
+
+    // 2. Insert as PENDING application
+    const { data, error } = await supabase
+      .from("restaurants")
+      .insert([
+        {
+          user_id: userId,
+          name,
+          contact_info,
+          address_id,
+          profile_image,
+          background_image,
+          status: "pending",
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.status(201).json(data);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: err.message });
+  }
+};
