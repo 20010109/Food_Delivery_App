@@ -4,7 +4,7 @@ import {
     getReviewById,
     updateUserReview,
     deleteUserReview,
-} from './reviews.service';
+} from './reviews.service.js';
 
 export const createReview = async (req ,res) => {
     try {
