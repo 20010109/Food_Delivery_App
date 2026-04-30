@@ -43,11 +43,11 @@ export const getReviewById = async (supabase, review_id) => {
 export const updateUserReview = async ( supabase, review_id, user_id, { rating, comment }) => {
     const { data: existing , error: fetchError } = await supabase
         .from(TABLE)
-        .update({ rating, comment })
+        .select()
         .eq('review_id', review_id)
         .single();
 
-        if(fetchError | !existing) throw new Error ('Review not found!');
+        if(fetchError || !existing) throw new Error ('Review not found!');
         if(existing.user_id !== user_id) throw new Error('You are not the owner of this review.');
     
     const { data, error } = await supabase

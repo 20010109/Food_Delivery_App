@@ -17,7 +17,7 @@ import Messages from "./pages/Messages.jsx";
 import AdminHomePage from "./pages/admin/AdminHomePage.jsx";
 import AdminRestaurantsPage from "./pages/Admin/AdminRestaurantsPage.jsx"
 import AdminUsersPage from "./pages/Admin/AdminUsersPage.jsx"
-
+import AdminAnalyticsPage from "./pages/Admin/AdminAnalyticsPage.jsx";
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 
@@ -42,6 +42,7 @@ function App() {
           <Route path="/admin" element={<AdminHomePage />} />
           <Route path="/admin/restaurants" element={<AdminRestaurantsPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
         </Route>
 
 

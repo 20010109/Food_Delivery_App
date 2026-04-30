@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "../../utils/supabase";
-
 import AdminNavbar from "../components/Admin/AdminNavbar";
 import AdminSidebar from "../components/Admin/AdminSidebar";
 import StatusBadge from "../components/Admin/StatusBadge";
@@ -91,7 +90,7 @@ function AdminRestaurantsPage() {
 
       <div className="flex-1 flex flex-col">
 
-        <AdminNavbar />
+        <AdminNavbar pageTitle="Restaurants"/>
 
         <main className="p-6 overflow-auto space-y-6">
 

@@ -7,7 +7,7 @@ import restaurantRoute from "./modules/Restaurant/restaurant.routes.js";
 import addressRoute from "./modules/Address/address.routes.js";                             
 import menuRoute from "./modules/Menu/menu.routes.js"; 
 import orderRoute from "./modules/Order/order.routes.js";
-
+import reviewRoute from "./modules/Reviews/reviews.route.js";
 import { supabase } from "./config/supabase.js";
 
 const app = express();
@@ -33,7 +33,8 @@ app.use("/api/addresses", addressRoute);
 app.use("/api/menu", menuRoute);
 // order routes
 app.use('/api/orders', orderRoute);
-
+//review routes
+app.use('api/reviews', reviewRoute)
 
 // test route
 app.get("/", (req, res) => {
