@@ -7,15 +7,15 @@ import {
     deleteReview,
 } from '/reviews.controller.js';
 
-import { authenticate } from "../../middleware/authMiddleware";
+import { authenticate } from "../../middleware/authMiddlewar.js";
 
 const router = express.Router();
 
-router.post('/review', authenticate, createReview);
-router.get('/reviews/restaurant/:restaurant_id', authenticate);
-router.get('/review/:id', authenticate, getReview);
-router.put('/review/:id', authenticate, updateReview);
-router.delete('/review/:id', authenticate, deleteReview);
+router.post('./review', authenticate, createReview);
+router.get('./reviews/restaurant/:restaurant_id', authenticate, getReviewsByRestaurant);
+router.get('./review/:id', authenticate, getReview);
+router.put('./review/:id', authenticate, updateReview);
+router.delete('./review/:id', authenticate, deleteReview);
 
 export default router;
 
