@@ -4,9 +4,6 @@ const TABLE = "restaurants";
 
 // CREATE (you already fixed this)
 export const createRestaurant = async (supabase, userId, payload) => {
-  console.log("🔥 CREATE RESTAURANT PAYLOAD:", payload);
-  console.log("🔥 USER ID:", userId);
-
   const { data, error } = await supabase
     .from(TABLE)
     .insert([
@@ -19,11 +16,7 @@ export const createRestaurant = async (supabase, userId, payload) => {
     .select()
     .single();
 
-  if (error) {
-    console.error("❌ SUPABASE ERROR:", error);
-    throw error;
-  }
-
+  if (error) throw error;
   return data;
 };
 
@@ -85,63 +78,93 @@ export const getRestaurantById = async (supabase, restaurantId) => {
     .eq("status", "approved") // 🔥 important for public access
     .single();
 
-  if (error) throw error;
-  return data;
-};
+    if (error) throw error;
+    return data;
+  };
 
-export const getAllRestaurants = async (supabase) => {
-  const { data, error } = await supabase
-    .from("restaurants")
-    .select(`
-      restaurant_id,
-      name,
-      contact_info,
-      status,
-      created_at,
-      user_profiles (
-        first_name,
-        last_name
-      )
-    `)
-    .order("created_at", { ascending: false });
+  // ADMIN
+  export const applyStoreOwner = async (supabase, userId, payload) => {
+    // 1. Check if already storeowner
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("role")
+      .eq("user_id", userId)
+      .single();
+  
+    if (profile.role === "storeowner") {
+      throw new Error("Already a store owner");
+    }
+  
+    // 2. Create restaurant (PENDING)
+    const { data, error } = await supabase
+      .from("restaurants")
+      .insert([
+        {
+          user_id: userId,
+          ...payload,
+          status: "pending",
+        },
+      ])
+      .select()
+      .single();
+  
+    if (error) throw error;
+  
+    return data;
+  };
 
-  if (error) throw error;
-  return data;
-};
+  export const getAllRestaurants = async (supabase) => {
+    const { data, error } = await supabase
+      .from("restaurants")
+      .select(`
+        restaurant_id,
+        name,
+        contact_info,
+        profile_image,
+        background_image,
+        status,
+        created_at,
+        user_id,
+        user_profiles (
+          user_id,
+          first_name,
+          last_name,
+          role,
+          contact_number,
+          profile_image,
+          is_active
+        )
+      `);
+  
+    if (error) throw error;
+    return data;
+  };
 
-export const updateRestaurantStatus = async (
-  supabase,
-  userId,
-  restaurantId,
-  status
-) => {
-  // get role from user_profiles
-  const { data: profile, error: profileError } = await supabase
-    .from("user_profiles")
-    .select("role")
-    .eq("user_id", userId)
-    .single();
-
-  if (profileError) throw profileError;
-
-  if (profile.role !== "admin") {
-    throw new Error("Unauthorized");
-  }
-
-  const allowedStatuses = ["approved", "denied", "pending"];
+export const updateRestaurantStatus = async (supabase, restaurantId, status) => {
+  const allowedStatuses = ["approved", "denied"];
 
   if (!allowedStatuses.includes(status)) {
     throw new Error("Invalid status");
   }
 
-  const { data, error } = await supabase
+  // 1. Update restaurant status only
+  const { data: restaurant, error } = await supabase
     .from("restaurants")
     .update({ status })
     .eq("restaurant_id", restaurantId)
-    .select()
+    .select("restaurant_id, user_id, status")
     .single();
 
   if (error) throw error;
 
-  return data;
+  // 2. ONLY promote role once (no downgrade ever)
+  if (status === "approved") {
+    await supabase
+      .from("user_profiles")
+      .update({ role: "storeowner" })
+      .eq("user_id", restaurant.user_id);
+  }
+
+  return restaurant;
 };
+  
