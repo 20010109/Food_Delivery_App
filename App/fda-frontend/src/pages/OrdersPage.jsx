@@ -1,109 +1,290 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "./components/Navbar.jsx";
+import { supabase } from "../utils/supabase.js";
+import {
+  LuPackageCheck,
+  LuReceiptText,
+  LuRefreshCw,
+  LuTruck,
+  LuX,
+} from "react-icons/lu";
 
-/**
- * TODO (backend):
- * - Replace these dummy arrays with API data:
- *   GET /orders?status=ongoing (for upcoming)
- *   GET /orders?status=completed,cancelled (for previous)
- * - Each order should include:
- *   id, storeName, status, etaMinutes, createdAt, items[], total, deliveryType, address, rider info, tracking coords
- */
+const API_BASE = "http://localhost:3000/api";
 
-function TrackModal({ open, onClose, order }) {
+const ACTIVE_STATUSES = ["pending", "preparing", "out_for_delivery"];
+const PAST_STATUSES = ["delivered", "cancelled"];
+
+async function getAuthHeaders() {
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+
+  if (!token) {
+    throw new Error("You must be logged in to view orders.");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+function formatMoney(value) {
+  return `₱${Number(value || 0).toLocaleString("en-PH")}`;
+}
+
+function formatDateTime(value) {
+  if (!value) return "Date unavailable";
+
+  return new Date(value).toLocaleString("en-PH", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function shortOrderCode(orderId) {
+  return String(orderId || "").slice(0, 6).toUpperCase();
+}
+
+function statusLabel(status) {
+  const labels = {
+    pending: "Pending",
+    preparing: "Preparing",
+    out_for_delivery: "Out for delivery",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+  };
+
+  return labels[status] || status || "Unknown";
+}
+
+function statusColor(status) {
+  if (status === "delivered") return "bg-green-100 text-green-700";
+  if (status === "cancelled") return "bg-red-100 text-red-700";
+  if (status === "out_for_delivery") return "bg-blue-100 text-blue-700";
+  if (status === "preparing") return "bg-yellow-100 text-yellow-700";
+
+  return "bg-red-50 text-red-600";
+}
+
+function progressWidth(status) {
+  if (status === "pending") return "w-1/4";
+  if (status === "preparing") return "w-2/4";
+  if (status === "out_for_delivery") return "w-3/4";
+  if (status === "delivered") return "w-full";
+
+  return "w-1/4";
+}
+
+function etaMinutes(status) {
+  if (status === "pending") return 45;
+  if (status === "preparing") return 30;
+  if (status === "out_for_delivery") return 15;
+
+  return 0;
+}
+
+function getRestaurantName(order) {
+  return order?.restaurants?.name || order?.restaurant?.name || "Restaurant";
+}
+
+function getOrderItems(order) {
+  return Array.isArray(order?.order_items) ? order.order_items : [];
+}
+
+function normalizeOrder(order) {
+  const items = getOrderItems(order).map((item) => {
+    const menuItem = item.menu_items || item.menu_item || {};
+
+    const qty = Number(item.quantity || item.qty || 0);
+    const price = Number(menuItem.price || item.price || 0);
+
+    return {
+      id: item.order_item_id || item.item_id,
+      itemId: item.item_id,
+      name:
+        menuItem.name ||
+        item.name ||
+        item.item_name ||
+        `Item ${String(item.item_id || "").slice(0, 6)}`,
+      qty,
+      price,
+      image: menuItem.item_image || menuItem.image_url || item.item_image,
+    };
+  });
+
+  return {
+    ...order,
+    id: order.order_id,
+    orderCode: shortOrderCode(order.order_id),
+    storeName: getRestaurantName(order),
+    items,
+    total: Number(order.total_price || order.total || 0),
+    etaMinutes: etaMinutes(order.status),
+    dateTime: formatDateTime(order.created_at),
+    statusLabel: statusLabel(order.status),
+    statusColor: statusColor(order.status),
+  };
+}
+
+function TrackModal({
+  open,
+  onClose,
+  order,
+  onCancelOrder,
+  cancellingOrderId,
+}) {
   if (!open || !order) return null;
+
+  const canCancel = order.status === "pending";
+  const isCancelling = String(cancellingOrderId) === String(order.id);
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* overlay */}
       <div
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* modal */}
-      <div className="absolute right-6 top-6 bottom-6 w-[420px] bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b">
+      <div className="absolute right-6 top-6 bottom-6 w-[440px] bg-white rounded-3xl shadow-xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-semibold">Track Order</h2>
-            <p className="text-xs text-gray-500">
-              {/* TODO (backend): show order code */}
-              Order #{order.orderCode}
-            </p>
+            <h2 className="text-xl font-bold text-gray-900">Track Order</h2>
+            <p className="text-sm text-gray-500">Order #{order.orderCode}</p>
           </div>
 
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-full hover:bg-gray-100 flex items-center justify-center"
+            className="h-10 w-10 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 flex items-center justify-center"
             aria-label="Close"
           >
-            ✕
+            <LuX size={20} />
           </button>
         </div>
 
-        <div className="p-5 space-y-4 overflow-auto h-full">
-          <div className="rounded-xl border border-gray-200 p-4">
-            <div className="font-semibold">{order.storeName}</div>
-            <div className="text-sm text-gray-500 mt-1">
-              {/* TODO (backend): show delivery address */}
-              Delivery to: <span className="font-medium">{order.address}</span>
+        <div className="p-6 space-y-5 overflow-auto h-full">
+          <div className="rounded-2xl border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-bold text-gray-900">{order.storeName}</div>
+                <div className="text-sm text-gray-500 mt-1">
+                  Placed {order.dateTime}
+                </div>
+              </div>
+
+              <span
+                className={`text-xs px-3 py-1 rounded-full font-semibold ${order.statusColor}`}
+              >
+                {order.statusLabel}
+              </span>
             </div>
-            <div className="text-sm text-gray-500 mt-1">
-              ETA: <span className="font-semibold">{order.etaMinutes} min</span>
-            </div>
-          </div>
 
-          {/* Map placeholder */}
-          <div className="rounded-xl border border-gray-200 h-56 flex items-center justify-center text-gray-400">
-            {/* TODO (backend): replace with map (Google Maps / Mapbox) using rider + destination coords */}
-            Map placeholder
-          </div>
-
-          <div className="rounded-xl border border-gray-200 p-4">
-            <h3 className="font-semibold mb-3">Status</h3>
-
-            {/* TODO (backend): status timeline from backend */}
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center justify-between">
-                <span>Order confirmed</span>
-                <span className="text-gray-500">{order.times.confirmed}</span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span>Preparing food</span>
-                <span className="text-gray-500">{order.times.preparing}</span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span className="font-semibold">On the way</span>
-                <span className="text-gray-500">{order.times.onTheWay}</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="rounded-xl border border-gray-200 p-4">
-            <h3 className="font-semibold mb-3">Items</h3>
-            <ul className="space-y-2 text-sm">
-              {order.items.map((it) => (
-                <li key={it.name} className="flex justify-between">
-                  <span>
-                    {it.qty} × {it.name}
+            {ACTIVE_STATUSES.includes(order.status) && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
+                  <span>Estimated arrival</span>
+                  <span className="font-semibold text-gray-900">
+                    {order.etaMinutes} min
                   </span>
-                  <span className="text-gray-600">₱{it.price}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="border-t mt-3 pt-3 flex justify-between font-semibold">
-              <span>Total</span>
-              <span>₱{order.total}</span>
+                </div>
+
+                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className={`h-full bg-red-500 ${progressWidth(
+                      order.status
+                    )}`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {canCancel && (
+              <button
+                type="button"
+                onClick={() => onCancelOrder(order)}
+                disabled={isCancelling}
+                className="mt-4 w-full rounded-xl bg-red-50 py-3 text-sm font-bold text-red-600 hover:bg-red-100 disabled:opacity-60 disabled:cursor-not-allowed transition"
+              >
+                {isCancelling ? "Cancelling..." : "Cancel Order"}
+              </button>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 p-4">
+            <h3 className="font-bold text-gray-900 mb-3">Status Timeline</h3>
+
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+                  <LuReceiptText size={16} />
+                </div>
+                <span>Order received</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div
+                  className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                    ["preparing", "out_for_delivery", "delivered"].includes(
+                      order.status
+                    )
+                      ? "bg-red-50 text-red-600"
+                      : "bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  <LuPackageCheck size={16} />
+                </div>
+                <span>Preparing food</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div
+                  className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                    ["out_for_delivery", "delivered"].includes(order.status)
+                      ? "bg-red-50 text-red-600"
+                      : "bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  <LuTruck size={16} />
+                </div>
+                <span>Out for delivery</span>
+              </div>
             </div>
           </div>
 
-          {/* TODO (backend): contact rider / support */}
+          <div className="rounded-2xl border border-gray-200 p-4">
+            <h3 className="font-bold text-gray-900 mb-3">Items</h3>
+
+            {order.items.length === 0 ? (
+              <p className="text-sm text-gray-500">No item details available.</p>
+            ) : (
+              <ul className="space-y-3 text-sm">
+                {order.items.map((item) => (
+                  <li key={item.id} className="flex justify-between gap-3">
+                    <span className="text-gray-700">
+                      {item.qty} × {item.name}
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      {item.price ? formatMoney(item.price * item.qty) : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="border-t border-gray-100 mt-4 pt-4 flex justify-between font-bold">
+              <span>Total</span>
+              <span>{formatMoney(order.total)}</span>
+            </div>
+          </div>
+
           <button
-            className="w-full py-3 rounded-xl bg-gray-900 text-white hover:bg-black transition"
-            onClick={() => alert("Chat/Call rider not implemented yet")}
+            className="w-full py-3 rounded-2xl bg-gray-900 text-white font-semibold hover:bg-black transition"
+            onClick={() => alert("Support/chat is not connected yet")}
           >
-            Call / Message Rider (placeholder)
+            Get Help
           </button>
         </div>
       </div>
@@ -115,86 +296,87 @@ export default function OrdersPage() {
   const [trackOpen, setTrackOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
 
-  // Dummy data (safe to delete later)
-  const upcomingOrders = useMemo(
-    () => [
-      {
-        id: 1,
-        orderCode: "1DF90E",
-        storeName: "Burger King",
-        etaMinutes: 35,
-        address: "Banilad, Cebu City",
-        items: [
-          { name: "Yummy Food", qty: 1, price: 120 },
-          { name: "Yummy Food", qty: 1, price: 120 },
-        ],
-        total: 240,
-        times: { confirmed: "12:41", preparing: "12:44", onTheWay: "12:48" },
-      },
-      {
-        id: 2,
-        orderCode: "3EQAQ9",
-        storeName: "McDonald's",
-        etaMinutes: 60,
-        address: "Banilad, Cebu City",
-        items: [{ name: "Big Mac", qty: 1, price: 180 }],
-        total: 180,
-        times: { confirmed: "12:20", preparing: "12:28", onTheWay: "12:35" },
-      },
-    ],
-    []
-  );
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState("");
+  const [cancellingOrderId, setCancellingOrderId] = useState(null);
 
-  const previousOrders = useMemo(
-    () => [
-      {
-        id: 10,
-        storeName: "Burger King",
-        date: "April 4, 2026",
-        time: "11:45 PM",
-        status: "Completed",
-        statusColor: "bg-green-100 text-green-700",
-        items: ["Yummy Food", "Yummy Food"],
-      },
-      {
-        id: 11,
-        storeName: "Burger King",
-        date: "April 4, 2026",
-        time: "11:45 PM",
-        status: "Cancelled",
-        statusColor: "bg-red-100 text-red-700",
-        items: ["Yummy Food", "Yummy Food"],
-      },
-      {
-        id: 12,
-        storeName: "Burger King",
-        date: "April 4, 2026",
-        time: "11:45 PM",
-        status: "Completed",
-        statusColor: "bg-green-100 text-green-700",
-        items: ["Yummy Food", "Yummy Food"],
-      },
-      {
-        id: 13,
-        storeName: "Burger King",
-        date: "April 4, 2026",
-        time: "11:45 PM",
-        status: "Cancelled",
-        statusColor: "bg-red-100 text-red-700",
-        items: ["Yummy Food", "Yummy Food"],
-      },
-      {
-        id: 14,
-        storeName: "Burger King",
-        date: "April 4, 2026",
-        time: "11:45 PM",
-        status: "Completed",
-        statusColor: "bg-green-100 text-green-700",
-        items: ["Yummy Food", "Yummy Food"],
-      },
-    ],
-    []
-  );
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      setOrdersError("");
+
+      const headers = await getAuthHeaders();
+
+      const res = await fetch(`${API_BASE}/orders/orders`, {
+        headers,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to load orders.");
+      }
+
+      setOrders(Array.isArray(data) ? data.map(normalizeOrder) : []);
+    } catch (err) {
+      setOrdersError(err.message || "Failed to load orders.");
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const cancelOrder = async (order) => {
+    if (!order || order.status !== "pending") return;
+
+    const confirmed = window.confirm(
+      `Cancel order #${order.orderCode} from ${order.storeName}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setCancellingOrderId(order.id);
+      setOrdersError("");
+
+      const headers = await getAuthHeaders();
+
+      const res = await fetch(`${API_BASE}/orders/order/${order.id}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to cancel order.");
+      }
+
+      await fetchOrders();
+
+      if (activeOrder && String(activeOrder.id) === String(order.id)) {
+        setActiveOrder(null);
+        setTrackOpen(false);
+      }
+    } catch (err) {
+      setOrdersError(err.message || "Failed to cancel order.");
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
+
+  const upcomingOrders = useMemo(() => {
+    return orders.filter((order) => ACTIVE_STATUSES.includes(order.status));
+  }, [orders]);
+
+  const previousOrders = useMemo(() => {
+    return orders.filter((order) => PAST_STATUSES.includes(order.status));
+  }, [orders]);
 
   const openTrack = (order) => {
     setActiveOrder(order);
@@ -210,97 +392,176 @@ export default function OrdersPage() {
     <div className="flex h-screen bg-gray-100">
       <Navbar />
 
-      {/* Only the content scrolls (Navbar stays fixed) */}
       <main className="flex-1 overflow-y-auto p-6 space-y-8">
-        {/* UPCOMING */}
-        <section className="space-y-4">
-          <h1 className="text-2xl font-bold">Upcoming Orders</h1>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
+            <p className="text-gray-500 mt-1">
+              Track your current orders and review previous purchases.
+            </p>
+          </div>
 
-          {/* TODO (backend): if upcomingOrders empty, show empty state */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {upcomingOrders.map((o) => (
-              <div
-                key={o.id}
-                className="bg-white rounded-2xl border border-gray-200 p-5"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="font-semibold">{o.storeName}</div>
-                    <div className="text-sm text-gray-500 mt-1">
-                      Estimated arrival
-                    </div>
-                    <div className="text-2xl font-bold mt-1">{o.etaMinutes} min</div>
-                  </div>
+          <button
+            type="button"
+            onClick={fetchOrders}
+            className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+          >
+            <LuRefreshCw size={16} />
+            Refresh
+          </button>
+        </div>
 
-                  <div className="text-right">
-                    <div className="text-xs text-gray-500">#{o.orderCode}</div>
-                    <button
-                      className="mt-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-                      onClick={() => openTrack(o)}
+        {ordersError && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-600 font-medium">
+            {ordersError}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center text-gray-500">
+            Loading orders...
+          </div>
+        ) : (
+          <>
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Upcoming Orders
+              </h2>
+
+              {upcomingOrders.length === 0 ? (
+                <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center text-gray-500">
+                  No upcoming orders yet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {upcomingOrders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm"
                     >
-                      Track
-                    </button>
-                  </div>
-                </div>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="font-bold text-gray-900">
+                            {order.storeName}
+                          </div>
 
-                {/* progress bar */}
-                <div className="mt-4 h-2 rounded-full bg-gray-100 overflow-hidden">
-                  {/* TODO (backend): progress based on status */}
-                  <div className="h-full w-2/3 bg-red-500" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+                          <div className="text-sm text-gray-500 mt-1">
+                            Estimated arrival
+                          </div>
 
-        {/* PREVIOUS */}
-        <section className="space-y-4">
-          <h2 className="text-2xl font-bold">Previous Orders</h2>
+                          <div className="text-2xl font-bold mt-1">
+                            {order.etaMinutes} min
+                          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {previousOrders.map((o) => (
-              <div
-                key={o.id}
-                className="bg-white rounded-2xl border border-gray-200 p-5"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="font-semibold">{o.storeName}</div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${o.statusColor}`}>
-                    {o.status}
-                  </span>
-                </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {order.items.length}{" "}
+                            {order.items.length === 1 ? "item" : "items"} •{" "}
+                            {formatMoney(order.total)}
+                          </div>
+                        </div>
 
-                <div className="text-xs text-gray-500 mt-2">
-                  {o.date} • {o.time}
-                </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-500">
+                            #{order.orderCode}
+                          </div>
 
-                <ul className="mt-3 text-sm text-gray-700 space-y-1">
-                  {o.items.map((it, idx) => (
-                    <li key={idx}>{it}</li>
+                          <button
+                            className="mt-2 px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+                            onClick={() => openTrack(order)}
+                          >
+                            Track
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 h-2 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                          className={`h-full bg-red-500 ${progressWidth(
+                            order.status
+                          )}`}
+                        />
+                      </div>
+                    </div>
                   ))}
-                </ul>
-
-                <div className="mt-4 flex gap-2">
-                  <button
-                    className="flex-1 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm"
-                    onClick={() => alert("Details not implemented yet")}
-                  >
-                    Details
-                  </button>
-                  <button
-                    className="flex-1 py-2 rounded-lg bg-blue-100 hover:bg-blue-200 text-sm text-blue-700"
-                    onClick={() => alert("Help not implemented yet")}
-                  >
-                    Get Help
-                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              )}
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Previous Orders
+              </h2>
+
+              {previousOrders.length === 0 ? (
+                <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center text-gray-500">
+                  No previous orders yet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {previousOrders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="font-bold text-gray-900">
+                          {order.storeName}
+                        </div>
+
+                        <span
+                          className={`text-xs px-3 py-1 rounded-full font-semibold ${order.statusColor}`}
+                        >
+                          {order.statusLabel}
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-gray-500 mt-2">
+                        {order.dateTime}
+                      </div>
+
+                      <ul className="mt-4 text-sm text-gray-700 space-y-1">
+                        {order.items.slice(0, 3).map((item) => (
+                          <li key={item.id}>
+                            {item.qty}x {item.name}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="mt-4 text-sm font-bold text-gray-900">
+                        Total: {formatMoney(order.total)}
+                      </div>
+
+                      <div className="mt-4 flex gap-2">
+                        <button
+                          className="flex-1 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-sm font-semibold transition"
+                          onClick={() => openTrack(order)}
+                        >
+                          Details
+                        </button>
+
+                        <button
+                          className="flex-1 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-sm font-semibold text-red-600 transition"
+                          onClick={() => alert("Help is not connected yet")}
+                        >
+                          Get Help
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </main>
 
-      <TrackModal open={trackOpen} onClose={closeTrack} order={activeOrder} />
+      <TrackModal
+        open={trackOpen}
+        onClose={closeTrack}
+        order={activeOrder}
+        onCancelOrder={cancelOrder}
+        cancellingOrderId={cancellingOrderId}
+      />
     </div>
   );
 }

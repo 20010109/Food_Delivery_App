@@ -16,6 +16,8 @@ import { useCart } from "../context/CartContext";
 import { getPrimaryAddress } from "../utils/addressApi.js";
 import { supabase } from "../utils/supabase.js";
 
+const API_BASE = "http://localhost:3000/api";
+
 const DELIVERY_OPTIONS = [
   {
     id: "regular",
@@ -54,6 +56,24 @@ const PAYMENT_OPTIONS = [
 
 const TIP_OPTIONS = [0, 5, 20, 30];
 
+async function getAuthHeaders() {
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+
+  if (!token) {
+    throw new Error("You must be logged in to place an order.");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+function formatMoney(value) {
+  return `₱${Number(value || 0).toLocaleString("en-PH")}`;
+}
+
 function formatAddress(address) {
   if (!address) return "";
 
@@ -72,6 +92,14 @@ function formatAddress(address) {
     .join(", ");
 }
 
+function getCartItemId(item) {
+  return item.item_id || item.itemId || item.id;
+}
+
+function getCartItemQty(item) {
+  return Number(item.qty || item.quantity || 1);
+}
+
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -85,6 +113,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState(null);
   const [profile, setProfile] = useState(null);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [orderError, setOrderError] = useState("");
 
   const selectedStore = useMemo(() => {
     if (!selectedStoreId) {
@@ -108,12 +137,12 @@ export default function CheckoutPage() {
 
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
-      return sum + Number(item.price || 0) * Number(item.qty || 0);
+      return sum + Number(item.price || 0) * getCartItemQty(item);
     }, 0);
   }, [items]);
 
   const itemCount = useMemo(() => {
-    return items.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+    return items.reduce((sum, item) => sum + getCartItemQty(item), 0);
   }, [items]);
 
   const selectedDelivery = DELIVERY_OPTIONS.find(
@@ -155,17 +184,53 @@ export default function CheckoutPage() {
     loadCheckoutInfo();
   }, []);
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectedStore || items.length === 0) return;
 
-    setPlacingOrder(true);
+    try {
+      setPlacingOrder(true);
+      setOrderError("");
 
-    setTimeout(() => {
+      const headers = await getAuthHeaders();
+
+      const orderItems = items.map((item) => ({
+        item_id: getCartItemId(item),
+        quantity: getCartItemQty(item),
+      }));
+
+      const invalidItem = orderItems.find((item) => !item.item_id);
+
+      if (invalidItem) {
+        throw new Error("One or more cart items are missing an item ID.");
+      }
+
+      const res = await fetch(`${API_BASE}/orders/order`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          restaurant_id: selectedStore.storeId,
+          items: orderItems,
+          delivery_fee: deliveryFee,
+          tip,
+          payment_method: paymentMethod,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to place order.");
+      }
+
       clearStore(selectedStore.storeId);
-      setPlacingOrder(false);
+
       alert(`Order placed for ${selectedStore.storeName || "this store"}!`);
       navigate("/orders");
-    }, 500);
+    } catch (err) {
+      setOrderError(err.message || "Failed to place order.");
+    } finally {
+      setPlacingOrder(false);
+    }
   };
 
   if (!selectedStore && cart.length > 1) {
@@ -194,10 +259,7 @@ export default function CheckoutPage() {
             <div className="mt-6 space-y-4">
               {cart.map((store) => {
                 const storeSubtotal = store.items.reduce((sum, item) => {
-                  return (
-                    sum +
-                    Number(item.price || 0) * Number(item.qty || 0)
-                  );
+                  return sum + Number(item.price || 0) * getCartItemQty(item);
                 }, 0);
 
                 return (
@@ -232,7 +294,7 @@ export default function CheckoutPage() {
 
                     <div className="text-right shrink-0">
                       <p className="font-bold text-gray-900">
-                        ₱{storeSubtotal}
+                        {formatMoney(storeSubtotal)}
                       </p>
                       <p className="text-sm text-red-600 font-semibold">
                         Checkout
@@ -361,7 +423,7 @@ export default function CheckoutPage() {
                       </div>
 
                       <p className="mt-4 font-bold text-gray-900">
-                        ₱{option.fee}
+                        {formatMoney(option.fee)}
                       </p>
                     </button>
                   );
@@ -522,7 +584,7 @@ export default function CheckoutPage() {
                         : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
                     }`}
                   >
-                    {amount === 0 ? "No tip" : `₱${amount}`}
+                    {amount === 0 ? "No tip" : formatMoney(amount)}
                   </button>
                 ))}
               </div>
@@ -538,41 +600,46 @@ export default function CheckoutPage() {
               </p>
 
               <div className="mt-5 space-y-4">
-                {items.map((item) => (
-                  <div
-                    key={`${item.storeId}-${item.id}`}
-                    className="flex items-start justify-between gap-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">
-                        {item.qty}x {item.name}
-                      </p>
+                {items.map((item) => {
+                  const qty = getCartItemQty(item);
+                  const lineTotal = Number(item.price || 0) * qty;
 
-                      <p className="text-xs text-gray-400 truncate">
-                        ₱{item.price} each
-                      </p>
+                  return (
+                    <div
+                      key={`${item.storeId}-${getCartItemId(item)}`}
+                      className="flex items-start justify-between gap-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">
+                          {qty}x {item.name}
+                        </p>
+
+                        <p className="text-xs text-gray-400 truncate">
+                          {formatMoney(item.price)} each
+                        </p>
+                      </div>
+
+                      <span className="font-semibold text-gray-900">
+                        {formatMoney(lineTotal)}
+                      </span>
                     </div>
-
-                    <span className="font-semibold text-gray-900">
-                      ₱{Number(item.price || 0) * Number(item.qty || 0)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <div className="border-t border-gray-100 pt-4 space-y-3">
                   <div className="flex justify-between text-gray-500">
                     <span>Subtotal</span>
-                    <span>₱{subtotal}</span>
+                    <span>{formatMoney(subtotal)}</span>
                   </div>
 
                   <div className="flex justify-between text-gray-500">
                     <span>Delivery</span>
-                    <span>₱{deliveryFee}</span>
+                    <span>{formatMoney(deliveryFee)}</span>
                   </div>
 
                   <div className="flex justify-between text-gray-500">
                     <span>Tip</span>
-                    <span>₱{tip}</span>
+                    <span>{formatMoney(tip)}</span>
                   </div>
 
                   <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
@@ -581,10 +648,16 @@ export default function CheckoutPage() {
                     </span>
 
                     <span className="text-2xl font-bold text-gray-900">
-                      ₱{total}
+                      {formatMoney(total)}
                     </span>
                   </div>
                 </div>
+
+                {orderError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                    {orderError}
+                  </div>
+                )}
 
                 <button
                   type="button"
