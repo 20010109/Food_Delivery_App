@@ -1,3 +1,5 @@
+import NoProfile from "../../../assets/Stock_User.jpg"
+
 export default function StoreInspectionModal({
     open,
     onClose,
@@ -84,7 +86,7 @@ export default function StoreInspectionModal({
                   <img
                     src={
                       owner.profile_image ||
-                      "https://via.placeholder.com/80"
+                      NoProfile
                     }
                     className="w-12 h-12 rounded-full object-cover border"
                   />

@@ -11,6 +11,7 @@ import {
   LuTruck,
   LuStar,
   LuChartLine,
+  LuBike,
 } from "react-icons/lu";
 
 import DefaultProfile from "../../../assets/Stock_User.jpg";
@@ -69,6 +70,10 @@ function AdminSidebar() {
 
         <NavLink to="/admin/restaurants" className={linkClass}>
           <LuStore /> Restaurants
+        </NavLink>
+        
+        <NavLink to="/admin/riders" className={linkClass}>
+          <LuBike /> Riders
         </NavLink>
 
         <NavLink to="/admin/users" className={linkClass}>
