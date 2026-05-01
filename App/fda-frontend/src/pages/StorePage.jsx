@@ -1,16 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  IoHeart,
-  IoHeartOutline,
-  IoChevronForward,
-} from "react-icons/io5";
-import {
-  LuPhone,
-  LuMinus,
-  LuPlus,
-  LuTrash2,
-} from "react-icons/lu";
+import { IoHeart, IoHeartOutline } from "react-icons/io5";
+import { LuPhone, LuMinus, LuPlus, LuTrash2 } from "react-icons/lu";
 
 import Navbar from "./components/Navbar.jsx";
 import AddToCartModal from "./components/AddToCartModal.jsx";
@@ -47,8 +38,7 @@ export default function StorePage() {
 
   const { cart, addToCart, updateQty, removeItem } = useCart();
 
-  const storeCart =
-    cart.find((s) => s.storeId === storeId)?.items || [];
+  const storeCart = cart.find((s) => s.storeId === storeId)?.items || [];
 
   const subtotal = storeCart.reduce(
     (sum, i) => sum + i.price * i.qty,
@@ -151,23 +141,8 @@ export default function StorePage() {
       <Navbar />
 
       <main className="flex-1 overflow-y-auto">
-
-        {/* BREADCRUMB */}
-        <div className="px-6 pt-4 flex items-center gap-2 text-sm text-gray-500">
-          <span
-            onClick={() => navigate("/explore")}
-            className="cursor-pointer hover:text-red-600"
-          >
-            Explore
-          </span>
-
-          <IoChevronForward size={14} />
-
-          <span>{store.name}</span>
-        </div>
-
         {/* HEADER */}
-        <div className="bg-white shadow-sm border-b border-gray-200 mt-3">
+        <div className="bg-white shadow-sm border-b border-gray-200">
           <div className="relative">
             <img
               src={store.background_image || store.profile_image}
@@ -179,7 +154,7 @@ export default function StorePage() {
             <img
               src={store.profile_image}
               alt={store.name}
-              className="absolute left-6 bottom-[-35px] w-50 h-50 rounded-2xl border-4 border-white bg-white object-cover shadow-lg"
+              className="absolute left-6 bottom-[-35px] w-28 h-28 rounded-2xl border-4 border-white bg-white object-contain shadow-lg p-2"
             />
           </div>
 
@@ -191,7 +166,7 @@ export default function StorePage() {
 
               <div className="mt-2 flex items-center gap-2 text-gray-500">
                 <LuPhone className="text-red-500" />
-                <span>{store.contact_info}</span>
+                <span>{store.contact_info || "No contact number"}</span>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500">
@@ -202,8 +177,7 @@ export default function StorePage() {
                 <span>•</span>
 
                 <span>
-                  Price Range:{" "}
-                  {store.price_range || "Not specified"}
+                  Price Range: {store.price_range || "Not specified"}
                 </span>
 
                 <span>•</span>
@@ -219,13 +193,13 @@ export default function StorePage() {
                 <span>•</span>
 
                 <span>
-                  Delivery Time:{" "}
-                  {store.delivery_time || "20-30 mins"}
+                  Delivery Time: {store.delivery_time || "20-30 mins"}
                 </span>
               </div>
             </div>
 
             <button
+              type="button"
               onClick={toggleStoreFav}
               className="shrink-0 inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
             >
@@ -246,7 +220,6 @@ export default function StorePage() {
 
         {/* CONTENT */}
         <div className="p-6 grid grid-cols-12 gap-6">
-
           {/* MENU */}
           <div className="col-span-8 grid grid-cols-2 gap-5">
             {menu.map((item) => (
@@ -272,9 +245,8 @@ export default function StorePage() {
                   </div>
 
                   <button
-                    onClick={() =>
-                      toggleDishFav(item.item_id)
-                    }
+                    type="button"
+                    onClick={() => toggleDishFav(item.item_id)}
                     className="h-10 w-10 rounded-full border border-gray-200 flex items-center justify-center"
                   >
                     {isDishFav(item.item_id) ? (
@@ -291,6 +263,7 @@ export default function StorePage() {
                   </span>
 
                   <button
+                    type="button"
                     onClick={() => {
                       setSelectedItem(item);
                       setModalOpen(true);
@@ -305,41 +278,98 @@ export default function StorePage() {
           </div>
 
           {/* CART */}
-          <div className="col-span-4 bg-white p-5 rounded-2xl border border-gray-200 sticky top-6 h-fit">
-            <h2 className="text-2xl font-bold mb-4">
-              Your Items
-            </h2>
+          <div className="col-span-4 bg-white p-5 rounded-2xl border border-gray-200 sticky top-6 h-fit shadow-sm">
+            <h2 className="text-2xl font-bold text-gray-900">Your Items</h2>
+
+            <p className="text-sm text-gray-400 mt-1">
+              {storeCart.length}{" "}
+              {storeCart.length === 1 ? "item" : "items"} from {store.name}
+            </p>
 
             {storeCart.length === 0 ? (
-              <p className="text-gray-400">
-                Cart is empty
-              </p>
+              <p className="text-gray-400 mt-6">Cart is empty</p>
             ) : (
-              storeCart.map((ci) => (
-                <div
-                  key={ci.id}
-                  className="border p-4 rounded-xl mb-3"
-                >
-                  <p className="font-semibold">
-                    {ci.name}
-                  </p>
+              <div className="mt-5 space-y-4">
+                {storeCart.map((ci) => (
+                  <div
+                    key={ci.id}
+                    className="rounded-xl border border-gray-200 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900">
+                          {ci.name}
+                        </p>
 
-                  <p className="text-sm text-gray-500">
-                    ₱{ci.price} x {ci.qty}
-                  </p>
-                </div>
-              ))
+                        <p className="text-sm text-gray-500 mt-1">
+                          ₱{ci.price} x {ci.qty}
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeItem(storeId, ci.id)}
+                        className="h-9 w-9 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 flex items-center justify-center transition"
+                        title="Remove item"
+                      >
+                        <LuTrash2 size={16} />
+                      </button>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="inline-flex items-center rounded-xl border border-gray-200 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            ci.qty <= 1
+                              ? removeItem(storeId, ci.id)
+                              : updateQty(storeId, ci.id, ci.qty - 1)
+                          }
+                          className="h-9 w-9 flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                        >
+                          <LuMinus size={16} />
+                        </button>
+
+                        <span className="w-10 text-center text-sm font-semibold">
+                          {ci.qty}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateQty(storeId, ci.id, ci.qty + 1)
+                          }
+                          className="h-9 w-9 flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                        >
+                          <LuPlus size={16} />
+                        </button>
+                      </div>
+
+                      <span className="font-bold text-gray-900">
+                        ₱{ci.price * ci.qty}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
 
-            <div className="mt-6 border-t pt-4 font-bold text-xl">
-              Subtotal: ₱{subtotal}
+            <div className="mt-6 border-t border-gray-100 pt-5 flex items-center justify-between">
+              <span className="font-bold text-xl text-gray-900">
+                Subtotal
+              </span>
+
+              <span className="font-bold text-xl text-gray-900">
+                ₱{subtotal}
+              </span>
             </div>
 
             <button
+              type="button"
               onClick={() => navigate("/checkout")}
-              className="w-full bg-red-600 text-white py-3 rounded-xl mt-4"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl mt-4 transition"
             >
-              Checkout
+              Proceed to Checkout
             </button>
           </div>
         </div>
