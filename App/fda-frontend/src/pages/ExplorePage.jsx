@@ -4,12 +4,10 @@ import { IoHeart, IoHeartOutline } from "react-icons/io5";
 import Navbar from "./components/Navbar.jsx";
 import CartDrawer from "./components/CartDrawer";
 import TopBar from "./components/TopBar.jsx";
-import AddressModal from "./components/HomeAddressModal.jsx";
-// import { storeData } from "./dummyData/storeData.js";
-// import { menuData } from "./dummyData/menuData.js";
+import SavedAddressModal from "./components/SavedAddressModal.jsx";
+import SearchFiltersModal from "./components/SearchFiltersModal.jsx";
 import { getPrimaryAddress } from "../utils/addressApi.js";
 import "./styles/tailwind.css";
-import SearchFiltersModal from "./components/SearchFiltersModal.jsx";
 
 const LS_FAV_STORES_KEY = "favStores";
 const LS_FAV_DISHES_KEY = "favDishes";
@@ -33,8 +31,8 @@ export default function ExplorePage() {
   const [query, setQuery] = useState("");
 
   const [cartOpen, setCartOpen] = useState(false);
-  const [address, setAddress] = useState("");
-  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [address, setAddress] = useState(null);
+  const [isAddressListOpen, setIsAddressListOpen] = useState(false);
 
   const [restaurants, setRestaurants] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
@@ -49,17 +47,41 @@ export default function ExplorePage() {
   const [filters, setFilters] = useState({});
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  // ✅ SINGLE SOURCE OF TRUTH (matches CustomerDashboard)
+  const loadAddress = async () => {
+    try {
+      const current = await getPrimaryAddress();
+
+      if (!current) {
+        setAddress(null);
+        return;
+      }
+
+      setAddress({
+        id: current.address_id,
+        label: `${current.house_no || ""} ${current.street || ""}, ${current.city || ""}`.trim(),
+        raw: current,
+      });
+    } catch (err) {
+      console.error("Failed to load address:", err.message);
+    }
+  };
+
+  useEffect(() => {
+    loadAddress();
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [resStores, resMenu] = await Promise.all([
           fetch("http://localhost:3000/api/restaurants"),
-          fetch("http://localhost:3000/api/menu-items"),
+          fetch("http://localhost:3000/api/menu/popular"),
         ]);
-  
+
         const storesData = await resStores.json();
         const menuData = await resMenu.json();
-  
+
         setRestaurants(Array.isArray(storesData) ? storesData : storesData?.data || []);
         setMenuItems(Array.isArray(menuData) ? menuData : menuData?.data || []);
       } catch (err) {
@@ -70,69 +92,56 @@ export default function ExplorePage() {
         setLoading(false);
       }
     };
-  
+
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const loadAddress = async () => {
-      try {
-        const current = await getPrimaryAddress();
-        setAddress(current?.address_line || "");
-      } catch (err) {
-        console.error("Failed to load address:", err.message);
-      }
-    };
+  const toggleStoreFavorite = (restaurantId) => {
+    const key = toKey(restaurantId);
 
-    loadAddress();
-  }, []);
+    setFavStoreIds((prev) => {
+      const normalized = prev.map(toKey);
 
-const toggleStoreFavorite = (restaurantId) => {
-  const key = toKey(restaurantId);
+      const next = normalized.includes(key)
+        ? normalized.filter((id) => id !== key)
+        : [...normalized, key];
 
-  setFavStoreIds((prev) => {
-    const normalized = prev.map(toKey);
+      localStorage.setItem(LS_FAV_STORES_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
-    const next = normalized.includes(key)
-      ? normalized.filter((id) => id !== key)
-      : [...normalized, key];
+  const toggleDishFavorite = (itemId) => {
+    const key = toKey(itemId);
 
-    localStorage.setItem(LS_FAV_STORES_KEY, JSON.stringify(next));
-    return next;
-  });
-};
+    setFavDishIds((prev) => {
+      const normalized = prev.map(toKey);
 
-const toggleDishFavorite = (itemId) => {
-  const key = toKey(itemId);
+      const next = normalized.includes(key)
+        ? normalized.filter((id) => id !== key)
+        : [...normalized, key];
 
-  setFavDishIds((prev) => {
-    const normalized = prev.map(toKey);
-
-    const next = normalized.includes(key)
-      ? normalized.filter((id) => id !== key)
-      : [...normalized, key];
-
-    localStorage.setItem(LS_FAV_DISHES_KEY, JSON.stringify(next));
-    return next;
-  });
-};
+      localStorage.setItem(LS_FAV_DISHES_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
     let results = restaurants;
-  
+
     if (filters.cuisine) {
       results = results.filter((s) => s.cuisine === filters.cuisine);
     }
-  
+
     if (filters.priceRange) {
       results = results.filter((s) => s.price_range === filters.priceRange);
     }
-  
+
     if (filters.deliveryTime) {
       results = results.filter((s) => s.delivery_time === filters.deliveryTime);
     }
-  
+
     if (q) {
       results = results.filter((s) =>
         s.name?.toLowerCase().includes(q) ||
@@ -140,7 +149,7 @@ const toggleDishFavorite = (itemId) => {
         s.promo_tag?.toLowerCase().includes(q)
       );
     }
-  
+
     return results;
   }, [query, filters, restaurants]);
 
@@ -150,20 +159,20 @@ const toggleDishFavorite = (itemId) => {
         const restaurant = restaurants.find(
           (store) => store.restaurant_id === item.restaurant_id
         );
-  
+
         if (!restaurant) return null;
-  
+
         return {
           ...item,
           restaurant,
         };
       })
       .filter(Boolean);
-  
+
     if (!query.trim()) return merged.slice(0, 6);
-  
+
     const q = query.trim().toLowerCase();
-  
+
     return merged.filter((item) => {
       return (
         item.name?.toLowerCase().includes(q) ||
@@ -175,7 +184,6 @@ const toggleDishFavorite = (itemId) => {
     });
   }, [query, menuItems, restaurants]);
 
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center text-gray-500">
@@ -183,22 +191,26 @@ const toggleDishFavorite = (itemId) => {
       </div>
     );
   }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Navbar />
 
       <main className="flex-1 overflow-auto">
         <section className="p-6 space-y-6">
+
+          {/* TOP BAR */}
           <TopBar
             query={query}
             onQueryChange={setQuery}
             onOpenFilters={() => setFiltersOpen(true)}
             onOpenCart={() => setCartOpen(true)}
             showAddressButton={true}
-            addressLabel={address || "Set address"}
-            onOpenAddress={() => setIsEditingAddress(true)}
+            addressLabel={address?.label?.trim() || "Set address"}
+            onOpenAddress={() => setIsAddressListOpen(true)}
           />
 
+          {/* FILTER MODAL */}
           <SearchFiltersModal
             open={filtersOpen}
             onClose={() => setFiltersOpen(false)}
@@ -206,14 +218,19 @@ const toggleDishFavorite = (itemId) => {
             initialFilters={filters}
           />
 
-          <AddressModal
-            open={isEditingAddress}
-            address={address}
-            setAddress={setAddress}
-            onClose={() => setIsEditingAddress(false)}
-            onSave={(newAddress) => {
-              setAddress(newAddress);
-              setIsEditingAddress(false);
+          {/* SAVED ADDRESS MODAL */}
+          <SavedAddressModal
+            open={isAddressListOpen}
+            onClose={() => setIsAddressListOpen(false)}
+            onAddressChange={(addr) => {
+              setAddress({
+                id: addr.address_id,
+                label: addr.formatted,
+                raw: addr,
+              });
+
+              // 🔥 ensure DB sync (single refresh source only)
+              loadAddress();
             }}
           />
 
@@ -258,7 +275,7 @@ const toggleDishFavorite = (itemId) => {
 
                     <div className="flex gap-4 pr-10">
                       <img
-                        src={restaurant.image_url}
+                        src={restaurant.profile_image}
                         alt={restaurant.name}
                         className="w-24 h-24 object-contain rounded-xl bg-gray-50 border border-gray-100 p-2 shrink-0"
                       />
@@ -338,7 +355,7 @@ const toggleDishFavorite = (itemId) => {
                     </button>
 
                     <img
-                      src={item.image_url}
+                      src={item.item_image}
                       alt={item.name}
                       className="w-full h-48 object-cover"
                     />
