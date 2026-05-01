@@ -24,6 +24,10 @@ function readLSArray(key) {
   }
 }
 
+function toKey(value) {
+  return String(value ?? "");
+}
+
 export default function ExplorePage() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
@@ -83,27 +87,35 @@ export default function ExplorePage() {
     loadAddress();
   }, []);
 
-  const toggleStoreFavorite = (restaurantId) => {
-    setFavStoreIds((prev) => {
-      const next = prev.includes(restaurantId)
-        ? prev.filter((id) => id !== restaurantId)
-        : [...prev, restaurantId];
+const toggleStoreFavorite = (restaurantId) => {
+  const key = toKey(restaurantId);
 
-      localStorage.setItem(LS_FAV_STORES_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
+  setFavStoreIds((prev) => {
+    const normalized = prev.map(toKey);
 
-  const toggleDishFavorite = (itemId) => {
-    setFavDishIds((prev) => {
-      const next = prev.includes(itemId)
-        ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId];
+    const next = normalized.includes(key)
+      ? normalized.filter((id) => id !== key)
+      : [...normalized, key];
 
-      localStorage.setItem(LS_FAV_DISHES_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
+    localStorage.setItem(LS_FAV_STORES_KEY, JSON.stringify(next));
+    return next;
+  });
+};
+
+const toggleDishFavorite = (itemId) => {
+  const key = toKey(itemId);
+
+  setFavDishIds((prev) => {
+    const normalized = prev.map(toKey);
+
+    const next = normalized.includes(key)
+      ? normalized.filter((id) => id !== key)
+      : [...normalized, key];
+
+    localStorage.setItem(LS_FAV_DISHES_KEY, JSON.stringify(next));
+    return next;
+  });
+};
 
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -218,7 +230,7 @@ export default function ExplorePage() {
 
             <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {filteredStores.map((restaurant) => {
-                const isFav = favStoreIds.includes(restaurant.restaurant_id);
+                const isFav = favStoreIds.map(toKey).includes(toKey(restaurant.restaurant_id));
 
                 return (
                   <li
@@ -299,7 +311,7 @@ export default function ExplorePage() {
 
             <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {popularOrders.map((item) => {
-                const isFav = favDishIds.includes(item.item_id);
+                const isFav = favDishIds.map(toKey).includes(toKey(item.item_id));
 
                 return (
                   <li
