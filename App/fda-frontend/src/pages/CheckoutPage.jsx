@@ -16,6 +16,8 @@ import { useCart } from "../context/CartContext";
 import { getPrimaryAddress } from "../utils/addressApi.js";
 import { supabase } from "../utils/supabase.js";
 
+const API_BASE = "http://localhost:3000/api";
+
 const DELIVERY_OPTIONS = [
   {
     id: "regular",
@@ -54,6 +56,20 @@ const PAYMENT_OPTIONS = [
 
 const TIP_OPTIONS = [0, 5, 20, 30];
 
+async function getAuthHeaders() {
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+
+  if (!token) {
+    throw new Error("You must be logged in to place an order.");
+  }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 function formatAddress(address) {
   if (!address) return "";
 
@@ -79,6 +95,7 @@ export default function CheckoutPage() {
 
   const { cart, clearStore } = useCart();
 
+  const [orderError, setOrderError] = useState("");
   const [deliveryType, setDeliveryType] = useState("regular");
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [tip, setTip] = useState(0);
@@ -155,17 +172,47 @@ export default function CheckoutPage() {
     loadCheckoutInfo();
   }, []);
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectedStore || items.length === 0) return;
 
-    setPlacingOrder(true);
+    try {
+      setPlacingOrder(true);
+      setOrderError("");
 
-    setTimeout(() => {
+      const headers = await getAuthHeaders();
+
+      const orderItems = items.map((item) => ({
+        item_id: item.item_id || item.id,
+        quantity: Number(item.qty || 1),
+      }));
+
+      const res = await fetch(`${API_BASE}/orders/order`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          restaurant_id: selectedStore.storeId,
+          items: orderItems,
+          delivery_fee: deliveryFee,
+          tip,
+          payment_method: paymentMethod,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to place order.");
+      }
+
       clearStore(selectedStore.storeId);
-      setPlacingOrder(false);
+
       alert(`Order placed for ${selectedStore.storeName || "this store"}!`);
       navigate("/orders");
-    }, 500);
+    } catch (err) {
+      setOrderError(err.message || "Failed to place order.");
+    } finally {
+      setPlacingOrder(false);
+    }
   };
 
   if (!selectedStore && cart.length > 1) {
@@ -195,8 +242,7 @@ export default function CheckoutPage() {
               {cart.map((store) => {
                 const storeSubtotal = store.items.reduce((sum, item) => {
                   return (
-                    sum +
-                    Number(item.price || 0) * Number(item.qty || 0)
+                    sum + Number(item.price || 0) * Number(item.qty || 0)
                   );
                 }, 0);
 
@@ -206,9 +252,7 @@ export default function CheckoutPage() {
                     type="button"
                     onClick={() =>
                       navigate(
-                        `/checkout?storeId=${encodeURIComponent(
-                          store.storeId
-                        )}`
+                        `/checkout?storeId=${encodeURIComponent(store.storeId)}`
                       )
                     }
                     className="w-full rounded-2xl border border-gray-200 p-4 text-left hover:bg-gray-50 transition flex items-center justify-between gap-4"
@@ -585,6 +629,12 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                 </div>
+
+                {orderError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                    {orderError}
+                  </div>
+                )}
 
                 <button
                   type="button"
