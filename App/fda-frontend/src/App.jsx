@@ -20,6 +20,12 @@ import AdminUsersPage from "./pages/Admin/AdminUsersPage.jsx"
 import AdminAnalyticsPage from "./pages/Admin/AdminAnalyticsPage.jsx";
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
+// ✅ RIDER
+import RiderDashboard from "./pages/Rider/RiderDashboard.jsx";
+import RiderLandingScreen from "./pages/Rider/RiderLandingScreen.jsx";
+import RiderOnboarding from "./pages/Rider/RiderOnboarding.jsx";
+import OnboardingReview from "./pages/Rider/RiderOnboardingReview.jsx";
+
 
 
 function App() {
@@ -62,6 +68,15 @@ function App() {
           path="/myrestaurant/:restaurantId/createmenuitem"
           element={<CreateMenuItem />}
         />
+
+        {/* Rider */}
+        <Route path="/rider" element={<RiderLandingScreen />} />
+        <Route path="/rider/onboarding" element={<RiderOnboarding />} />
+        <Route path="/rider/review" element={<OnboardingReview />} />
+
+        <Route element={<ProtectedRoute allowedRoles={["rider"]} />}>
+          <Route path="/rider/dashboard" element={<RiderDashboard />} />
+        </Route>
 
         {/* Settings */}
         <Route path="/settings" element={<SettingsPage />} />
