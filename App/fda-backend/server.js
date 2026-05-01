@@ -8,17 +8,16 @@ import addressRoute from "./modules/Address/address.routes.js";
 import menuRoute from "./modules/Menu/menu.routes.js"; 
 import orderRoute from "./modules/Order/order.routes.js";
 import paymentRoute from "./modules/Payments/payments.routes.js";
-
+import reviewRoute from "./modules/Reviews/reviews.route.js";
+import riderRoute from "./modules/DeliveryRider/deliveryRider.routes.js";
 import { supabase } from "./config/supabase.js";
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true
-  })
-);
+app.use(cors({
+  origin: ["http://localhost:5173", "http://localhost:5174"],
+  credentials: true
+}));
 
 app.use(express.json());
 
@@ -36,7 +35,11 @@ app.use("/api/menu", menuRoute);
 app.use('/api/orders', orderRoute);
 // payment route
 app.use('/api/payments', paymentRoute);
+//review routes
+app.use('api/reviews', reviewRoute)
 
+// rider routes
+app.use('/api/rider', riderRoute)
 
 // test route
 app.get("/", (req, res) => {

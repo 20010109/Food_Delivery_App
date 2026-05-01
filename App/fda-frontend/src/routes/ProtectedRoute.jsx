@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export default function ProtectedRoute({ allowedRoles }) {
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState(null);
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -18,11 +19,13 @@ export default function ProtectedRoute({ allowedRoles }) {
 
       const { data: profile } = await supabase
         .from("user_profiles")
-        .select("role")
+        .select("role, is_active")
         .eq("user_id", data.user.id)
         .single();
 
       setRole(profile?.role);
+      setIsActive(profile?.is_active ?? true);
+
       setLoading(false);
     };
 
@@ -31,9 +34,13 @@ export default function ProtectedRoute({ allowedRoles }) {
 
   if (loading) return null;
 
+  // 🚫 Not logged in
   if (!role) return <Navigate to="/login" />;
 
-  // 🔐 ROLE CHECK
+  // 🚫 Banned user
+  if (!isActive) return <Navigate to="/banned" />;
+
+  // 🔐 Role-based protection
   if (allowedRoles && !allowedRoles.includes(role)) {
     return <Navigate to="/home" />;
   }

@@ -8,10 +8,9 @@ export const CartProvider = ({ children }) => {
   const addToCart = (item) => {
     setCart((prev) => {
       const storeIndex = prev.findIndex(
-        (s) => s.storeId === item.storeId
+        (s) => String(s.storeId) === String(item.storeId)
       );
 
-      // NEW STORE
       if (storeIndex === -1) {
         return [
           ...prev,
@@ -23,19 +22,17 @@ export const CartProvider = ({ children }) => {
         ];
       }
 
-      // COPY STATE PROPERLY (IMPORTANT FIX)
       const updated = prev.map((store) => ({ ...store }));
-
       const store = updated[storeIndex];
 
       const itemIndex = store.items.findIndex(
-       (i) => i.id === item.id
+        (i) => String(i.id) === String(item.id)
       );
 
       if (itemIndex !== -1) {
         store.items = store.items.map((i) =>
-          i.id === item.id
-            ? { ...i, qty: i.qty + item.qty } // merge correctly
+          String(i.id) === String(item.id)
+            ? { ...i, qty: Number(i.qty || 0) + Number(item.qty || 0) }
             : i
         );
       } else {
@@ -51,32 +48,38 @@ export const CartProvider = ({ children }) => {
 
     setCart((prev) =>
       prev.map((store) => {
-        if (store.storeId !== storeId) return store;
+        if (String(store.storeId) !== String(storeId)) return store;
 
         return {
           ...store,
           items: store.items.map((i) =>
-            i.id === itemId
-              ? { ...i, qty }
-              : i
+            String(i.id) === String(itemId) ? { ...i, qty } : i
           ),
         };
       })
     );
-  };  
+  };
 
   const removeItem = (storeId, itemId) => {
     setCart((prev) =>
       prev
         .map((store) => {
-          if (store.storeId !== storeId) return store;
+          if (String(store.storeId) !== String(storeId)) return store;
 
           return {
             ...store,
-            items: store.items.filter((i) => i.id !== itemId),
+            items: store.items.filter(
+              (i) => String(i.id) !== String(itemId)
+            ),
           };
         })
-        .filter((store) => store.items.length > 0) // ✅ IMPORTANT FIX
+        .filter((store) => store.items.length > 0)
+    );
+  };
+
+  const clearStore = (storeId) => {
+    setCart((prev) =>
+      prev.filter((store) => String(store.storeId) !== String(storeId))
     );
   };
 
@@ -89,6 +92,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         updateQty,
         removeItem,
+        clearStore,
         clearCart,
       }}
     >

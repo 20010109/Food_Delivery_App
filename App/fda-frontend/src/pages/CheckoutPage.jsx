@@ -1,203 +1,603 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  LuArrowLeft,
+  LuCheck,
+  LuCreditCard,
+  LuMapPin,
+  LuPackageCheck,
+  LuPhone,
+  LuShoppingBag,
+  LuStore,
+  LuUser,
+  LuWallet,
+} from "react-icons/lu";
 import { useCart } from "../context/CartContext";
+import { getPrimaryAddress } from "../utils/addressApi.js";
+import { supabase } from "../utils/supabase.js";
+
+const DELIVERY_OPTIONS = [
+  {
+    id: "regular",
+    title: "Regular Delivery",
+    subtitle: "Arrives in 20–30 minutes",
+    fee: 30,
+  },
+  {
+    id: "priority",
+    title: "Priority Delivery",
+    subtitle: "Faster delivery for urgent orders",
+    fee: 49,
+  },
+];
+
+const PAYMENT_OPTIONS = [
+  {
+    id: "cod",
+    title: "Cash on Delivery",
+    subtitle: "Pay when your order arrives",
+    icon: LuWallet,
+  },
+  {
+    id: "gcash",
+    title: "GCash",
+    subtitle: "Pay using your mobile wallet",
+    icon: LuPhone,
+  },
+  {
+    id: "card",
+    title: "Card",
+    subtitle: "Credit or debit card",
+    icon: LuCreditCard,
+  },
+];
+
+const TIP_OPTIONS = [0, 5, 20, 30];
+
+function formatAddress(address) {
+  if (!address) return "";
+
+  if (address.address_line) return address.address_line;
+  if (address.formatted) return address.formatted;
+
+  return [
+    address.house_no,
+    address.street,
+    address.barangay,
+    address.city,
+    address.province,
+    address.postal_code,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
 
 export default function CheckoutPage() {
-  const { cart } = useCart();
-  const items = cart.flatMap((store) => store.items);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const selectedStoreId = searchParams.get("storeId");
 
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.qty,
-    0
+  const { cart, clearStore } = useCart();
+
+  const [deliveryType, setDeliveryType] = useState("regular");
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [tip, setTip] = useState(0);
+  const [address, setAddress] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [placingOrder, setPlacingOrder] = useState(false);
+
+  const selectedStore = useMemo(() => {
+    if (!selectedStoreId) {
+      return cart.length === 1 ? cart[0] : null;
+    }
+
+    return cart.find(
+      (store) => String(store.storeId) === String(selectedStoreId)
+    );
+  }, [cart, selectedStoreId]);
+
+  const items = useMemo(() => {
+    if (!selectedStore) return [];
+
+    return selectedStore.items.map((item) => ({
+      ...item,
+      storeId: selectedStore.storeId,
+      storeName: selectedStore.storeName,
+    }));
+  }, [selectedStore]);
+
+  const subtotal = useMemo(() => {
+    return items.reduce((sum, item) => {
+      return sum + Number(item.price || 0) * Number(item.qty || 0);
+    }, 0);
+  }, [items]);
+
+  const itemCount = useMemo(() => {
+    return items.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+  }, [items]);
+
+  const selectedDelivery = DELIVERY_OPTIONS.find(
+    (option) => option.id === deliveryType
   );
 
-  const [addressType, setAddressType] = useState("home");
-  const [deliveryType, setDeliveryType] = useState("regular");
-  const [tip, setTip] = useState(0);
+  const deliveryFee = selectedDelivery?.fee || 0;
+  const total = subtotal + deliveryFee + Number(tip || 0);
 
-  // 🚚 Delivery Fee Logic
-  const baseDeliveryFee = {
-    home: 30,
-    work: 20,
-    other: 40,
-  }[addressType];
+  useEffect(() => {
+    const loadCheckoutInfo = async () => {
+      try {
+        const currentAddress = await getPrimaryAddress();
+        setAddress(currentAddress || null);
+      } catch (err) {
+        console.error("Failed to load checkout address:", err.message);
+      }
 
-  const priorityFee = deliveryType === "priority" ? 19 : 0;
+      try {
+        const { data } = await supabase.auth.getUser();
 
-  const deliveryFee = baseDeliveryFee + priorityFee;
+        if (!data?.user) return;
 
-  const total = subtotal + deliveryFee + tip;
+        const { data: profileData } = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
 
-  return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      <div className="max-w-6xl mx-auto grid grid-cols-12 gap-6">
+        setProfile({
+          email: data.user.email,
+          ...(profileData || {}),
+        });
+      } catch (err) {
+        console.error("Failed to load profile:", err.message);
+      }
+    };
 
-        {/* LEFT SIDE */}
-        <div className="col-span-8 space-y-6">
+    loadCheckoutInfo();
+  }, []);
 
-          <h1 className="text-2xl font-bold text-center">
-            Checkout
+  const handlePlaceOrder = () => {
+    if (!selectedStore || items.length === 0) return;
+
+    setPlacingOrder(true);
+
+    setTimeout(() => {
+      clearStore(selectedStore.storeId);
+      setPlacingOrder(false);
+      alert(`Order placed for ${selectedStore.storeName || "this store"}!`);
+      navigate("/orders");
+    }, 500);
+  };
+
+  if (!selectedStore && cart.length > 1) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 mb-6"
+          >
+            <LuArrowLeft size={18} />
+            Back
+          </button>
+
+          <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Choose a store to checkout
+            </h1>
+
+            <p className="text-gray-500 mt-1">
+              Orders from different restaurants need to be checked out
+              separately.
+            </p>
+
+            <div className="mt-6 space-y-4">
+              {cart.map((store) => {
+                const storeSubtotal = store.items.reduce((sum, item) => {
+                  return (
+                    sum +
+                    Number(item.price || 0) * Number(item.qty || 0)
+                  );
+                }, 0);
+
+                return (
+                  <button
+                    key={store.storeId}
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        `/checkout?storeId=${encodeURIComponent(
+                          store.storeId
+                        )}`
+                      )
+                    }
+                    className="w-full rounded-2xl border border-gray-200 p-4 text-left hover:bg-gray-50 transition flex items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                        <LuStore size={20} />
+                      </div>
+
+                      <div className="min-w-0">
+                        <h2 className="font-bold text-gray-900 truncate">
+                          {store.storeName || `Store #${store.storeId}`}
+                        </h2>
+
+                        <p className="text-sm text-gray-500">
+                          {store.items.length}{" "}
+                          {store.items.length === 1 ? "item" : "items"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-gray-900">
+                        ₱{storeSubtotal}
+                      </p>
+                      <p className="text-sm text-red-600 font-semibold">
+                        Checkout
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedStore || items.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+        <div className="bg-white rounded-3xl border border-gray-200 p-8 text-center max-w-md">
+          <div className="h-16 w-16 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+            <LuShoppingBag size={28} />
+          </div>
+
+          <h1 className="text-2xl font-bold text-gray-900">
+            Nothing to checkout
           </h1>
 
-          {/* DELIVERY OPTION */}
-          <div className="bg-white p-5 rounded-2xl shadow">
-            <h2 className="font-bold mb-3">Delivery Option</h2>
+          <p className="text-gray-500 mt-2">
+            Your selected store cart is empty or no longer available.
+          </p>
 
-            <label className="block border p-3 rounded mb-2">
-              <input
-                type="radio"
-                name="delivery"
-                checked={deliveryType === "regular"}
-                onChange={() => setDeliveryType("regular")}
-              />
-              <span className="ml-2">Regular 5–20 mins</span>
-            </label>
-
-            <label className="block border p-3 rounded">
-              <input
-                type="radio"
-                name="delivery"
-                checked={deliveryType === "priority"}
-                onChange={() => setDeliveryType("priority")}
-              />
-              <span className="ml-2">
-                Priority Delivery (+₱19)
-              </span>
-            </label>
-          </div>
-
-          {/* DELIVERY ADDRESS */}
-          <div className="bg-white p-5 rounded-2xl shadow">
-            <h2 className="font-bold mb-3">Delivery Address</h2>
-
-            <div className="flex gap-2 mb-3">
-              <button
-                onClick={() => setAddressType("home")}
-                className={`px-3 py-1 border rounded ${
-                  addressType === "home" ? "bg-red-500 text-white" : ""
-                }`}
-              >
-                Home
-              </button>
-
-              <button
-                onClick={() => setAddressType("work")}
-                className={`px-3 py-1 border rounded ${
-                  addressType === "work" ? "bg-red-500 text-white" : ""
-                }`}
-              >
-                Work
-              </button>
-
-              <button
-                onClick={() => setAddressType("other")}
-                className={`px-3 py-1 border rounded ${
-                  addressType === "other" ? "bg-red-500 text-white" : ""
-                }`}
-              >
-                Other
-              </button>
-            </div>
-
-            <input
-              className="w-full border p-2 rounded"
-              placeholder="Address details..."
-            />
-          </div>
-
-          {/* PERSONAL DETAILS */}
-          <div className="bg-white p-5 rounded-2xl shadow">
-            <h2 className="font-bold mb-3">Personal Details</h2>
-
-            <p className="text-gray-600">Jessica Codilla</p>
-            <p className="text-gray-600">jessica@email.com</p>
-            <p className="text-gray-600">09123456789</p>
-          </div>
-
-          {/* PAYMENT */}
-          <div className="bg-white p-5 rounded-2xl shadow">
-            <h2 className="font-bold mb-3">Payment</h2>
-
-            <label className="block border p-3 rounded mb-2">
-              <input type="radio" name="payment" defaultChecked />
-              Cash on Delivery
-            </label>
-
-            <label className="block border p-3 rounded mb-2">
-              <input type="radio" name="payment" />
-              GCash
-            </label>
-
-            <label className="block border p-3 rounded">
-              <input type="radio" name="payment" />
-              Card
-            </label>
-          </div>
-
-          {/* TIP */}
-          <div className="bg-white p-5 rounded-2xl shadow">
-            <h2 className="font-bold mb-3">Tip your rider</h2>
-
-            <div className="flex gap-2">
-              {[0, 5, 20, 30].map((amount) => (
-                <button
-                  key={amount}
-                  onClick={() => setTip(amount)}
-                  className={`border px-3 py-1 rounded ${
-                    tip === amount ? "bg-red-500 text-white" : ""
-                  }`}
-                >
-                  {amount === 0 ? "No" : `₱${amount}`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* PLACE ORDER */}
-          <button className="w-full bg-red-600 text-white py-3 rounded-full font-bold">
-            Place Order
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="mt-6 rounded-2xl bg-red-600 px-6 py-3 text-white font-bold hover:bg-red-700 transition"
+          >
+            Back to Home
           </button>
         </div>
+      </div>
+    );
+  }
 
-        {/* RIGHT SIDE - ORDER SUMMARY */}
-        <div className="col-span-4">
-          <div className="bg-white p-5 rounded-2xl shadow sticky top-6">
-            <h2 className="font-bold mb-3">Your Order</h2>
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 mb-6"
+        >
+          <LuArrowLeft size={18} />
+          Back
+        </button>
 
-            {items.map((item, i) => (
-              <div key={i} className="flex justify-between text-sm mb-2">
-                <span>
-                  {item.qty}x {item.name}
-                </span>
-                <span>₱{item.price * item.qty}</span>
-              </div>
-            ))}
+        <div className="flex items-end justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
 
-            <hr className="my-3" />
+            <p className="text-gray-500 mt-1">
+              Ordering from{" "}
+              <span className="font-semibold text-gray-900">
+                {selectedStore.storeName || `Store #${selectedStore.storeId}`}
+              </span>
+            </p>
+          </div>
 
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>₱{subtotal}</span>
-            </div>
-
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Delivery</span>
-              <span>₱{deliveryFee}</span>
-            </div>
-
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Tip</span>
-              <span>₱{tip}</span>
-            </div>
-
-            <hr className="my-3" />
-
-            <div className="flex justify-between font-bold">
-              <span>Total</span>
-              <span>₱{total}</span>
-            </div>
+          <div className="hidden md:flex items-center gap-2 rounded-full bg-white border border-gray-200 px-4 py-2 text-sm text-gray-500">
+            <LuShoppingBag className="text-red-500" />
+            {itemCount} {itemCount === 1 ? "item" : "items"}
           </div>
         </div>
 
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          <div className="xl:col-span-8 space-y-6">
+            <section className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="h-10 w-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                  <LuPackageCheck size={20} />
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Delivery Option
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Choose how fast you want your food delivered.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {DELIVERY_OPTIONS.map((option) => {
+                  const active = deliveryType === option.id;
+
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setDeliveryType(option.id)}
+                      className={`text-left rounded-2xl border p-4 transition ${
+                        active
+                          ? "border-red-500 bg-red-50"
+                          : "border-gray-200 bg-white hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h3 className="font-bold text-gray-900">
+                            {option.title}
+                          </h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {option.subtitle}
+                          </p>
+                        </div>
+
+                        <div
+                          className={`h-6 w-6 rounded-full flex items-center justify-center border ${
+                            active
+                              ? "bg-red-600 border-red-600 text-white"
+                              : "border-gray-300 text-transparent"
+                          }`}
+                        >
+                          <LuCheck size={14} />
+                        </div>
+                      </div>
+
+                      <p className="mt-4 font-bold text-gray-900">
+                        ₱{option.fee}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="h-10 w-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                  <LuMapPin size={20} />
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Delivery Address
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Using your default saved address.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 p-4">
+                <p className="text-sm text-gray-500 mb-1">Default Address</p>
+
+                <p className="font-semibold text-gray-900">
+                  {formatAddress(address) || "No saved address selected"}
+                </p>
+
+                {!address && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/settings")}
+                    className="mt-3 text-sm font-semibold text-red-600 hover:text-red-700"
+                  >
+                    Add an address in Settings
+                  </button>
+                )}
+              </div>
+            </section>
+
+            <section className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="h-10 w-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                  <LuUser size={20} />
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Personal Details
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    We will use this information for delivery updates.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="rounded-2xl border border-gray-200 p-4">
+                  <p className="text-sm text-gray-500">Name</p>
+                  <p className="font-semibold text-gray-900 mt-1">
+                    {profile?.first_name
+                      ? `${profile.first_name} ${profile.last_name || ""}`
+                      : "Not set"}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 p-4">
+                  <p className="text-sm text-gray-500">Email</p>
+                  <p className="font-semibold text-gray-900 mt-1 truncate">
+                    {profile?.email || "Not set"}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 p-4">
+                  <p className="text-sm text-gray-500">Contact</p>
+                  <p className="font-semibold text-gray-900 mt-1">
+                    {profile?.contact_number || profile?.contact || "Not set"}
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="h-10 w-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                  <LuCreditCard size={20} />
+                </div>
+
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Payment</h2>
+                  <p className="text-sm text-gray-500">
+                    Select your preferred payment method.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {PAYMENT_OPTIONS.map((option) => {
+                  const Icon = option.icon;
+                  const active = paymentMethod === option.id;
+
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setPaymentMethod(option.id)}
+                      className={`text-left rounded-2xl border p-4 transition ${
+                        active
+                          ? "border-red-500 bg-red-50"
+                          : "border-gray-200 bg-white hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="h-10 w-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-red-600">
+                          <Icon size={20} />
+                        </div>
+
+                        <div
+                          className={`h-6 w-6 rounded-full flex items-center justify-center border ${
+                            active
+                              ? "bg-red-600 border-red-600 text-white"
+                              : "border-gray-300 text-transparent"
+                          }`}
+                        >
+                          <LuCheck size={14} />
+                        </div>
+                      </div>
+
+                      <h3 className="font-bold text-gray-900">
+                        {option.title}
+                      </h3>
+
+                      <p className="text-sm text-gray-500 mt-1">
+                        {option.subtitle}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Tip your rider
+              </h2>
+
+              <div className="flex flex-wrap gap-3">
+                {TIP_OPTIONS.map((amount) => (
+                  <button
+                    key={amount}
+                    type="button"
+                    onClick={() => setTip(amount)}
+                    className={`rounded-xl px-5 py-3 font-semibold transition ${
+                      tip === amount
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    {amount === 0 ? "No tip" : `₱${amount}`}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <aside className="xl:col-span-4">
+            <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm sticky top-6">
+              <h2 className="text-xl font-bold text-gray-900">Your Order</h2>
+
+              <p className="text-sm text-gray-500 mt-1">
+                {selectedStore.storeName || `Store #${selectedStore.storeId}`}
+              </p>
+
+              <div className="mt-5 space-y-4">
+                {items.map((item) => (
+                  <div
+                    key={`${item.storeId}-${item.id}`}
+                    className="flex items-start justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">
+                        {item.qty}x {item.name}
+                      </p>
+
+                      <p className="text-xs text-gray-400 truncate">
+                        ₱{item.price} each
+                      </p>
+                    </div>
+
+                    <span className="font-semibold text-gray-900">
+                      ₱{Number(item.price || 0) * Number(item.qty || 0)}
+                    </span>
+                  </div>
+                ))}
+
+                <div className="border-t border-gray-100 pt-4 space-y-3">
+                  <div className="flex justify-between text-gray-500">
+                    <span>Subtotal</span>
+                    <span>₱{subtotal}</span>
+                  </div>
+
+                  <div className="flex justify-between text-gray-500">
+                    <span>Delivery</span>
+                    <span>₱{deliveryFee}</span>
+                  </div>
+
+                  <div className="flex justify-between text-gray-500">
+                    <span>Tip</span>
+                    <span>₱{tip}</span>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
+                    <span className="text-lg font-bold text-gray-900">
+                      Total
+                    </span>
+
+                    <span className="text-2xl font-bold text-gray-900">
+                      ₱{total}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handlePlaceOrder}
+                  disabled={placingOrder || items.length === 0}
+                  className="w-full rounded-2xl bg-red-600 py-4 text-white font-bold hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                >
+                  {placingOrder ? "Placing order..." : "Place Order"}
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );

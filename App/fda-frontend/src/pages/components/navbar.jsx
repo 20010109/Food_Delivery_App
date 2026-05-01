@@ -23,23 +23,32 @@ function Navbar() {
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
-
-      if (!data.user) return;
-
       const authUser = data.user;
-
-      const { data: profile } = await supabase
+  
+      if (!authUser) return;
+  
+      const { data: profile, error } = await supabase
         .from("user_profiles")
-        .select("*")
+        .select("role, first_name, last_name, profile_image")
         .eq("user_id", authUser.id)
-        .maybeSingle();
-
-      setUser({
-        ...authUser,
-        ...(profile || {}),
-      });
+        .single();
+  
+      if (error) console.error(error);
+  
+      const mergedUser = {
+        id: authUser.id,
+        email: authUser.email,
+        role: profile?.role || "customer",
+        first_name: profile?.first_name,
+        last_name: profile?.last_name,
+        profile_image: profile?.profile_image,
+      };
+  
+      console.log("MERGED USER:", mergedUser);
+  
+      setUser(mergedUser);
     };
-
+  
     fetchUser();
   }, []);
 

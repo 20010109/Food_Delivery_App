@@ -14,12 +14,21 @@ import CreateMenuItem from "./pages/CreateMenuItem.jsx"
 import StoreOwnerHome from "./pages/StoreOwnerHomePage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import Messages from "./pages/Messages.jsx";
+import BannedPage from "./pages/BannedPage.jsx";
+
 import AdminHomePage from "./pages/admin/AdminHomePage.jsx";
 import AdminRestaurantsPage from "./pages/Admin/AdminRestaurantsPage.jsx"
 import AdminUsersPage from "./pages/Admin/AdminUsersPage.jsx"
-
+import AdminAnalyticsPage from "./pages/Admin/AdminAnalyticsPage.jsx";
+import AdminRidersPage from "./pages/Admin/AdminRidersPage.jsx";
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
+// ✅ RIDER
+import RiderDashboard from "./pages/Rider/RiderDashboard.jsx";
+import RiderLandingScreen from "./pages/Rider/RiderLandingScreen.jsx";
+import RiderOnboarding from "./pages/Rider/RiderOnboarding.jsx";
+import OnboardingReview from "./pages/Rider/RiderOnboardingReview.jsx";
+
 
 
 function App() {
@@ -30,6 +39,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/banned" element={<BannedPage />} />
 
       {/* User Setup */}
       <Route path="/usersetup" element={<UserSetup />} />
@@ -41,7 +51,9 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route path="/admin" element={<AdminHomePage />} />
           <Route path="/admin/restaurants" element={<AdminRestaurantsPage />} />
+          <Route path="/admin/riders" element={<AdminRidersPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
         </Route>
 
 
@@ -61,6 +73,15 @@ function App() {
           path="/myrestaurant/:restaurantId/createmenuitem"
           element={<CreateMenuItem />}
         />
+
+        {/* Rider */}
+        <Route path="/rider" element={<RiderLandingScreen />} />
+        <Route path="/rider/onboarding" element={<RiderOnboarding />} />
+        <Route path="/rider/review" element={<OnboardingReview />} />
+
+        <Route element={<ProtectedRoute allowedRoles={["rider"]} />}>
+          <Route path="/rider/dashboard" element={<RiderDashboard />} />
+        </Route>
 
         {/* Settings */}
         <Route path="/settings" element={<SettingsPage />} />

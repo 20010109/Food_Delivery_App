@@ -10,6 +10,8 @@ import {
   LuCreditCard,
   LuTruck,
   LuStar,
+  LuChartLine,
+  LuBike,
 } from "react-icons/lu";
 
 import DefaultProfile from "../../../assets/Stock_User.jpg";
@@ -43,7 +45,7 @@ function AdminSidebar() {
     `flex items-center gap-2 px-3 py-2 rounded-lg transition ${
       isActive
         ? "bg-red-600 text-white"
-        : "text-gray-200 hover:bg-gray-800 hover:text-white"
+        : "text-gray-500 hover:bg-red-50 hover:text-red-600"
     }`;
 
   const handleProfileClick = () => {
@@ -52,10 +54,10 @@ function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gray-900 text-white p-5 flex flex-col h-screen">
+    <aside className="w-64 bg-white border-r border-gray-100 text-gray-800 p-5 flex flex-col h-screen">
 
       {/* HEADER */}
-      <h2 className="text-xl font-bold mb-6">
+      <h2 className="text-xl font-bold mb-6 text-gray-800">
         Admin Panel
       </h2>
 
@@ -69,9 +71,17 @@ function AdminSidebar() {
         <NavLink to="/admin/restaurants" className={linkClass}>
           <LuStore /> Restaurants
         </NavLink>
+        
+        <NavLink to="/admin/riders" className={linkClass}>
+          <LuBike /> Riders
+        </NavLink>
 
         <NavLink to="/admin/users" className={linkClass}>
           <LuUsers /> Users
+        </NavLink>
+
+        <NavLink to="/admin/analytics" className={linkClass}>
+          <LuChartLine /> Analytics
         </NavLink>
 
         <NavLink to="/admin/orders" className={linkClass}>
@@ -92,10 +102,10 @@ function AdminSidebar() {
 
       </nav>
 
-      {/* PROFILE SECTION (RESTORED) */}
+      {/* PROFILE SECTION */}
       <div
         onClick={handleProfileClick}
-        className="mt-auto border-t border-gray-700 pt-4 cursor-pointer hover:bg-gray-800 p-2 rounded-lg transition"
+        className="mt-auto border-t border-gray-100 pt-4 cursor-pointer hover:bg-red-50 p-2 rounded-lg transition"
       >
         <div className="flex items-center gap-3">
 
@@ -106,7 +116,7 @@ function AdminSidebar() {
           />
 
           <div>
-            <div className="font-semibold text-sm">
+            <div className="font-semibold text-sm text-gray-800">
               {user?.first_name
                 ? `${user.first_name} ${user.last_name || ""}`
                 : "Admin"}

@@ -101,7 +101,7 @@ function StoreOwnerCreateStoreModal({ open, onClose, onSuccess }) {
       );
 
       const res = await fetch(
-        "http://localhost:3000/api/restaurants/storeowner/create",
+        "http://localhost:3000/api/restaurants/apply-storeowner",
         {
           method: "POST",
           headers: {
