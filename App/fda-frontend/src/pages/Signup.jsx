@@ -7,14 +7,14 @@ import slide3 from "../assets/slide3.jpg";
 
 
 function SignupPage() {
+  const OTP_LENGTH = 8;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [contactNumber, setContactNumber] = useState("");
   const [step, setStep] = useState(1);
-  const [accessToken, setAccessToken] = useState("");
-  const [otp, setOtp] = useState(Array(6).fill(""));
+  const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const otpRefs = useRef([]);
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -23,6 +23,8 @@ function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  const DEV_BYPASS_OTP = true;
 
   const areaCodes = [
     { code: "+1",   label: "+1 (US/CA)" },
@@ -100,32 +102,28 @@ function SignupPage() {
 
   const handleStep1 = async (e) => {
     e.preventDefault();
-
-    if (password.length < 8) {
-      alert("Password must be at least 8 characters long.");
-      return;
-    }
+  
     setIsLoading(true);
+  
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: undefined,
+        }
+      });
+  
       if (error) {
-        console.error("Signup error:", error);
         alert(error.message);
         return;
       }
-      if (!data.user) {
-        alert("Signup failed. Please try again.");
-        return;
-      }
-      
-      // Move to OTP step — Supabase sends a confirmation code to the email
-      if (data.session) {
-        setAccessToken(data.session.access_token);
-      }
+  
+      // Move to OTP step
       setStep(2);
     } catch (err) {
-      console.error("Unexpected error during signup:", err);
-      alert("An unexpected error occurred. Please try again later.");
+      console.error(err);
+      alert("Signup failed");
     } finally {
       setIsLoading(false);
     }
@@ -134,26 +132,48 @@ function SignupPage() {
   const handleStep2 = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+  
     try {
+      const code = otp.join("").trim();
+  
+      if (code.length !== OTP_LENGTH) {
+        alert("Please enter complete code");
+        return;
+      }
+  
+      // ✅ DEV BYPASS MODE
+      if (DEV_BYPASS_OTP) {
+        console.warn("⚠️ OTP bypass enabled (DEV MODE)");
+  
+        // fake session creation behavior
+        setStep(3); // or directly:
+        navigate("/usersetup");
+  
+        return;
+      }
+  
+      // 🔒 REAL OTP FLOW (production)
       const { data, error } = await supabase.auth.verifyOtp({
         email,
-        token: otp.join(""),
-        type: "signup",
+        token: code,
+        type: "email",
       });
+  
       if (error) {
-        console.error("OTP error:", error);
         alert(error.message);
         return;
       }
+  
       if (!data.session) {
-        alert("Verification failed. Please try again.");
+        alert("Verification failed");
         return;
       }
-      setAccessToken(data.session.access_token);
-      setStep(3);
+  
+      navigate("/usersetup");
+  
     } catch (err) {
-      console.error("Unexpected error during OTP verification:", err);
-      alert("An unexpected error occurred. Please try again later.");
+      console.error(err);
+      alert("OTP verification failed");
     } finally {
       setIsLoading(false);
     }
@@ -161,12 +181,44 @@ function SignupPage() {
 
   const handleStep3 = async (e) => {
     e.preventDefault();
-    const fullContactNumber = `${areaCode}${contactNumber}`;
+  
     setIsLoading(true);
+  
     try {
-      await createProfile(accessToken, fullContactNumber);
-      navigate("/login");
+      const { data: { user } } = await supabase.auth.getUser();
+  
+      if (!user) {
+        throw new Error("No authenticated user found");
+      }
+  
+      const fullContactNumber = `${areaCode}${contactNumber}`;
+  
+      const profileData = {
+        first_name: firstName,
+        last_name: lastName,
+        contact_number: fullContactNumber,
+        role: "customer",
+        user_id: user.id,
+      };
+  
+      const response = await fetch("http://localhost:3000/api/users/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`,
+        },
+        body: JSON.stringify(profileData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to create profile");
+      }
+  
+      // 🚀 Go to app home
+      navigate("/usersetup");
+  
     } catch (err) {
+      console.error(err);
       alert(err.message);
     } finally {
       setIsLoading(false);
@@ -232,16 +284,29 @@ function SignupPage() {
                     maxLength={1}
                     value={digit}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "");
+                      const val = e.target.value.replace(/[^0-9]/g, "");
                       if (!val) return;
+                    
                       const newOtp = [...otp];
                       newOtp[i] = val;
                       setOtp(newOtp);
-                      if (i < 5) otpRefs.current[i + 1]?.focus();
+                    
+                      if (i < OTP_LENGTH - 1) {
+                        otpRefs.current[i + 1]?.focus();
+                      }
+                    
+                      const joined = newOtp.join("");
+                    
+                      if (joined.length === OTP_LENGTH && !joined.includes("")) {
+                        setTimeout(() => {
+                          handleStep2Direct(joined);
+                        }, 100);
+                      }
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Backspace") {
                         const newOtp = [...otp];
+                    
                         if (otp[i]) {
                           newOtp[i] = "";
                           setOtp(newOtp);
@@ -254,11 +319,21 @@ function SignupPage() {
                     }}
                     onPaste={(e) => {
                       e.preventDefault();
-                      const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-                      const newOtp = Array(6).fill("");
-                      pasted.split("").forEach((ch, idx) => { newOtp[idx] = ch; });
+                    
+                      const pasted = e.clipboardData
+                        .getData("text")
+                        .replace(/[^a-zA-Z0-9]/g, "")
+                        .slice(0, OTP_LENGTH);
+                    
+                      const newOtp = Array(OTP_LENGTH).fill("");
+                    
+                      pasted.split("").forEach((ch, idx) => {
+                        newOtp[idx] = ch;
+                      });
+                    
                       setOtp(newOtp);
-                      otpRefs.current[Math.min(pasted.length, 5)]?.focus();
+                    
+                      otpRefs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
                     }}
                     className="w-11 h-12 border-2 border-gray-300 rounded-xl text-center text-lg font-semibold focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-300"
                   />
@@ -286,7 +361,10 @@ function SignupPage() {
               <button
                 type="button"
                 className="text-sm text-gray-400 hover:text-gray-600"
-                onClick={() => { setStep(1); setOtp(Array(6).fill("")); }}
+                onClick={() => { 
+                  setStep(1); 
+                  setOtp(Array(OTP_LENGTH).fill("")); 
+                }}
               >
                 ← Back
               </button>

@@ -9,11 +9,17 @@ create type payment_method as enum ('gcash', 'cash', 'card');
 
 create type payment_status as enum ('pending', 'paid', 'failed');
 
-create type delivery_status as enum ('assigned', 'picked_up', 'delivered');
+create type delivery_status as enum ('pending', 'assigned', 'picked_up', 'delivered');
 
 create type store_approval_status as enum ('denied', 'pending', 'approved');
 
 CREATE TYPE menu_category_type AS ENUM ('food', 'drink');
+
+create type vehicle_type_enum as enum ('bike', 'motorcycle', 'car', 'bicycle');
+
+create type rider_availability_status as enum ('offline', 'online', 'busy', 'suspended');
+
+create type rider_verification_status as enum ('pending', 'approved', 'rejected');
 
 
 -- =========================
@@ -44,6 +50,25 @@ create table user_profiles (
   contact_number text not null,
   profile_image text,
   is_active boolean default true,
+  created_at timestamp default now()
+);
+
+-- =========================
+-- RIDER PROFILES
+-- =========================
+create table rider_profiles (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references auth.users(id) on delete cascade unique,
+
+  vehicle_type vehicle_type_enum not null,
+  vehicle_plate_number text,
+  license_number text,
+  or_code text,
+  cr_code text,
+
+  availability_status rider_availability_status default 'offline',
+  verification_status rider_verification_status default 'pending',
+
   created_at timestamp default now()
 );
 
