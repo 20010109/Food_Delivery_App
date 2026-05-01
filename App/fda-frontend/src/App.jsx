@@ -14,6 +14,7 @@ import CreateMenuItem from "./pages/CreateMenuItem.jsx"
 import StoreOwnerHome from "./pages/StoreOwnerHomePage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import Messages from "./pages/Messages.jsx";
+import BannedPage from "./pages/BannedPage.jsx";
 
 import AdminHomePage from "./pages/admin/AdminHomePage.jsx";
 import AdminRestaurantsPage from "./pages/Admin/AdminRestaurantsPage.jsx"
@@ -38,6 +39,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/banned" element={<BannedPage />} />
 
       {/* User Setup */}
       <Route path="/usersetup" element={<UserSetup />} />
