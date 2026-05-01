@@ -76,6 +76,13 @@ export default function Login() {
         return;
       }
 
+      // 🚫 ADD THIS BAN CHECK
+      if (profile.is_active === false) {
+        await supabase.auth.signOut();
+        navigate("/banned");
+        return;
+      }
+
       switch (profile.role) {
         case "admin":
           navigate("/admin");
