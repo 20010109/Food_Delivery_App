@@ -175,7 +175,7 @@ const toggleStoreFavorite = (restaurantId) => {
       />
 
       {/* ADDRESS MODAL (UNCHANGED) */}
-      <AddressModal open={false} onClose={() => {}} />
+      {/* <AddressModal open={false} onClose={() => {}} /> */}
 
       {/* SAVED ADDRESS MODAL */}
       <SavedAddressModal

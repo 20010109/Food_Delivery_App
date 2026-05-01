@@ -1,5 +1,5 @@
 import * as menuService from "./menu.service.js";
-
+import { supabase } from "../../config/supabase.js";
 
 /**
  * CREATE MENU ITEM
@@ -88,6 +88,22 @@ export const deleteItem = async (req, res) => {
     return res.status(200).json(data);
   } catch (err) {
     return res.status(400).json({ error: err.message });
+  }
+};
+
+export const getPopularMenuItems = async (req, res) => {
+  try {
+    const { data, error } = await supabase.rpc("get_popular_items");
+
+    if (error) {
+      console.error("RPC ERROR:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.json(data || []);
+  } catch (err) {
+    console.error("SERVER ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 };
 

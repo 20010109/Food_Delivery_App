@@ -7,19 +7,18 @@ const router = express.Router();
 
 const storeownerOnly = [authenticate, roleCheck("storeowner")];
 
-// PUBLIC
+// ===== PUBLIC =====
+router.get("/popular", menuController.getPopularMenuItems);
 router.get("/public/:restaurantId", menuController.getPublicMenu);
 
-// CREATE
-router.post("/", ...storeownerOnly, menuController.createItem);
+// ===== CRUD (item-specific FIRST) =====
+router.put("/:itemId", ...storeownerOnly, menuController.updateItem);
+router.delete("/:itemId", ...storeownerOnly, menuController.deleteItem);
 
-// GET OWN MENU
+// ===== STORE OWNER =====
 router.get("/:restaurantId", ...storeownerOnly, menuController.getItems);
 
-// UPDATE
-router.put("/:itemId", ...storeownerOnly, menuController.updateItem);
-
-// DELETE
-router.delete("/:itemId", ...storeownerOnly, menuController.deleteItem);
+// ===== CREATE =====
+router.post("/", ...storeownerOnly, menuController.createItem);
 
 export default router;

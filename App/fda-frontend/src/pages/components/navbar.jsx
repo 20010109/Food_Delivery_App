@@ -44,7 +44,7 @@ function Navbar() {
         profile_image: profile?.profile_image,
       };
   
-      console.log("MERGED USER:", mergedUser);
+      // console.log("MERGED USER:", mergedUser);
   
       setUser(mergedUser);
     };
