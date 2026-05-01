@@ -38,10 +38,11 @@ export default function StorePage() {
 
   const { cart, addToCart, updateQty, removeItem } = useCart();
 
-  const storeCart = cart.find((s) => s.storeId === storeId)?.items || [];
+  const storeCart =
+    cart.find((s) => String(s.storeId) === String(storeId))?.items || [];
 
   const subtotal = storeCart.reduce(
-    (sum, i) => sum + i.price * i.qty,
+    (sum, i) => sum + Number(i.price || 0) * Number(i.qty || 0),
     0
   );
 
@@ -150,7 +151,6 @@ export default function StorePage() {
               alt={store.name}
             />
 
-            {/* PROFILE IMAGE */}
             <img
               src={store.profile_image}
               alt={store.name}
@@ -170,28 +170,15 @@ export default function StorePage() {
               </div>
 
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500">
-                <span>
-                  Cuisine: {store.cuisine || "Not specified"}
-                </span>
-
+                <span>Cuisine: {store.cuisine || "Not specified"}</span>
                 <span>•</span>
-
                 <span>
                   Price Range: {store.price_range || "Not specified"}
                 </span>
-
                 <span>•</span>
-
-                <span>
-                  Rating: ⭐ {store.rating || "Not specified"}
-                </span>
-
-                <span>
-                  Reviews: {store.reviews || "Not specified"}
-                </span>
-
+                <span>Rating: ⭐ {store.rating || "Not specified"}</span>
+                <span>Reviews: {store.reviews || "Not specified"}</span>
                 <span>•</span>
-
                 <span>
                   Delivery Time: {store.delivery_time || "20-30 mins"}
                 </span>
@@ -346,7 +333,7 @@ export default function StorePage() {
                       </div>
 
                       <span className="font-bold text-gray-900">
-                        ₱{ci.price * ci.qty}
+                        ₱{Number(ci.price || 0) * Number(ci.qty || 0)}
                       </span>
                     </div>
                   </div>
@@ -366,8 +353,11 @@ export default function StorePage() {
 
             <button
               type="button"
-              onClick={() => navigate("/checkout")}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl mt-4 transition"
+              onClick={() =>
+                navigate(`/checkout?storeId=${encodeURIComponent(storeId)}`)
+              }
+              disabled={storeCart.length === 0}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-xl mt-4 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Proceed to Checkout
             </button>

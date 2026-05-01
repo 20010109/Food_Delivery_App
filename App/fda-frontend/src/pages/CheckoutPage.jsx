@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LuArrowLeft,
   LuCheck,
@@ -8,6 +8,7 @@ import {
   LuPackageCheck,
   LuPhone,
   LuShoppingBag,
+  LuStore,
   LuUser,
   LuWallet,
 } from "react-icons/lu";
@@ -73,7 +74,10 @@ function formatAddress(address) {
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { cart, clearCart } = useCart();
+  const [searchParams] = useSearchParams();
+  const selectedStoreId = searchParams.get("storeId");
+
+  const { cart, clearStore } = useCart();
 
   const [deliveryType, setDeliveryType] = useState("regular");
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -82,15 +86,25 @@ export default function CheckoutPage() {
   const [profile, setProfile] = useState(null);
   const [placingOrder, setPlacingOrder] = useState(false);
 
-  const items = useMemo(() => {
-    return cart.flatMap((store) =>
-      store.items.map((item) => ({
-        ...item,
-        storeId: store.storeId,
-        storeName: store.storeName,
-      }))
+  const selectedStore = useMemo(() => {
+    if (!selectedStoreId) {
+      return cart.length === 1 ? cart[0] : null;
+    }
+
+    return cart.find(
+      (store) => String(store.storeId) === String(selectedStoreId)
     );
-  }, [cart]);
+  }, [cart, selectedStoreId]);
+
+  const items = useMemo(() => {
+    if (!selectedStore) return [];
+
+    return selectedStore.items.map((item) => ({
+      ...item,
+      storeId: selectedStore.storeId,
+      storeName: selectedStore.storeName,
+    }));
+  }, [selectedStore]);
 
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
@@ -142,17 +156,125 @@ export default function CheckoutPage() {
   }, []);
 
   const handlePlaceOrder = () => {
-    if (items.length === 0) return;
+    if (!selectedStore || items.length === 0) return;
 
     setPlacingOrder(true);
 
     setTimeout(() => {
-      clearCart();
+      clearStore(selectedStore.storeId);
       setPlacingOrder(false);
-      alert("Order placed successfully!");
+      alert(`Order placed for ${selectedStore.storeName || "this store"}!`);
       navigate("/orders");
     }, 500);
   };
+
+  if (!selectedStore && cart.length > 1) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 mb-6"
+          >
+            <LuArrowLeft size={18} />
+            Back
+          </button>
+
+          <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Choose a store to checkout
+            </h1>
+
+            <p className="text-gray-500 mt-1">
+              Orders from different restaurants need to be checked out
+              separately.
+            </p>
+
+            <div className="mt-6 space-y-4">
+              {cart.map((store) => {
+                const storeSubtotal = store.items.reduce((sum, item) => {
+                  return (
+                    sum +
+                    Number(item.price || 0) * Number(item.qty || 0)
+                  );
+                }, 0);
+
+                return (
+                  <button
+                    key={store.storeId}
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        `/checkout?storeId=${encodeURIComponent(
+                          store.storeId
+                        )}`
+                      )
+                    }
+                    className="w-full rounded-2xl border border-gray-200 p-4 text-left hover:bg-gray-50 transition flex items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                        <LuStore size={20} />
+                      </div>
+
+                      <div className="min-w-0">
+                        <h2 className="font-bold text-gray-900 truncate">
+                          {store.storeName || `Store #${store.storeId}`}
+                        </h2>
+
+                        <p className="text-sm text-gray-500">
+                          {store.items.length}{" "}
+                          {store.items.length === 1 ? "item" : "items"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-gray-900">
+                        ₱{storeSubtotal}
+                      </p>
+                      <p className="text-sm text-red-600 font-semibold">
+                        Checkout
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedStore || items.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+        <div className="bg-white rounded-3xl border border-gray-200 p-8 text-center max-w-md">
+          <div className="h-16 w-16 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+            <LuShoppingBag size={28} />
+          </div>
+
+          <h1 className="text-2xl font-bold text-gray-900">
+            Nothing to checkout
+          </h1>
+
+          <p className="text-gray-500 mt-2">
+            Your selected store cart is empty or no longer available.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="mt-6 rounded-2xl bg-red-600 px-6 py-3 text-white font-bold hover:bg-red-700 transition"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -169,8 +291,12 @@ export default function CheckoutPage() {
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+
             <p className="text-gray-500 mt-1">
-              Review your delivery details before placing your order.
+              Ordering from{" "}
+              <span className="font-semibold text-gray-900">
+                {selectedStore.storeName || `Store #${selectedStore.storeId}`}
+              </span>
             </p>
           </div>
 
@@ -369,6 +495,7 @@ export default function CheckoutPage() {
                       <h3 className="font-bold text-gray-900">
                         {option.title}
                       </h3>
+
                       <p className="text-sm text-gray-500 mt-1">
                         {option.subtitle}
                       </p>
@@ -406,77 +533,68 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm sticky top-6">
               <h2 className="text-xl font-bold text-gray-900">Your Order</h2>
 
-              {items.length === 0 ? (
-                <div className="text-center py-10">
-                  <div className="h-16 w-16 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-3">
-                    <LuShoppingBag size={28} />
-                  </div>
+              <p className="text-sm text-gray-500 mt-1">
+                {selectedStore.storeName || `Store #${selectedStore.storeId}`}
+              </p>
 
-                  <p className="font-semibold text-gray-900">
-                    No items in your cart
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Go back and add something tasty.
-                  </p>
-                </div>
-              ) : (
-                <div className="mt-5 space-y-4">
-                  {items.map((item) => (
-                    <div
-                      key={`${item.storeId}-${item.id}`}
-                      className="flex items-start justify-between gap-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">
-                          {item.qty}x {item.name}
-                        </p>
-                        <p className="text-xs text-gray-400 truncate">
-                          {item.storeName}
-                        </p>
-                      </div>
-
-                      <span className="font-semibold text-gray-900">
-                        ₱{Number(item.price || 0) * Number(item.qty || 0)}
-                      </span>
-                    </div>
-                  ))}
-
-                  <div className="border-t border-gray-100 pt-4 space-y-3">
-                    <div className="flex justify-between text-gray-500">
-                      <span>Subtotal</span>
-                      <span>₱{subtotal}</span>
-                    </div>
-
-                    <div className="flex justify-between text-gray-500">
-                      <span>Delivery</span>
-                      <span>₱{deliveryFee}</span>
-                    </div>
-
-                    <div className="flex justify-between text-gray-500">
-                      <span>Tip</span>
-                      <span>₱{tip}</span>
-                    </div>
-
-                    <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
-                      <span className="text-lg font-bold text-gray-900">
-                        Total
-                      </span>
-                      <span className="text-2xl font-bold text-gray-900">
-                        ₱{total}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handlePlaceOrder}
-                    disabled={placingOrder || items.length === 0}
-                    className="w-full rounded-2xl bg-red-600 py-4 text-white font-bold hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+              <div className="mt-5 space-y-4">
+                {items.map((item) => (
+                  <div
+                    key={`${item.storeId}-${item.id}`}
+                    className="flex items-start justify-between gap-3"
                   >
-                    {placingOrder ? "Placing order..." : "Place Order"}
-                  </button>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">
+                        {item.qty}x {item.name}
+                      </p>
+
+                      <p className="text-xs text-gray-400 truncate">
+                        ₱{item.price} each
+                      </p>
+                    </div>
+
+                    <span className="font-semibold text-gray-900">
+                      ₱{Number(item.price || 0) * Number(item.qty || 0)}
+                    </span>
+                  </div>
+                ))}
+
+                <div className="border-t border-gray-100 pt-4 space-y-3">
+                  <div className="flex justify-between text-gray-500">
+                    <span>Subtotal</span>
+                    <span>₱{subtotal}</span>
+                  </div>
+
+                  <div className="flex justify-between text-gray-500">
+                    <span>Delivery</span>
+                    <span>₱{deliveryFee}</span>
+                  </div>
+
+                  <div className="flex justify-between text-gray-500">
+                    <span>Tip</span>
+                    <span>₱{tip}</span>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
+                    <span className="text-lg font-bold text-gray-900">
+                      Total
+                    </span>
+
+                    <span className="text-2xl font-bold text-gray-900">
+                      ₱{total}
+                    </span>
+                  </div>
                 </div>
-              )}
+
+                <button
+                  type="button"
+                  onClick={handlePlaceOrder}
+                  disabled={placingOrder || items.length === 0}
+                  className="w-full rounded-2xl bg-red-600 py-4 text-white font-bold hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                >
+                  {placingOrder ? "Placing order..." : "Place Order"}
+                </button>
+              </div>
             </div>
           </aside>
         </div>

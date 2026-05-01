@@ -30,17 +30,26 @@ export default function CartDrawer({ open, onClose }) {
 
   const itemCount = useMemo(() => {
     return cart.reduce((sum, store) => {
-      return sum + store.items.reduce((itemSum, item) => itemSum + item.qty, 0);
+      return (
+        sum +
+        store.items.reduce((itemSum, item) => {
+          return itemSum + Number(item.qty || 0);
+        }, 0)
+      );
     }, 0);
   }, [cart]);
 
   if (!open) return null;
 
-  const handleCheckout = () => {
-    if (cart.length === 0) return;
+  const getStoreSubtotal = (store) => {
+    return store.items.reduce((sum, item) => {
+      return sum + Number(item.price || 0) * Number(item.qty || 0);
+    }, 0);
+  };
 
+  const handleStoreCheckout = (storeId) => {
     onClose();
-    navigate("/checkout");
+    navigate(`/checkout?storeId=${encodeURIComponent(storeId)}`);
   };
 
   return (
@@ -95,132 +104,148 @@ export default function CartDrawer({ open, onClose }) {
             </div>
           ) : (
             <div className="space-y-5">
-              {cart.map((store) => (
-                <section
-                  key={store.storeId}
-                  className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
-                >
-                  <div className="flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
-                    <div className="h-8 w-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
-                      <LuStore size={16} />
+              {cart.map((store) => {
+                const storeSubtotal = getStoreSubtotal(store);
+
+                return (
+                  <section
+                    key={store.storeId}
+                    className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
+                  >
+                    <div className="flex items-center gap-2 border-b border-gray-100 pb-3 mb-4">
+                      <div className="h-8 w-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+                        <LuStore size={16} />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-gray-900 truncate">
+                          {store.storeName || `Store #${store.storeId}`}
+                        </h3>
+
+                        <p className="text-xs text-gray-400">
+                          {store.items.length}{" "}
+                          {store.items.length === 1 ? "item" : "items"}
+                        </p>
+                      </div>
+
+                      <span className="font-bold text-gray-900">
+                        ₱{storeSubtotal}
+                      </span>
                     </div>
 
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-gray-900 truncate">
-                        {store.storeName || `Store #${store.storeId}`}
-                      </h3>
-                      <p className="text-xs text-gray-400">
-                        {store.items.length}{" "}
-                        {store.items.length === 1 ? "item" : "items"}
-                      </p>
-                    </div>
-                  </div>
+                    <div className="space-y-4">
+                      {store.items.map((item) => {
+                        const itemImage =
+                          item.item_image ||
+                          item.image_url ||
+                          PLACEHOLDER_IMAGE;
 
-                  <div className="space-y-4">
-                    {store.items.map((item) => {
-                      const itemImage =
-                        item.item_image || item.image_url || PLACEHOLDER_IMAGE;
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex gap-3 rounded-xl border border-gray-100 p-3"
+                          >
+                            <img
+                              src={itemImage}
+                              alt={item.name}
+                              className="h-20 w-20 rounded-xl object-cover bg-gray-100 shrink-0"
+                            />
 
-                      return (
-                        <div
-                          key={item.id}
-                          className="flex gap-3 rounded-xl border border-gray-100 p-3"
-                        >
-                          <img
-                            src={itemImage}
-                            alt={item.name}
-                            className="h-20 w-20 rounded-xl object-cover bg-gray-100 shrink-0"
-                          />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <h4 className="font-semibold text-gray-900 truncate">
+                                    {item.name}
+                                  </h4>
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <h4 className="font-semibold text-gray-900 truncate">
-                                  {item.name}
-                                </h4>
+                                  <p className="text-sm text-gray-500 mt-1">
+                                    ₱{item.price} each
+                                  </p>
+                                </div>
 
-                                <p className="text-sm text-gray-500 mt-1">
-                                  ₱{item.price} each
-                                </p>
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  removeItem(store.storeId, item.id)
-                                }
-                                className="h-8 w-8 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition"
-                                aria-label="Remove item"
-                              >
-                                <LuTrash2 size={16} />
-                              </button>
-                            </div>
-
-                            <div className="mt-4 flex items-center justify-between">
-                              <div className="inline-flex items-center rounded-xl border border-gray-200 overflow-hidden">
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    updateQty(
-                                      store.storeId,
-                                      item.id,
-                                      item.qty - 1
-                                    )
+                                    removeItem(store.storeId, item.id)
                                   }
-                                  className="h-9 w-9 flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                                  className="h-8 w-8 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition"
+                                  aria-label="Remove item"
                                 >
-                                  <LuMinus size={15} />
+                                  <LuTrash2 size={16} />
                                 </button>
+                              </div>
 
-                                <span className="w-10 text-center text-sm font-bold text-gray-900">
-                                  {item.qty}
+                              <div className="mt-4 flex items-center justify-between">
+                                <div className="inline-flex items-center rounded-xl border border-gray-200 overflow-hidden">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateQty(
+                                        store.storeId,
+                                        item.id,
+                                        item.qty - 1
+                                      )
+                                    }
+                                    className="h-9 w-9 flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                                  >
+                                    <LuMinus size={15} />
+                                  </button>
+
+                                  <span className="w-10 text-center text-sm font-bold text-gray-900">
+                                    {item.qty}
+                                  </span>
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateQty(
+                                        store.storeId,
+                                        item.id,
+                                        item.qty + 1
+                                      )
+                                    }
+                                    className="h-9 w-9 flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                                  >
+                                    <LuPlus size={15} />
+                                  </button>
+                                </div>
+
+                                <span className="font-bold text-gray-900">
+                                  ₱
+                                  {Number(item.price || 0) *
+                                    Number(item.qty || 0)}
                                 </span>
-
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    updateQty(
-                                      store.storeId,
-                                      item.id,
-                                      item.qty + 1
-                                    )
-                                  }
-                                  className="h-9 w-9 flex items-center justify-center text-gray-500 hover:bg-gray-50"
-                                >
-                                  <LuPlus size={15} />
-                                </button>
                               </div>
-
-                              <span className="font-bold text-gray-900">
-                                ₱{Number(item.price || 0) * Number(item.qty || 0)}
-                              </span>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleStoreCheckout(store.storeId)}
+                      className="mt-4 w-full rounded-2xl bg-red-600 py-3 text-white font-bold hover:bg-red-700 flex items-center justify-center gap-2 transition"
+                    >
+                      Checkout
+                      <LuArrowRight size={18} />
+                    </button>
+                  </section>
+                );
+              })}
             </div>
           )}
         </div>
 
         <div className="bg-white border-t border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-gray-500">Total</span>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-500">Cart Total</span>
             <span className="text-2xl font-bold text-gray-900">₱{total}</span>
           </div>
 
-          <button
-            type="button"
-            onClick={handleCheckout}
-            disabled={cart.length === 0}
-            className="w-full rounded-2xl bg-red-600 py-4 text-white font-bold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition"
-          >
-            Checkout
-            <LuArrowRight size={19} />
-          </button>
+          <p className="text-xs text-gray-400 mt-2">
+            Checkout is separated by restaurant.
+          </p>
         </div>
       </aside>
     </div>
