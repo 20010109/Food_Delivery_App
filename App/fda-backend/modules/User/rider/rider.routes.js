@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateUser } from "../../middleware/auth.js";
+import { authenticate } from "../../../middleware/authMiddleware.js";
 
 import {
   handleCreateRiderProfile,
@@ -8,7 +8,7 @@ import {
   handleUpdateAvailability,
   handleUpdateVerificationStatus,
   handleGetAllRiders,
-} from "../controllers/rider.controller.js";
+} from "./rider.controller.js";
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ const router = express.Router();
  */
 router.post(
   "/setup",
-  authenticateUser,
+  authenticate,
   handleCreateRiderProfile
 );
 
@@ -31,13 +31,13 @@ router.post(
  */
 router.get(
   "/me",
-  authenticateUser,
+  authenticate,
   handleGetRiderProfile
 );
 
 router.put(
   "/me",
-  authenticateUser,
+  authenticate,
   handleUpdateRiderProfile
 );
 
@@ -48,7 +48,7 @@ router.put(
  */
 router.patch(
   "/availability",
-  authenticateUser,
+  authenticate,
   handleUpdateAvailability
 );
 
@@ -61,14 +61,14 @@ router.patch(
 // Get all riders
 router.get(
   "/",
-  authenticateUser,
+  authenticate,
   handleGetAllRiders
 );
 
 // Approve / reject rider
 router.patch(
   "/verify",
-  authenticateUser,
+  authenticate,
   handleUpdateVerificationStatus
 );
 

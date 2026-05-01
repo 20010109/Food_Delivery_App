@@ -1,6 +1,6 @@
 import express from "express";
 import { createProfile, getProfile, updateProfile, becomeStoreOwner, setupUser } from "./user.controller.js";
-import { authenticate } from "../../middleware/authMiddleware.js";
+import { authenticate } from "../../../middleware/authMiddleware.js";
 
 const router = express.Router();
 router.post("/setup", authenticate, setupUser);

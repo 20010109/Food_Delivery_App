@@ -2,14 +2,14 @@ import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 import authRoute from "./modules/Auth/auth.routes.js";
-import userRoute from "./modules/User/user.routes.js";   
+import userRoute from "./modules/User/user/user.routes.js";   
 import restaurantRoute from "./modules/Restaurant/restaurant.routes.js";
 import addressRoute from "./modules/Address/address.routes.js";                             
 import menuRoute from "./modules/Menu/menu.routes.js"; 
 import orderRoute from "./modules/Order/order.routes.js";
 import paymentRoute from "./modules/Payments/payments.routes.js";
 import reviewRoute from "./modules/Reviews/reviews.route.js";
-import riderRoute from "./modules/DeliveryRider/deliveryRider.routes.js";
+import riderRoute from "./modules/user/rider/rider.routes.js";
 import { supabase } from "./config/supabase.js";
 
 const app = express();

@@ -5,7 +5,7 @@ import {
   updateRiderAvailability,
   updateRiderVerificationStatus,
   getAllRiders,
-} from "../services/rider.service.js";
+} from "./rider.service.js";
 
 // =========================
 // CREATE RIDER PROFILE (ONBOARDING)
