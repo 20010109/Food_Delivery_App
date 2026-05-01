@@ -25,6 +25,10 @@ function readLSArray(key) {
   }
 }
 
+function toKey(value) {
+  return String(value ?? "");
+}
+
 function CustomerDashboard() {
   const navigate = useNavigate();
 
@@ -91,16 +95,20 @@ function CustomerDashboard() {
     fetchRestaurants();
   }, []);
 
-  const toggleStoreFavorite = (restaurantId) => {
-    setFavStoreIds((prev) => {
-      const next = prev.includes(restaurantId)
-        ? prev.filter((id) => id !== restaurantId)
-        : [...prev, restaurantId];
+const toggleStoreFavorite = (restaurantId) => {
+  const key = toKey(restaurantId);
 
-      localStorage.setItem(LS_FAV_STORES_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
+  setFavStoreIds((prev) => {
+    const normalized = prev.map(toKey);
+
+    const next = normalized.includes(key)
+      ? normalized.filter((id) => id !== key)
+      : [...normalized, key];
+
+    localStorage.setItem(LS_FAV_STORES_KEY, JSON.stringify(next));
+    return next;
+  });
+};
 
   const toggleDishFavorite = (itemId) => {
     setFavDishIds((prev) => {
@@ -193,7 +201,7 @@ function CustomerDashboard() {
 
         <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredStores.slice(0, 6).map((r) => {
-            const isFav = favStoreIds.includes(r.restaurant_id);
+            const isFav = favStoreIds.map(toKey).includes(toKey(r.restaurant_id));
 
             return (
               <li
