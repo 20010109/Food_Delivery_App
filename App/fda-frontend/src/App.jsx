@@ -14,10 +14,12 @@ import CreateMenuItem from "./pages/CreateMenuItem.jsx"
 import StoreOwnerHome from "./pages/StoreOwnerHomePage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
 import Messages from "./pages/Messages.jsx";
+
 import AdminHomePage from "./pages/admin/AdminHomePage.jsx";
 import AdminRestaurantsPage from "./pages/Admin/AdminRestaurantsPage.jsx"
 import AdminUsersPage from "./pages/Admin/AdminUsersPage.jsx"
 import AdminAnalyticsPage from "./pages/Admin/AdminAnalyticsPage.jsx";
+import AdminRidersPage from "./pages/Admin/AdminRidersPage.jsx";
 // ✅ NEW
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 // ✅ RIDER
@@ -47,6 +49,7 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route path="/admin" element={<AdminHomePage />} />
           <Route path="/admin/restaurants" element={<AdminRestaurantsPage />} />
+          <Route path="/admin/riders" element={<AdminRidersPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
         </Route>

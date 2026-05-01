@@ -58,8 +58,7 @@ create table user_profiles (
 -- =========================
 create table rider_profiles (
   id uuid primary key default uuid_generate_v4(),
-  user_id uuid references auth.users(id) on delete cascade unique,
-
+  user_id uuid references user_profiles(user_id) on delete cascade unique,
   vehicle_type vehicle_type_enum not null,
   vehicle_plate_number text,
   license_number text,
