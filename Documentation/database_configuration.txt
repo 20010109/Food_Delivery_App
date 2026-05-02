@@ -171,3 +171,6 @@ create index idx_addresses_user_id on addresses(user_id);
 create index idx_orders_user_id on orders(user_id);
 create index idx_orders_restaurant_id on orders(restaurant_id);
 create index idx_menu_restaurant_id on menu_items(restaurant_id);
+
+
+

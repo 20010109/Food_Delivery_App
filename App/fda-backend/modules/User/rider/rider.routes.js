@@ -1,5 +1,6 @@
 import express from "express";
 import { authenticate } from "../../../middleware/authMiddleware.js";
+import { roleCheck } from "../../../middleware/roleCheck.js";
 
 import {
   handleCreateRiderProfile,
@@ -8,68 +9,34 @@ import {
   handleUpdateAvailability,
   handleUpdateVerificationStatus,
   handleGetAllRiders,
+  handleGetAvailableOrders,
+  handleClaimDelivery,
+  handleGetActiveDelivery,
+  handleGetDeliveryHistory,
+  handleUpdateDeliveryStatus,
 } from "./rider.controller.js";
 
 const router = express.Router();
+const riderOnly = [authenticate, roleCheck("rider")];
+const adminOnly = [authenticate, roleCheck("admin")];
 
-/**
- * =========================
- * RIDER ONBOARDING
- * =========================
- * Called after UserSetup is already done
- */
-router.post(
-  "/setup",
-  authenticate,
-  handleCreateRiderProfile
-);
+// Onboarding (any authenticated user)
+router.post("/setup", authenticate, handleCreateRiderProfile);
 
-/**
- * =========================
- * RIDER SELF PROFILE
- * =========================
- */
-router.get(
-  "/me",
-  authenticate,
-  handleGetRiderProfile
-);
+// Self profile
+router.get("/me", authenticate, handleGetRiderProfile);
+router.put("/me", authenticate, handleUpdateRiderProfile);
+router.patch("/availability", ...riderOnly, handleUpdateAvailability);
 
-router.put(
-  "/me",
-  authenticate,
-  handleUpdateRiderProfile
-);
+// Delivery operations
+router.get("/pool", ...riderOnly, handleGetAvailableOrders);
+router.post("/claim", ...riderOnly, handleClaimDelivery);
+router.get("/active", ...riderOnly, handleGetActiveDelivery);
+router.get("/history", ...riderOnly, handleGetDeliveryHistory);
+router.put("/status", ...riderOnly, handleUpdateDeliveryStatus);
 
-/**
- * =========================
- * RIDER AVAILABILITY
- * =========================
- */
-router.patch(
-  "/availability",
-  authenticate,
-  handleUpdateAvailability
-);
-
-/**
- * =========================
- * ADMIN ROUTES
- * =========================
- */
-
-// Get all riders
-router.get(
-  "/",
-  authenticate,
-  handleGetAllRiders
-);
-
-// Approve / reject rider
-router.patch(
-  "/verify",
-  authenticate,
-  handleUpdateVerificationStatus
-);
+// Admin
+router.get("/", ...adminOnly, handleGetAllRiders);
+router.patch("/verify", ...adminOnly, handleUpdateVerificationStatus);
 
 export default router;

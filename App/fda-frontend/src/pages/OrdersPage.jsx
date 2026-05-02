@@ -12,7 +12,7 @@ import {
 const API_BASE = "http://localhost:3000/api";
 
 const ACTIVE_STATUSES = ["pending", "preparing", "out_for_delivery"];
-const PAST_STATUSES = ["delivered", "cancelled"];
+const PAST_STATUSES = ["cancelled", "completed"];
 
 async function getAuthHeaders() {
   const { data } = await supabase.auth.getSession();
@@ -53,15 +53,16 @@ function statusLabel(status) {
     pending: "Pending",
     preparing: "Preparing",
     out_for_delivery: "Out for delivery",
-    delivered: "Delivered",
+    //delivered: "Delivered", --WRONG LABEL
     cancelled: "Cancelled",
+    completed: "Completed",
   };
 
   return labels[status] || status || "Unknown";
 }
 
 function statusColor(status) {
-  if (status === "delivered") return "bg-green-100 text-green-700";
+  if (status === "Completed") return "bg-green-100 text-green-700";
   if (status === "cancelled") return "bg-red-100 text-red-700";
   if (status === "out_for_delivery") return "bg-blue-100 text-blue-700";
   if (status === "preparing") return "bg-yellow-100 text-yellow-700";
@@ -73,7 +74,7 @@ function progressWidth(status) {
   if (status === "pending") return "w-1/4";
   if (status === "preparing") return "w-2/4";
   if (status === "out_for_delivery") return "w-3/4";
-  if (status === "delivered") return "w-full";
+  if (status === "Completed") return "w-full";
 
   return "w-1/4";
 }
@@ -227,7 +228,7 @@ function TrackModal({
               <div className="flex items-center gap-3">
                 <div
                   className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                    ["preparing", "out_for_delivery", "delivered"].includes(
+                    ["preparing", "out_for_delivery", "Completed"].includes(
                       order.status
                     )
                       ? "bg-red-50 text-red-600"
@@ -242,7 +243,7 @@ function TrackModal({
               <div className="flex items-center gap-3">
                 <div
                   className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                    ["out_for_delivery", "delivered"].includes(order.status)
+                    ["out_for_delivery", "Completed"].includes(order.status)
                       ? "bg-red-50 text-red-600"
                       : "bg-gray-100 text-gray-400"
                   }`}

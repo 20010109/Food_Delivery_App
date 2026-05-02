@@ -50,15 +50,37 @@ function AdminRidersPage() {
   // UPDATE STATUS
   // =========================
   const updateStatus = async (id, status) => {
-    const { error } = await supabase
-      .from("rider_profiles")
-      .update({ verification_status: status })
-      .eq("id", id);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    if (error) return alert(error.message);
+      if (!session) return;
 
-    setSelectedRider(null);
-    fetchRiders();
+      
+      const res = await fetch("http://localhost:3000/api/rider/verify", {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rider_id: id,
+          status: status,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update status");
+      }
+
+      setSelectedRider(null);
+      fetchRiders();
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   // =========================
@@ -119,10 +141,10 @@ function AdminRidersPage() {
             </button>
 
             <button
-              onClick={() => updateStatus(rider.id, "rejected")}
+              onClick={() => updateStatus(rider.id, "denied")}
               className="flex-1 bg-red-600 text-white py-2 rounded-lg"
             >
-              Reject
+              Deny
             </button>
           </div>
         </div>

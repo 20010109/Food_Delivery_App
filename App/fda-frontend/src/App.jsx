@@ -31,6 +31,7 @@ import RiderDashboard from "./pages/Rider/RiderDashboard.jsx";
 import RiderLandingScreen from "./pages/Rider/RiderLandingScreen.jsx";
 import RiderOnboarding from "./pages/Rider/RiderOnboarding.jsx";
 import OnboardingReview from "./pages/Rider/RiderOnboardingReview.jsx";
+import RiderPendingScreen from "./pages/Rider/RiderPendingScreen.jsx";
 
 function App() {
   return (
@@ -76,6 +77,7 @@ function App() {
         <Route path="/rider" element={<RiderLandingScreen />} />
         <Route path="/rider/onboarding" element={<RiderOnboarding />} />
         <Route path="/rider/review" element={<OnboardingReview />} />
+        <Route path="/rider/pending" element={<RiderPendingScreen />} />
         <Route element={<ProtectedRoute allowedRoles={["rider"]} />}>
           <Route path="/rider/dashboard" element={<RiderDashboard />} />
         </Route>
