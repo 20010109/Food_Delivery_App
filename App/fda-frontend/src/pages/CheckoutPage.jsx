@@ -204,7 +204,7 @@ export default function CheckoutPage() {
         throw new Error("One or more cart items are missing an item ID.");
       }
 
-      const res = await fetch(`${API_BASE}/orders/order`, {
+      const res = await fetch(`${API_BASE}/payments/checkout`, {
         method: "POST",
         headers,
         body: JSON.stringify({
