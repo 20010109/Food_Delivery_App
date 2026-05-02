@@ -1,14 +1,14 @@
 import { createUserOrder } from "../Order/order.service.js";
 
-const ALLOWED_METHODS = ['cash', 'gcash', 'card', 'wallet'];
+const ALLOWED_METHODS = ['cod', 'gcash', 'card', 'wallet'];
 
-export const processPayment = async (supabase, { user_id, restaurant_id, items, payment_method }) => {
+export const processPayment = async (supabase, { user_id, restaurant_id, items, payment_method, delivery_fee = 0, tip = 0 }) => {
     if (!ALLOWED_METHODS.includes(payment_method)) {
         throw new Error(`Invalid payment method. Allowed: ${ALLOWED_METHODS.join(', ')}`);
     }
 
     // create order — total_price is computed inside createUserOrder
-    const { order, items: orderItems } = await createUserOrder(supabase, { user_id, restaurant_id, items });
+    const { order, items: orderItems } = await createUserOrder(supabase, { user_id, restaurant_id, items, delivery_fee, tip });
 
     // wallet: check balance and deduct
     if (payment_method === 'wallet') {
@@ -46,7 +46,7 @@ export const processPayment = async (supabase, { user_id, restaurant_id, items, 
             order_id: order.order_id,
             amount: order.total_price,
             method: payment_method,
-            status: 'success'
+            status: 'paid'
         })
         .select()
         .single();
