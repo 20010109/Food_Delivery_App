@@ -151,7 +151,6 @@ export default function MessagesPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
-      <Navbar />
 
       <main className="flex-1 min-w-0 min-h-0 overflow-hidden bg-gray-100 p-6">
         <div className="h-full rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden">

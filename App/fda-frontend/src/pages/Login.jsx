@@ -91,7 +91,7 @@ export default function Login() {
           navigate("/home");
           break;
         case "rider":
-          navigate("/rider/home");
+          navigate("/rider/dashboard");
           break;
         case "customer":
         default:
