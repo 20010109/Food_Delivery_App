@@ -165,7 +165,6 @@ function Favourites() {
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-100">
-        <Navbar />
 
         <main className="flex-1 flex items-center justify-center text-gray-500">
           Loading favourites...
@@ -176,7 +175,6 @@ function Favourites() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Navbar />
 
       <main className="flex-1 p-6 overflow-auto">
         <div className="space-y-6">

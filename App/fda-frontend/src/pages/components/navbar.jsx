@@ -16,38 +16,45 @@ import DefaultProfile from "../../assets/Stock_User.jpg";
 import SidebarPromoCard from "./SidebarPromoCard.jsx";
 
 function Navbar() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const cached = localStorage.getItem("grubero_user_profile");
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [showPromo, setShowPromo] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      const authUser = data.user;
-  
-      if (!authUser) return;
-  
-      const { data: profile, error } = await supabase
-        .from("user_profiles")
-        .select("role, first_name, last_name, profile_image")
-        .eq("user_id", authUser.id)
-        .single();
-  
-      if (error) console.error(error);
-  
-      const mergedUser = {
-        id: authUser.id,
-        email: authUser.email,
-        role: profile?.role || "customer",
-        first_name: profile?.first_name,
-        last_name: profile?.last_name,
-        profile_image: profile?.profile_image,
-      };
-  
-      // console.log("MERGED USER:", mergedUser);
-  
-      setUser(mergedUser);
+    const { data } = await supabase.auth.getUser();
+    const authUser = data.user;
+
+    if (!authUser) return;
+
+    const { data: profile, error } = await supabase
+      .from("user_profiles")
+      .select("role, first_name, last_name, profile_image")
+      .eq("user_id", authUser.id)
+      .single();
+
+    if (error) console.error(error);
+
+    const mergedUser = {
+      id: authUser.id,
+      email: authUser.email,
+      role: profile?.role || "customer",
+      first_name: profile?.first_name,
+      last_name: profile?.last_name,
+      profile_image: profile?.profile_image,
     };
+
+    // ✅ Cache it so next render is instant
+    localStorage.setItem("grubero_user_profile", JSON.stringify(mergedUser));
+    setUser(mergedUser);
+  };
   
     fetchUser();
   }, []);

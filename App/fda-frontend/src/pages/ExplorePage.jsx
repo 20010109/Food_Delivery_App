@@ -194,7 +194,6 @@ export default function ExplorePage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Navbar />
 
       <main className="flex-1 overflow-auto">
         <section className="p-6 space-y-6">

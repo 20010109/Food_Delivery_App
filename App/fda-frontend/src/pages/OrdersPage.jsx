@@ -390,7 +390,6 @@ export default function OrdersPage() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <Navbar />
 
       <main className="flex-1 overflow-y-auto p-6 space-y-8">
         <div className="flex items-center justify-between gap-4">

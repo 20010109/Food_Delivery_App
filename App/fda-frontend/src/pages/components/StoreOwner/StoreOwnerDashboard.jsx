@@ -4,6 +4,8 @@ import { supabase } from "../../../utils/supabase.js";
 import StoreOwnerEditStoreModal from "./StoreOwnerEditStoreModal.jsx";
 import StoreOwnerCreateStoreModal from "./StoreOwnerCreateStoreModal.jsx";
 import MenuSection from "./MenuSection.jsx";
+import StoreStats from "./StoreStats.jsx";
+import StoreOwnerOrdersSection from "./StoreOwnerOrdersSection.jsx";
 
 function StoreOwnerDashboard() {
   const [restaurant, setRestaurant] = useState(null);
@@ -156,14 +158,7 @@ function StoreOwnerDashboard() {
 
       {/* ================= STATS ================= */}
       {restaurant && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-          <Stat label="Orders Today" value="0" />
-          <Stat label="Revenue" value="₱0" />
-          <Stat label="Menu Items" value="0" />
-          <Stat label="Rating" value="⭐ 0.0" />
-
-        </div>
+        <StoreStats restaurantId={restaurant.restaurant_id} />
       )}
 
       {/* ================= MENU SECTION ================= */}
@@ -172,6 +167,13 @@ function StoreOwnerDashboard() {
 
           <MenuSection restaurantId={restaurant.restaurant_id} />
 
+        </div>
+      )}
+
+      {/* ================= ORDERS SECTION ================= */}
+      {restaurant && (
+        <div className="bg-white border rounded-2xl p-6">
+          <StoreOwnerOrdersSection restaurantId={restaurant.restaurant_id} />
         </div>
       )}
 

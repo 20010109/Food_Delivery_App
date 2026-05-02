@@ -8,12 +8,9 @@ import './styles/tailwind.css'
 function HomePage() {
 
   return (
-    <div className="flex h-screen">
-      <Navbar />
       <main className="flex-1 bg-gray-100 p-8 overflow-auto">
         <CustomerDashboard />
       </main>
-    </div>
   );
 
 }
