@@ -132,3 +132,65 @@ export const updateUserRole = async (supabase, user_id, role) => {
     if (error) throw error;
     return data;
 };
+
+export const getWalletBalance = async (supabase, user_id) => {
+    const { data, error } = await supabase
+        .from("user_profiles")
+        .select("wallet_balance")
+        .eq("user_id", user_id)
+        .single();
+
+    if (error) throw error;
+
+    return data.wallet_balance;
+};
+
+export const topUpWallet = async (supabase, user_id, amount) => {
+    if (!amount || amount <= 0) {
+        throw new Error("Amount must be greater than zero.");
+    }
+
+    const { data: profile, error: fetchError } = await supabase
+        .from("user_profiles")
+        .select("wallet_balance")
+        .eq("user_id", user_id)
+        .single();
+    if (fetchError) throw fetchError;
+
+    const { data, error } = await supabase
+        .from("user_profiles")
+        .update({ wallet_balance: Number(profile.wallet_balance) + Number(amount) })
+        .eq("user_id", user_id)
+        .select("wallet_balance")
+        .single();
+    if (error) throw error;
+
+    return data.wallet_balance;
+};
+
+export const deductFromWallet = async (supabase, user_id, amount) => {
+    if (!amount || amount <= 0) {
+        throw new Error("Amount must be greater than zero.");
+    }
+
+    const { data: profile, error: fetchError } = await supabase
+        .from("user_profiles")
+        .select("wallet_balance")
+        .eq("user_id", user_id)
+        .single();
+    if (fetchError) throw fetchError;
+
+    if (Number(profile.wallet_balance) < Number(amount)) {
+        throw new Error("Insufficient wallet balance.");
+    }
+
+    const { data, error } = await supabase
+        .from("user_profiles")
+        .update({ wallet_balance: Number(profile.wallet_balance) - Number(amount) })
+        .eq("user_id", user_id)
+        .select("wallet_balance")
+        .single();
+    if (error) throw error;
+
+    return data.wallet_balance;
+};

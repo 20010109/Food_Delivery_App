@@ -1,4 +1,4 @@
-import { createUserProfile, getUserProfile, updateUserProfile, updateUserRole, setupUserService } from "./user.service.js";
+import { createUserProfile, getUserProfile, updateUserProfile, updateUserRole, setupUserService, getWalletBalance, topUpWallet, deductFromWallet } from "./user.service.js";
 
 export const createProfile = async (req, res) => {
     try {
@@ -106,6 +106,40 @@ export const becomeStoreOwner = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+};
+
+export const getWallet = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const data = await getWalletBalance(req.supabase, user_id);
+        return res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const addWalletFunds = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const { amount } = req.body;
+        if (!amount) return res.status(400).json({ error: 'amount is required' });
+        const data = await topUpWallet(req.supabase, user_id, amount);
+        return res.status(200).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+export const deductWalletFunds = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const { amount } = req.body;
+        if (!amount) return res.status(400).json({ error: 'amount is required' });
+        const data = await deductFromWallet(req.supabase, user_id, amount);
+        return res.status(200).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 };
 
