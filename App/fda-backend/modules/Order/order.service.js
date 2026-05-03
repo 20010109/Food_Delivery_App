@@ -220,5 +220,32 @@ export const deleteUserOrder = async (supabase, order_id, user_id) => {
 
   if (error) throw error;
 
+  // Check if paid by wallet — if so, refund
+  const { data: payment } = await supabase
+    .from("payments")
+    .select("method, amount")
+    .eq("order_id", order_id)
+    .eq("status", "paid")
+    .maybeSingle();
+
+  if (payment?.method === "wallet") {
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("wallet_balance")
+      .eq("user_id", user_id)
+      .single();
+
+    await supabase
+      .from("user_profiles")
+      .update({ wallet_balance: Number(profile.wallet_balance) + Number(payment.amount) })
+      .eq("user_id", user_id);
+
+    // Mark payment as refunded
+    await supabase
+      .from("payments")
+      .update({ status: "refunded" })
+      .eq("order_id", order_id);
+  }
+  
   return cancelledOrder;
 };

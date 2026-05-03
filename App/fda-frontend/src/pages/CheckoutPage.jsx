@@ -14,6 +14,7 @@ import {
 } from "react-icons/lu";
 import { useCart } from "../context/CartContext";
 import { getPrimaryAddress } from "../utils/addressApi.js";
+import { getWalletBalance, getGcashNumber } from "../utils/walletApi.js";
 import { supabase } from "../utils/supabase.js";
 
 const API_BASE = "http://localhost:3000/api";
@@ -51,6 +52,12 @@ const PAYMENT_OPTIONS = [
     title: "Card",
     subtitle: "Credit or debit card",
     icon: LuCreditCard,
+  },
+  {
+    id: "wallet",
+    title: "Wallet",
+    subtitle: "Pay using your Grubero wallet",
+    icon: LuWallet,
   },
 ];
 
@@ -109,6 +116,8 @@ export default function CheckoutPage() {
 
   const [deliveryType, setDeliveryType] = useState("regular");
   const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [gcashNumber, setGcashNumber] = useState(null);
   const [tip, setTip] = useState(0);
   const [address, setAddress] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -159,6 +168,18 @@ export default function CheckoutPage() {
         setAddress(currentAddress || null);
       } catch (err) {
         console.error("Failed to load checkout address:", err.message);
+      }
+
+      try {
+        const [walletData, gcashData] = await Promise.all([
+          getWalletBalance(),
+          getGcashNumber(),
+        ]);
+
+        setWalletBalance(walletData || null);
+        setGcashNumber(gcashData || null);
+      } catch (err) {
+        console.error("Failed to load wallet or GCash info:", err.message);
       }
 
       try {
@@ -565,7 +586,39 @@ export default function CheckoutPage() {
                   );
                 })}
               </div>
+
+              {/* ← INSERT HERE */}
+              {paymentMethod === "wallet" && (
+                <div className="mt-3 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                  {walletBalance !== null ? (
+                    <>
+                      Available balance:{" "}
+                      <span className={`font-bold ${Number(walletBalance) < total ? "text-red-600" : "text-green-600"}`}>
+                        ₱{Number(walletBalance).toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+                      </span>
+                      {Number(walletBalance) < total && (
+                        <span className="block text-red-500 mt-1">Insufficient balance for this order.</span>
+                      )}
+                    </>
+                  ) : (
+                    "Loading balance..."
+                  )}
+                </div>
+              )}
+
+              {paymentMethod === "gcash" && (
+                <div className="mt-3 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                  {gcashNumber ? (
+                    <>Paying via GCash: <span className="font-bold">{gcashNumber}</span></>
+                  ) : (
+                    <span className="text-red-500">No GCash number linked. Go to Settings → Wallet &amp; Payments to link one.</span>
+                  )}
+                </div>
+              )}
+
             </section>
+            
+
 
             <section className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
               <h2 className="text-xl font-bold text-gray-900 mb-4">

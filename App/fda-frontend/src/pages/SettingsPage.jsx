@@ -14,6 +14,7 @@ import TopBar from "./components/TopBar.jsx";
 import SavedAddressModal from "./components/SavedAddressModal.jsx";
 import MarketingPreferencesModal from "./components/MarketingPreferencesModal.jsx";
 import StoreOwnerCreateStoreModal from "./components/StoreOwner/StoreOwnerCreateStoreModal.jsx";
+import WalletModal from "./components/WalletModal.jsx";
 
 const LS_SELECTED_ADDRESS_KEY = "grubero_selected_address";
 
@@ -24,6 +25,7 @@ export default function SettingsPage() {
   const [marketingOpen, setMarketingOpen] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [createStoreOpen, setCreateStoreOpen] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(LS_SELECTED_ADDRESS_KEY);
@@ -77,7 +79,7 @@ export default function SettingsPage() {
           label: "Payment Methods",
           icon: <LuCreditCard className="text-gray-600" />,
           description: "Manage your payment options",
-          onClick: () => alert("Payment methods not connected yet"),
+          onClick: () => setWalletOpen(true),
         },
         {
           label: "My Cards",
@@ -179,6 +181,11 @@ export default function SettingsPage() {
             onSuccess={() => {
               setCreateStoreOpen(false);
             }}
+          />
+
+          <WalletModal
+            open={walletOpen}
+            onClose={() => setWalletOpen(false)}
           />
         </section>
       </main>

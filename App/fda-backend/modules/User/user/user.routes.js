@@ -1,5 +1,5 @@
 import express from "express";
-import { createProfile, getProfile, updateProfile, becomeStoreOwner, setupUser, getWallet, addWalletFunds, deductWalletFunds } from "./user.controller.js";
+import { createProfile, getProfile, updateProfile, becomeStoreOwner, setupUser, getWallet, addWalletFunds, deductWalletFunds, getGcash, linkGcash, unlinkGcash } from "./user.controller.js";
 import { authenticate } from "../../../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -11,5 +11,8 @@ router.put("/become-storeowner", authenticate, becomeStoreOwner);
 router.get("/wallet", authenticate, getWallet);
 router.patch("/wallet/add", authenticate, addWalletFunds);
 router.patch("/wallet/deduct", authenticate, deductWalletFunds);
+router.get("/gcash", authenticate, getGcash);
+router.patch("/gcash/link", authenticate, linkGcash);
+router.delete("/gcash/unlink", authenticate, unlinkGcash);
 
 export default router;

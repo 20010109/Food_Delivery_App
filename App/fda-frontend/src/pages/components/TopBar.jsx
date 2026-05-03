@@ -4,6 +4,7 @@ import {
   LuSearch,
   LuSlidersHorizontal,
   LuShoppingCart,
+  LuWallet
 } from "react-icons/lu";
 
 export default function TopBar({
@@ -14,6 +15,7 @@ export default function TopBar({
   showAddressButton = true,
   onOpenAddress,
   addressLabel = "Set address",
+  walletBalance = null,
 }) {
   return (
     <div className="flex items-center gap-4">
@@ -31,6 +33,13 @@ export default function TopBar({
           </button>
         )}
       </div>
+
+      {walletBalance!== null && (
+        <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm">
+          <LuWallet className="text-red-500" size={16} />
+          ₱{Number(walletBalance).toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+        </div>
+      )}
 
       {/* RIGHT SLOT (always aligned) */}
       <div className="flex items-center gap-2 flex-1 justify-end">

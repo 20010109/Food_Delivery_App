@@ -194,3 +194,34 @@ export const deductFromWallet = async (supabase, user_id, amount) => {
 
     return data.wallet_balance;
 };
+
+export const getGcashNumber = async (supabase, user_id) => {
+    const { data, error } = await supabase
+    .from("user_profiles")
+    .select("gcash_number")
+    .eq("user_id", user_id)
+    .single();
+    if (error) throw error;
+    return data.gcash_number;
+};
+
+export const linkGcashNumber = async (supabase, user_id, gcash_number) => {
+    const { data, error } = await supabase
+    .from("user_profiles")
+    .update({ gcash_number })
+    .eq("user_id", user_id)
+    .select("gcash_number")
+    .single();
+    if (error) throw error;
+    return data.gcash_number;
+};
+
+export const unlinkGcashNumber = async (supabase, user_id) => {
+    const { data, error } = await supabase
+    .from("user_profiles")
+    .update({ gcash_number: null })
+    .eq("user_id", user_id)
+    .select("gcash_number")
+    .single();
+    if (error) throw error;
+};
