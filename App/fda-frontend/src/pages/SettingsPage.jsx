@@ -15,6 +15,7 @@ import SavedAddressModal from "./components/SavedAddressModal.jsx";
 import MarketingPreferencesModal from "./components/MarketingPreferencesModal.jsx";
 import StoreOwnerCreateStoreModal from "./components/StoreOwner/StoreOwnerCreateStoreModal.jsx";
 import WalletModal from "./components/WalletModal.jsx";
+import SavedCardsModal from "./components/SavedCardsModal.jsx";
 
 const LS_SELECTED_ADDRESS_KEY = "grubero_selected_address";
 
@@ -26,6 +27,7 @@ export default function SettingsPage() {
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [createStoreOpen, setCreateStoreOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
+  const [cardsOpen, setCardsOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(LS_SELECTED_ADDRESS_KEY);
@@ -85,7 +87,7 @@ export default function SettingsPage() {
           label: "My Cards",
           icon: <LuWallet className="text-gray-600" />,
           description: "View saved cards",
-          onClick: () => alert("Cards not connected yet"),
+          onClick: () => setCardsOpen(true),
         },
       ],
     },
@@ -186,6 +188,11 @@ export default function SettingsPage() {
           <WalletModal
             open={walletOpen}
             onClose={() => setWalletOpen(false)}
+          />
+
+          <SavedCardsModal
+            open={cardsOpen}
+            onClose={() => setCardsOpen(false)}
           />
         </section>
       </main>

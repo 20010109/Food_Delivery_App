@@ -178,7 +178,7 @@ export const unlinkGcash = async(req, res) => {
     }
 };
 
-export const getCards = async (req, res) => {
+export const getCard = async (req, res) => {
     try {
         const user_id = req.user.id;
         const data = await getSavedCards(req.supabase, user_id);
