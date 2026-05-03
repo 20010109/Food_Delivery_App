@@ -1,5 +1,5 @@
 import express from "express";
-import { createProfile, getProfile, updateProfile, becomeStoreOwner, setupUser, getWallet, addWalletFunds, deductWalletFunds, getGcash, linkGcash, unlinkGcash } from "./user.controller.js";
+import { createProfile, getProfile, updateProfile, becomeStoreOwner, setupUser, getWallet, addWalletFunds, deductWalletFunds, getGcash, linkGcash, unlinkGcash, getCard, addCard, deleteCard } from "./user.controller.js";
 import { authenticate } from "../../../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -14,5 +14,8 @@ router.patch("/wallet/deduct", authenticate, deductWalletFunds);
 router.get("/gcash", authenticate, getGcash);
 router.patch("/gcash/link", authenticate, linkGcash);
 router.delete("/gcash/unlink", authenticate, unlinkGcash);
+router.get("/cards", authenticate, getCard);
+router.post("/cards", authenticate, addCard);
+router.delete("/cards/:card_id", authenticate, deleteCard);
 
 export default router;

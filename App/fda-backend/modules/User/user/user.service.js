@@ -225,3 +225,33 @@ export const unlinkGcashNumber = async (supabase, user_id) => {
     .single();
     if (error) throw error;
 };
+
+export const getSavedCards = async (supabase, user_id) => {
+    const { data, error } = await supabase
+        .from("saved_cards")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+};
+
+export const addSavedCard = async (supabase, user_id, { cardholder_name, card_number, expiry_month, expiry_year }) => {
+    const last_four = String(card_number).slice(-4);
+    const { data, error } = await supabase
+        .from("saved_cards")
+        .insert({ user_id, cardholder_name, last_four, expiry_month, expiry_year })
+        .select()
+        .single();
+    if (error) throw error;
+    return data;
+};
+
+export const deleteSavedCard = async (supabase, user_id, card_id) => {
+    const { error } = await supabase
+        .from("saved_cards")
+        .delete()
+        .eq("card_id", card_id)
+        .eq("user_id", user_id);
+    if (error) throw error;
+};
