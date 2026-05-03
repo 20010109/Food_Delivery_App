@@ -38,7 +38,7 @@ export default function WalletModal({ open, onClose }) {
         getGcashNumber(),
       ]);
       setBalance(walletData);
-      setGcashNumber(gcashData?.gcash_number || null);
+      setGcashNumber(gcashData || null);
     } catch (err) {
       setError(err.message);
     } finally {
