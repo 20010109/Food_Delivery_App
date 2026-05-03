@@ -97,3 +97,52 @@ export const cancelOrder = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+
+import {
+  getRestaurantOrders,
+  updateRestaurantOrderStatus,
+  getRestaurantOrderStats,
+} from "./order.service.js";
+
+export const getStoreOrders = async (req, res) => {
+  try {
+    const { restaurant_id } = req.params;
+    const orders = await getRestaurantOrders(req.supabase, restaurant_id);
+    return res.status(200).json(orders);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateStoreOrderStatus = async (req, res) => {
+  try {
+    const { restaurant_id, order_id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ error: "status is required" });
+    }
+
+    const order = await updateRestaurantOrderStatus(
+      req.supabase,
+      order_id,
+      restaurant_id,
+      status
+    );
+
+    return res.status(200).json(order);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getStoreStats = async (req, res) => {
+  try {
+    const { restaurant_id } = req.params;
+    const stats = await getRestaurantOrderStats(req.supabase, restaurant_id);
+    return res.status(200).json(stats);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};

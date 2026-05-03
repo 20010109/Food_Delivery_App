@@ -139,7 +139,6 @@ export default function StorePage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Navbar />
 
       <main className="flex-1 overflow-y-auto">
         {/* HEADER */}

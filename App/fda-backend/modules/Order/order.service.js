@@ -249,3 +249,114 @@ export const deleteUserOrder = async (supabase, order_id, user_id) => {
   
   return cancelledOrder;
 };
+
+
+// ===== STOREOWNER =====
+
+export const getRestaurantOrders = async (supabase, restaurantId) => {
+  // Step 1: fetch orders with items
+  const { data: orders, error } = await supabase
+    .from("orders")
+    .select(`
+      *,
+      order_items(
+        order_item_id,
+        quantity,
+        menu_items(name, price, item_image)
+      )
+    `)
+    .eq("restaurant_id", restaurantId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  // Step 2: fetch user profiles separately
+  const userIds = [...new Set(orders.map((o) => o.user_id))];
+
+  const { data: profiles, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("user_id, first_name, last_name, contact_number")
+    .in("user_id", userIds);
+
+  if (profileError) throw profileError;
+
+  const profileMap = new Map(profiles.map((p) => [p.user_id, p]));
+
+  // Step 3: merge
+  return orders.map((order) => ({
+    ...order,
+    user_profiles: profileMap.get(order.user_id) || null,
+  }));
+};
+
+export const updateRestaurantOrderStatus = async (
+  supabase,
+  orderId,
+  restaurantId,
+  newStatus
+) => {
+  const validStatuses = [
+    "pending",
+    "preparing",
+    "out_for_delivery",
+    "completed",
+    "cancelled",
+  ];
+
+  if (!validStatuses.includes(newStatus)) {
+    throw new Error("Invalid order status.");
+  }
+
+  // Verify order belongs to this restaurant
+  const { data: existing, error: fetchError } = await supabase
+    .from("orders")
+    .select("order_id, restaurant_id, status")
+    .eq("order_id", orderId)
+    .eq("restaurant_id", restaurantId)
+    .single();
+
+  if (fetchError) throw new Error("Order not found: " + fetchError.message);
+  if (!existing) throw new Error("Order not found.");
+
+  // Update status
+  const { data, error } = await supabase
+    .from("orders")
+    .update({ status: newStatus })
+    .eq("order_id", orderId)
+    .eq("restaurant_id", restaurantId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getRestaurantOrderStats = async (supabase, restaurantId) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("order_id, total_price, status, created_at")
+    .eq("restaurant_id", restaurantId);
+
+  if (error) throw error;
+
+  const todayOrders = data.filter(
+    (o) => new Date(o.created_at) >= today
+  );
+
+  const revenue = data
+    .filter((o) => o.status === "completed")
+    .reduce((sum, o) => sum + Number(o.total_price || 0), 0);
+
+  const activeOrders = data.filter((o) =>
+    ["pending", "preparing"].includes(o.status)
+  ).length;
+
+  return {
+    ordersToday: todayOrders.length,
+    totalRevenue: revenue,
+    activeOrders,
+  };
+};

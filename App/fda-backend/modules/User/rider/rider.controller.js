@@ -99,17 +99,21 @@ export const handleUpdateAvailability = async (req, res) => {
 // =========================
 export const handleUpdateVerificationStatus = async (req, res) => {
   try {
-    const { user_id, status } = req.body;
+    const { rider_id, status } = req.body;
 
-    const updated = await updateRiderVerificationStatus(
+    if (!rider_id || !status) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
+    const data = await updateRiderVerificationStatus(
       req.supabase,
-      user_id,
+      rider_id,
       status
     );
 
-    return res.status(200).json(updated);
+    return res.json({ success: true, data });
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -123,5 +127,66 @@ export const handleGetAllRiders = async (req, res) => {
     return res.status(200).json(riders);
   } catch (err) {
     return res.status(500).json({ error: err.message });
+  }
+};
+
+
+import {
+  getAvailableOrders,
+  claimDelivery,
+  getActiveDelivery,
+  getDeliveryHistory,
+  updateDeliveryStatus,
+} from "./rider.service.js";
+
+export const handleGetAvailableOrders = async (req, res) => {
+  try {
+    const data = await getAvailableOrders(req.supabase);
+    return res.status(200).json(data);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const handleClaimDelivery = async (req, res) => {
+  try {
+    const riderId = req.user.id;
+    const { order_id } = req.body;
+    if (!order_id) return res.status(400).json({ error: "order_id required" });
+    const data = await claimDelivery(req.supabase, riderId, order_id);
+    return res.status(201).json(data);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+export const handleGetActiveDelivery = async (req, res) => {
+  try {
+    const data = await getActiveDelivery(req.supabase, req.user.id);
+    return res.status(200).json(data);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const handleGetDeliveryHistory = async (req, res) => {
+  try {
+    const data = await getDeliveryHistory(req.supabase, req.user.id);
+    return res.status(200).json(data);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const handleUpdateDeliveryStatus = async (req, res) => {
+  try {
+    const riderId = req.user.id;
+    const { delivery_id, status } = req.body;
+    if (!delivery_id || !status)
+      return res.status(400).json({ error: "delivery_id and status required" });
+    const data = await updateDeliveryStatus(req.supabase, riderId, delivery_id, status);
+    return res.status(200).json(data);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
   }
 };

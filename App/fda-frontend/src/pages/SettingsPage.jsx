@@ -7,7 +7,10 @@ import {
   LuWallet,
   LuLifeBuoy,
   LuTags,
+  LuBike,
 } from "react-icons/lu";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../utils/supabase.js";
 
 import Navbar from "./components/Navbar.jsx";
 import TopBar from "./components/TopBar.jsx";
@@ -20,6 +23,7 @@ import SavedCardsModal from "./components/SavedCardsModal.jsx";
 const LS_SELECTED_ADDRESS_KEY = "grubero_selected_address";
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
   const [addressOpen, setAddressOpen] = useState(false);
@@ -28,12 +32,27 @@ export default function SettingsPage() {
   const [createStoreOpen, setCreateStoreOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [cardsOpen, setCardsOpen] = useState(false);
+  const [riderStatus, setRiderStatus] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(LS_SELECTED_ADDRESS_KEY);
     if (saved) {
       setSelectedAddressId(saved);
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchRiderStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("rider_profiles")
+        .select("verification_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setRiderStatus(data?.verification_status || null);
+    };
+    fetchRiderStatus();
   }, []);
 
   const handleAddressChange = (address) => {
@@ -71,6 +90,19 @@ export default function SettingsPage() {
           icon: <LuTags className="text-orange-600" />,
           description: "Start selling food on the platform",
           onClick: () => setCreateStoreOpen(true),
+        },
+        {
+          label: "Become a Rider",
+          icon: <LuBike className="text-gray-600" />,
+          description:
+            riderStatus === null       ? "Deliver food and earn money" :
+            riderStatus === "pending"  ? "Application pending review" :
+            riderStatus === "approved" ? "Go to Rider Dashboard" :
+                                        "Application rejected — reapply",
+          onClick: () =>
+            riderStatus === null      ? navigate("/rider") :
+            riderStatus === "approved" ? navigate("/rider/dashboard") :
+                                        navigate("/rider/pending"),
         },
       ],
     },
@@ -112,7 +144,6 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Navbar />
 
       <main className="flex-1 overflow-auto">
         <section className="p-6 space-y-8">

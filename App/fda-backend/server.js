@@ -36,7 +36,7 @@ app.use('/api/orders', orderRoute);
 // payment route
 app.use('/api/payments', paymentRoute);
 //review routes
-app.use('api/reviews', reviewRoute)
+app.use('/api/reviews', reviewRoute)
 
 // rider routes
 app.use('/api/rider', riderRoute)
