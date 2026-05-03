@@ -5,9 +5,9 @@ create type user_role as enum ('customer', 'admin', 'rider', 'storeowner');
 
 create type order_status as enum ('pending', 'preparing', 'out_for_delivery', 'completed', 'cancelled' );
 
-create type payment_method as enum ('gcash', 'cash', 'card');
+create type payment_method as enum ('gcash', 'cod', 'card', 'wallet');
 
-create type payment_status as enum ('pending', 'paid', 'failed');
+create type payment_status as enum ('pending', 'paid', 'failed', 'refunded');
 
 create type delivery_status as enum ('pending', 'assigned', 'picked_up', 'delivered');
 
@@ -161,6 +161,20 @@ create table reviews (
   rating integer check (rating >= 1 and rating <= 5),
   comment text,
   created_at timestamp default now()
+);
+
+
+-- =========================
+-- WALLETS
+-- =========================
+create table saved_cards (
+  card_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  cardholder_name TEXT NOT NULL,
+  last_four TEXT NOT NULL,
+  expiry_month TEXT NOT NULL,
+  expiry_year TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 
