@@ -132,3 +132,126 @@ export const updateUserRole = async (supabase, user_id, role) => {
     if (error) throw error;
     return data;
 };
+
+export const getWalletBalance = async (supabase, user_id) => {
+    const { data, error } = await supabase
+        .from("user_profiles")
+        .select("wallet_balance")
+        .eq("user_id", user_id)
+        .single();
+
+    if (error) throw error;
+
+    return data.wallet_balance;
+};
+
+export const topUpWallet = async (supabase, user_id, amount) => {
+    if (!amount || amount <= 0) {
+        throw new Error("Amount must be greater than zero.");
+    }
+
+    const { data: profile, error: fetchError } = await supabase
+        .from("user_profiles")
+        .select("wallet_balance")
+        .eq("user_id", user_id)
+        .single();
+    if (fetchError) throw fetchError;
+
+    const { data, error } = await supabase
+        .from("user_profiles")
+        .update({ wallet_balance: Number(profile.wallet_balance) + Number(amount) })
+        .eq("user_id", user_id)
+        .select("wallet_balance")
+        .single();
+    if (error) throw error;
+
+    return data.wallet_balance;
+};
+
+export const deductFromWallet = async (supabase, user_id, amount) => {
+    if (!amount || amount <= 0) {
+        throw new Error("Amount must be greater than zero.");
+    }
+
+    const { data: profile, error: fetchError } = await supabase
+        .from("user_profiles")
+        .select("wallet_balance")
+        .eq("user_id", user_id)
+        .single();
+    if (fetchError) throw fetchError;
+
+    if (Number(profile.wallet_balance) < Number(amount)) {
+        throw new Error("Insufficient wallet balance.");
+    }
+
+    const { data, error } = await supabase
+        .from("user_profiles")
+        .update({ wallet_balance: Number(profile.wallet_balance) - Number(amount) })
+        .eq("user_id", user_id)
+        .select("wallet_balance")
+        .single();
+    if (error) throw error;
+
+    return data.wallet_balance;
+};
+
+export const getGcashNumber = async (supabase, user_id) => {
+    const { data, error } = await supabase
+    .from("user_profiles")
+    .select("gcash_number")
+    .eq("user_id", user_id)
+    .single();
+    if (error) throw error;
+    return data.gcash_number;
+};
+
+export const linkGcashNumber = async (supabase, user_id, gcash_number) => {
+    const { data, error } = await supabase
+    .from("user_profiles")
+    .update({ gcash_number })
+    .eq("user_id", user_id)
+    .select("gcash_number")
+    .single();
+    if (error) throw error;
+    return data.gcash_number;
+};
+
+export const unlinkGcashNumber = async (supabase, user_id) => {
+    const { data, error } = await supabase
+    .from("user_profiles")
+    .update({ gcash_number: null })
+    .eq("user_id", user_id)
+    .select("gcash_number")
+    .single();
+    if (error) throw error;
+};
+
+export const getSavedCards = async (supabase, user_id) => {
+    const { data, error } = await supabase
+        .from("saved_cards")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+};
+
+export const addSavedCard = async (supabase, user_id, { cardholder_name, card_number, expiry_month, expiry_year }) => {
+    const last_four = String(card_number).slice(-4);
+    const { data, error } = await supabase
+        .from("saved_cards")
+        .insert({ user_id, cardholder_name, last_four, expiry_month, expiry_year })
+        .select()
+        .single();
+    if (error) throw error;
+    return data;
+};
+
+export const deleteSavedCard = async (supabase, user_id, card_id) => {
+    const { error } = await supabase
+        .from("saved_cards")
+        .delete()
+        .eq("card_id", card_id)
+        .eq("user_id", user_id);
+    if (error) throw error;
+};

@@ -11,6 +11,8 @@ import SavedAddressModal from "./SavedAddressModal.jsx";
 import SearchFiltersModal from "./SearchFiltersModal.jsx";
 
 import { getPrimaryAddress } from "../../utils/addressApi.js";
+import { getWalletBalance } from "../../utils/walletApi.js";
+import { LuWallet } from "react-icons/lu";
 
 const LS_FAV_STORES_KEY = "favStores";
 const LS_FAV_DISHES_KEY = "favDishes";
@@ -36,7 +38,7 @@ function CustomerDashboard() {
   const [cartOpen, setCartOpen] = useState(false);
 
   const [address, setAddress] = useState(null);
-
+  const [walletBalance, setWalletBalance] = useState(null);
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,6 +74,12 @@ function CustomerDashboard() {
       console.error("Failed to load address:", err.message);
     }
   };
+
+  useEffect(() => {
+  getWalletBalance()
+    .then((data) => setWalletBalance(data))
+    .catch(() => {}); // fail silently on dashboard
+}, []);
 
   useEffect(() => {
     loadAddress();
@@ -164,7 +172,9 @@ const toggleStoreFavorite = (restaurantId) => {
         showAddressButton={true}
         addressLabel={address?.label?.trim() || "Set address"}
         onOpenAddress={() => setIsAddressListOpen(true)}
+        walletBalance={walletBalance}
       />
+
 
       {/* FILTER MODAL */}
       <SearchFiltersModal

@@ -1,4 +1,4 @@
-import { createUserProfile, getUserProfile, updateUserProfile, updateUserRole, setupUserService } from "./user.service.js";
+import { createUserProfile, getUserProfile, updateUserProfile, updateUserRole, setupUserService, getWalletBalance, topUpWallet, deductFromWallet, getGcashNumber, linkGcashNumber, unlinkGcashNumber, getSavedCards, addSavedCard, deleteSavedCard } from "./user.service.js";
 
 export const createProfile = async (req, res) => {
     try {
@@ -109,4 +109,107 @@ export const becomeStoreOwner = async (req, res) => {
     }
 };
 
+export const getWallet = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const data = await getWalletBalance(req.supabase, user_id);
+        return res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const addWalletFunds = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const { amount } = req.body;
+        if (!amount) return res.status(400).json({ error: 'amount is required' });
+        const data = await topUpWallet(req.supabase, user_id, amount);
+        return res.status(200).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+export const deductWalletFunds = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const { amount } = req.body;
+        if (!amount) return res.status(400).json({ error: 'amount is required' });
+        const data = await deductFromWallet(req.supabase, user_id, amount);
+        return res.status(200).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+
+export const getGcash = async(req, res) => {
+    try {
+        const user_id = req.user.id;
+        const data = await getGcashNumber(req.supabase, user_id);
+        return res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const linkGcash = async(req, res) => {
+    try {
+        const user_id = req.user.id;
+        const { gcash_number } = req.body;
+        if (!gcash_number) return res.status(400).json({ error: 'gcash_number is required' });
+        const data = await linkGcashNumber(req.supabase, user_id, gcash_number);
+        return res.status(200).json(data);
+    }
+    catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+export const unlinkGcash = async(req, res) => {
+    try {
+        const user_id = req.user.id;
+        const data = await unlinkGcashNumber(req.supabase, user_id);
+        return res.status(200).json(data);
+    }
+    catch(error){
+        res.status(400).json({ error: error.message });
+    }
+};
+
+export const getCard = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const data = await getSavedCards(req.supabase, user_id);
+        return res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const addCard = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const { cardholder_name, card_number, expiry_month, expiry_year } = req.body;
+        if (!cardholder_name || !card_number || !expiry_month || !expiry_year) {
+            return res.status(400).json({ error: "cardholder_name, card_number, expiry_month, and expiry_year are required" });
+        }
+        const data = await addSavedCard(req.supabase, user_id, { cardholder_name, card_number, expiry_month, expiry_year });
+        return res.status(201).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const deleteCard = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const { card_id } = req.params;
+        await deleteSavedCard(req.supabase, user_id, card_id);
+        return res.status(200).json({ message: "Card deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 

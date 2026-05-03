@@ -14,6 +14,8 @@ import {
 } from "react-icons/lu";
 import { useCart } from "../context/CartContext";
 import { getPrimaryAddress } from "../utils/addressApi.js";
+import { getWalletBalance, getGcashNumber } from "../utils/walletApi.js";
+import { getSavedCards } from "../utils/cardApi.js";
 import { supabase } from "../utils/supabase.js";
 
 const API_BASE = "http://localhost:3000/api";
@@ -51,6 +53,12 @@ const PAYMENT_OPTIONS = [
     title: "Card",
     subtitle: "Credit or debit card",
     icon: LuCreditCard,
+  },
+  {
+    id: "wallet",
+    title: "Wallet",
+    subtitle: "Pay using your Grubero wallet",
+    icon: LuWallet,
   },
 ];
 
@@ -109,11 +117,15 @@ export default function CheckoutPage() {
 
   const [deliveryType, setDeliveryType] = useState("regular");
   const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [gcashNumber, setGcashNumber] = useState(null);
   const [tip, setTip] = useState(0);
   const [address, setAddress] = useState(null);
   const [profile, setProfile] = useState(null);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderError, setOrderError] = useState("");
+  const [savedCards, setSavedCards] = useState([]);
+  const [mainCardId, setMainCardId] = useState(null);
 
   const selectedStore = useMemo(() => {
     if (!selectedStoreId) {
@@ -159,6 +171,26 @@ export default function CheckoutPage() {
         setAddress(currentAddress || null);
       } catch (err) {
         console.error("Failed to load checkout address:", err.message);
+      }
+
+      try {
+        const [walletData, gcashData] = await Promise.all([
+          getWalletBalance(),
+          getGcashNumber(),
+        ]);
+
+        setWalletBalance(walletData || null);
+        setGcashNumber(gcashData || null);
+      } catch (err) {
+        console.error("Failed to load wallet or GCash info:", err.message);
+      }
+
+      try {
+        const cardsData = await getSavedCards();
+        setSavedCards(cardsData || []);
+        setMainCardId(localStorage.getItem("grubero_main_card"));
+      } catch (err) {
+        console.error("Failed to load saved cards:", err.message);
       }
 
       try {
@@ -526,16 +558,18 @@ export default function CheckoutPage() {
                 {PAYMENT_OPTIONS.map((option) => {
                   const Icon = option.icon;
                   const active = paymentMethod === option.id;
+                  const isCardDisabled = option.id === "card" && savedCards.length === 0;
 
                   return (
                     <button
                       key={option.id}
                       type="button"
-                      onClick={() => setPaymentMethod(option.id)}
+                      onClick={() => !isCardDisabled && setPaymentMethod(option.id)}
+                      disabled={isCardDisabled}
                       className={`text-left rounded-2xl border p-4 transition ${
-                        active
-                          ? "border-red-500 bg-red-50"
-                          : "border-gray-200 bg-white hover:bg-gray-50"
+                        active ? "border-red-500 bg-red-50"
+                        : isCardDisabled ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                        : "border-gray-200 bg-white hover:bg-gray-50"   
                       }`}
                     >
                       <div className="flex items-center justify-between mb-4">
@@ -561,10 +595,55 @@ export default function CheckoutPage() {
                       <p className="text-sm text-gray-500 mt-1">
                         {option.subtitle}
                       </p>
+
+                      {isCardDisabled && (
+                        <p className="text-xs text-gray-400 mt-1">Add a card in Settings first</p>
+                      )}
                     </button>
                   );
                 })}
               </div>
+
+              {/* ← INSERT HERE */}
+              {paymentMethod === "wallet" && (
+                <div className="mt-3 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                  {walletBalance !== null ? (
+                    <>
+                      Available balance:{" "}
+                      <span className={`font-bold ${Number(walletBalance) < total ? "text-red-600" : "text-green-600"}`}>
+                        ₱{Number(walletBalance).toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+                      </span>
+                      {Number(walletBalance) < total && (
+                        <span className="block text-red-500 mt-1">Insufficient balance for this order.</span>
+                      )}
+                    </>
+                  ) : (
+                    "Loading balance..."
+                  )}
+                </div>
+              )}
+
+              {paymentMethod === "gcash" && (
+                <div className="mt-3 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                  {gcashNumber ? (
+                    <>Paying via GCash: <span className="font-bold">{gcashNumber}</span></>
+                  ) : (
+                    <span className="text-red-500">No GCash number linked. Go to Settings → Wallet &amp; Payments to link one.</span>
+                  )}
+                </div>
+              )}
+
+              {paymentMethod === "card" && (
+                <div className="mt-3 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                  {(() => {
+                    const main = savedCards.find(c => c.card_id === mainCardId) || savedCards[0];
+                    return main
+                      ? <>Paying with card ending in <span className="font-bold">•••• {main.last_four}</span> ({main.cardholder_name})</>
+                      : <span className="text-red-500">No card selected. Go to Settings → My Cards.</span>;
+                  })()}
+                </div>
+              )}
+
             </section>
 
             <section className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
