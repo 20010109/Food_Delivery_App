@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { IoHeart, IoHeartOutline } from "react-icons/io5";
-import { LuPhone, LuMinus, LuPlus, LuTrash2 } from "react-icons/lu";
+import { LuPhone, LuMinus, LuPlus, LuTrash2, LuStar } from "react-icons/lu";
 
 import Navbar from "./components/Navbar.jsx";
 import AddToCartModal from "./components/AddToCartModal.jsx";
 import "./styles/tailwind.css";
 
 import { useCart } from "../context/CartContext";
+import { supabase } from "../utils/supabase.js";
 
 const LS_FAV_STORES_KEY = "favStores";
 const LS_FAV_DISHES_KEY = "favDishes";
@@ -34,6 +35,7 @@ export default function StorePage() {
 
   const [store, setStore] = useState(null);
   const [menu, setMenu] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const { cart, addToCart, updateQty, removeItem } = useCart();
@@ -51,6 +53,10 @@ export default function StorePage() {
 
   const [isFavStore, setIsFavStore] = useState(false);
   const [, forceRerender] = useState(0);
+
+  const [userRating, setUserRating] = useState(0);
+  const [userComment, setUserComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,10 +80,31 @@ export default function StorePage() {
 
         const menuData = await menuRes.json();
         setMenu(menuData || []);
+
+        // Fetch reviews
+        try {
+          const reviewsRes = await fetch(
+            `http://localhost:3000/api/reviews/${storeId}`
+          );
+          if (reviewsRes.ok) {
+            const reviewsData = await reviewsRes.json();
+            console.log(reviewsData);
+            setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+          } else {
+            console.error("Reviews fetch failed with status:", reviewsRes.status);
+            const errorData = await reviewsRes.json().catch(() => ({}));
+            console.error("Reviews error:", errorData);
+            setReviews([]);
+          }
+        } catch (err) {
+          console.error("Failed to fetch reviews:", err.message);
+          setReviews([]);
+        }
       } catch (err) {
         console.error(err.message);
         setStore(null);
         setMenu([]);
+        setReviews([]);
       } finally {
         setLoading(false);
       }
@@ -137,6 +164,81 @@ export default function StorePage() {
     forceRerender((n) => n + 1);
   };
 
+  const submitReview = async (e) => {
+    e.preventDefault();
+    
+    if (!userRating || !userComment.trim()) {
+      alert("Please provide a rating and comment");
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      // Get auth token
+      const { data } = await supabase.auth.getSession();
+      const token = data?.session?.access_token;
+
+      if (!token) {
+        alert("Please log in to submit a review");
+        setSubmittingReview(false);
+        return;
+      }
+
+      const res = await fetch(
+        `http://localhost:3000/api/reviews/${storeId}`,
+        {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            rating: userRating,
+            comment: userComment,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to submit review");
+      }
+
+      const newReview = await res.json();
+      
+      // Add the new review to the list
+      setReviews([newReview, ...reviews]);
+      
+      // Reset form
+      setUserRating(0);
+      setUserComment("");
+      
+      alert("Review submitted successfully!");
+    } catch (err) {
+      console.error(err.message);
+      alert("Failed to submit review. " + err.message);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const renderStarRating = (rating) => {
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <LuStar
+            key={star}
+            size={16}
+            className={star <= Math.round(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+          />
+        ))}
+        <span className="text-sm font-semibold text-gray-700 ml-1">
+          {Number(rating).toFixed(1)}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
 
@@ -175,8 +277,9 @@ export default function StorePage() {
                   Price Range: {store.price_range || "Not specified"}
                 </span>
                 <span>•</span>
-                <span>Rating: ⭐ {store.rating || "Not specified"}</span>
-                <span>Reviews: {store.reviews || "Not specified"}</span>
+                <span className="flex items-center gap-1">
+                  {renderStarRating(store.rating || 0)}
+                </span>
                 <span>•</span>
                 <span>
                   Delivery Time: {store.delivery_time || "20-30 mins"}
@@ -360,6 +463,115 @@ export default function StorePage() {
             >
               Proceed to Checkout
             </button>
+          </div>
+        </div>
+
+        {/* REVIEWS SECTION */}
+        <div className="p-6 border-t border-gray-200">
+          <div className="grid grid-cols-12 gap-6">
+            {/* REVIEWS LIST */}
+            <div className="col-span-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Reviews ({reviews.length})
+              </h2>
+
+              {reviews.length === 0 ? (
+                <p className="text-gray-400 py-6">No reviews yet. Be the first to review!</p>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            {renderStarRating(review.rating)}
+                          </div>
+                          <p className="text-sm text-gray-500 mt-2">
+                            {review.user_profiles?.first_name || "Anonymous"} {review.user_profiles?.last_name || ""}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          {review.created_at ? new Date(review.created_at).toLocaleDateString() : ""}
+                        </p>
+                      </div>
+                      <p className="text-gray-700 mt-3 leading-relaxed">
+                        {review.comment}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* LEAVE REVIEW FORM */}
+            <div className="col-span-4 bg-white rounded-xl border border-gray-200 p-5 sticky top-6 h-fit shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Leave a Review
+              </h3>
+
+              <form onSubmit={submitReview} className="space-y-4">
+                {/* STAR RATING INPUT */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Rating *
+                  </label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setUserRating(star)}
+                        className="transition"
+                      >
+                        <LuStar
+                          size={32}
+                          className={
+                            star <= userRating
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300 hover:text-yellow-200"
+                          }
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  {userRating > 0 && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      {userRating} {userRating === 1 ? "star" : "stars"}
+                    </p>
+                  )}
+                </div>
+
+                {/* COMMENT INPUT */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Your Comment *
+                  </label>
+                  <textarea
+                    value={userComment}
+                    onChange={(e) => setUserComment(e.target.value)}
+                    placeholder="Share your experience with this restaurant..."
+                    rows="4"
+                    maxLength="500"
+                    className="w-full rounded-xl border border-gray-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    {userComment.length}/500 characters
+                  </p>
+                </div>
+
+                {/* SUBMIT BUTTON */}
+                <button
+                  type="submit"
+                  disabled={submittingReview || !userRating || !userComment.trim()}
+                  className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-semibold py-3 rounded-xl transition"
+                >
+                  {submittingReview ? "Submitting..." : "Submit Review"}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
 

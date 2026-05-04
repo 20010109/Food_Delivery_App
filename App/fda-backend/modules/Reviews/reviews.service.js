@@ -10,22 +10,51 @@ export const createUserReview = async (supabase, { user_id, restaurant_id, ratin
         .select()
         .single();
 
-    
     if (error) throw error;
-    return data;
+
+    // Fetch user profile separately and merge
+    const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("user_id, first_name, last_name, profile_image")
+        .eq("user_id", user_id)
+        .single();
+
+    return {
+        ...data,
+        user_profiles: profile || null,
+    };
 };
 
 
 // GET ALL REVIEWS FOR A RESTAURANT
 export const getRestaurantReviews = async (supabase, restaurant_id) => {
-    const { data, error } = await supabase
+    // Fetch all reviews
+    const { data: reviews, error } = await supabase
         .from(TABLE)
-        .select('*')
+        .select("*")
         .eq('restaurant_id', restaurant_id)
         .order('created_at', { ascending: false});
 
     if (error) throw error;
-    return data;
+
+    if (!reviews || reviews.length === 0) return [];
+
+    // Fetch all user profiles for these reviews
+    const userIds = [...new Set(reviews.map(r => r.user_id))];
+    
+    const { data: profiles } = await supabase
+        .from("user_profiles")
+        .select("user_id, first_name, last_name, profile_image")
+        .in("user_id", userIds);
+
+    // Create a map of user profiles
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+    // Merge reviews with user profiles
+    return reviews.map(review => ({
+        ...review,
+        user_profiles: profileMap.get(review.user_id) || null,
+    }));
 };
 
 // GET A SINGLE REVIEW BY ID

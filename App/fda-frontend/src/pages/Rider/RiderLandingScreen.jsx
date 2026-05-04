@@ -31,7 +31,7 @@ function RiderLandingScreen() {
         </button>
 
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
           className="text-sm text-gray-500"
         >
           Back to Home

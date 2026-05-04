@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoHeart, IoHeartOutline } from "react-icons/io5";
+import { LuStar } from "react-icons/lu";
 import "../styles/tailwind.css";
 
 import CategoryCarousel from "./CategoryCarousel.jsx";
@@ -29,6 +30,23 @@ function readLSArray(key) {
 
 function toKey(value) {
   return String(value ?? "");
+}
+
+function renderStarRating(rating) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <LuStar
+          key={star}
+          size={14}
+          className={star <= Math.round(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+        />
+      ))}
+      <span className="text-xs font-semibold text-gray-700 ml-1">
+        {Number(rating || 0).toFixed(1)}
+      </span>
+    </div>
+  );
 }
 
 function CustomerDashboard() {
@@ -250,12 +268,14 @@ const toggleStoreFavorite = (restaurantId) => {
                       {r.address_line || "No address available"}
                     </p>
 
-                    <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
-                      <span>⭐ {r.rating ?? 0}</span>
-                      <span>({r.review_count ?? 0})</span>
+                    <div className="mt-3 flex items-center gap-4">
+                      {renderStarRating(r.rating || 0)}
+                      <span className="text-xs text-gray-500">
+                        ({r.review_count || 0} reviews)
+                      </span>
                     </div>
 
-                    <div className="mt-1 text-sm text-gray-500">
+                    <div className="mt-2 text-xs text-gray-500">
                       {r.delivery_time || "20–30 min delivery"}
                     </div>
                   </div>
