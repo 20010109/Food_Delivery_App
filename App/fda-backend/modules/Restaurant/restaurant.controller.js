@@ -70,12 +70,7 @@ export const deleteRestaurant = async (req, res) => {
 
 export const getApprovedRestaurants = async (req, res) => {
   try {
-    const { data, error } = await supabase.rpc(
-      "get_restaurants_with_details"
-    );
-
-    if (error) throw error;
-
+    const data = await service.getApprovedRestaurants(req.supabase);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });

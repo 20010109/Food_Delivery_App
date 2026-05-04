@@ -2,6 +2,40 @@ import { supabase } from "../../config/supabase.js";
 
 const TABLE = "restaurants";
 
+// Helper function to calculate restaurant rating and review count
+const enrichRestaurantWithRating = async (restaurant) => {
+  try {
+    const { data: reviews, error } = await supabase
+      .from("reviews")
+      .select("rating")
+      .eq("restaurant_id", restaurant.restaurant_id);
+
+    if (error || !reviews || reviews.length === 0) {
+      return {
+        ...restaurant,
+        rating: 0,
+        review_count: 0,
+      };
+    }
+
+    const avgRating =
+      reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+
+    return {
+      ...restaurant,
+      rating: parseFloat(avgRating.toFixed(1)),
+      review_count: reviews.length,
+    };
+  } catch (err) {
+    console.error("Error enriching restaurant:", err);
+    return {
+      ...restaurant,
+      rating: 0,
+      review_count: 0,
+    };
+  }
+};
+
 // CREATE (you already fixed this)
 export const createRestaurant = async (supabase, userId, payload) => {
   const { data, error } = await supabase
@@ -67,7 +101,13 @@ export const getApprovedRestaurants = async () => {
     .eq("status", "approved");
 
   if (error) throw error;
-  return data;
+  
+  // Enrich with ratings and review counts
+  const enrichedRestaurants = await Promise.all(
+    data.map((restaurant) => enrichRestaurantWithRating(restaurant))
+  );
+
+  return enrichedRestaurants;
 };
 
 export const getRestaurantById = async (supabase, restaurantId) => {

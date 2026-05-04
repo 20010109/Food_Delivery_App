@@ -5,11 +5,13 @@ import {
     updateUserReview,
     deleteUserReview,
 } from './reviews.service.js';
+import { supabase } from "../../config/supabase.js";
 
 export const createReview = async (req ,res) => {
     try {
         const user_id = req.user.id;
-        const { restaurant_id, rating, comment } = req.body;
+        const { restaurant_id } = req.params;
+        const { rating, comment } = req.body;
 
         if (!restaurant_id || !rating){
             return res.status(400).json({ error: 'restaurant_id and rating are required..'});
@@ -25,7 +27,7 @@ export const createReview = async (req ,res) => {
 export const getReviewsByRestaurant = async (req, res) => {
     try{
         const { restaurant_id } = req.params;
-        const reviews = await getRestaurantReviews(req.supabase, restaurant_id);
+        const reviews = await getRestaurantReviews(supabase, restaurant_id);
         return res.status(200).json(reviews);
     } catch (error) {
         return res.status(500).json ({ error: error.message });

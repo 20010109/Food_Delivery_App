@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoHeart, IoHeartOutline } from "react-icons/io5";
+import { LuStar } from "react-icons/lu";
 import Navbar from "./components/Navbar.jsx";
 import CartDrawer from "./components/CartDrawer";
 import TopBar from "./components/TopBar.jsx";
@@ -24,6 +25,23 @@ function readLSArray(key) {
 
 function toKey(value) {
   return String(value ?? "");
+}
+
+function renderStarRating(rating) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <LuStar
+          key={star}
+          size={14}
+          className={star <= Math.round(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+        />
+      ))}
+      <span className="text-xs font-semibold text-gray-700 ml-1">
+        {Number(rating || 0).toFixed(1)}
+      </span>
+    </div>
+  );
 }
 
 export default function ExplorePage() {
@@ -288,15 +306,19 @@ export default function ExplorePage() {
                           {restaurant.cuisine} • {restaurant.price_range}
                         </p>
 
-                        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
-                          <span>⭐ {restaurant.rating}</span>
-                          <span>({restaurant.reviews})</span>
-                          <span>{restaurant.delivery_time}</span>
+                        <div className="mt-3 flex items-center gap-4">
+                          {renderStarRating(restaurant.rating || 0)}
+                          <span className="text-xs text-gray-500">
+                            ({restaurant.reviews || 0} reviews)
+                          </span>
                         </div>
 
-                        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
-                          <span>{restaurant.delivery_fee}</span>
-                          <span>{restaurant.distance}</span>
+                        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                          <span>{restaurant.delivery_time || "20-30 min"}</span>
+                          <span>•</span>
+                          <span>{restaurant.delivery_fee || "Free delivery"}</span>
+                          <span>•</span>
+                          <span>{restaurant.distance || "Nearby"}</span>
                         </div>
 
                         {restaurant.promo_tag && (
@@ -376,15 +398,18 @@ export default function ExplorePage() {
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
-                        <span>⭐ {item.rating}</span>
-                        <span>({item.reviews})</span>
-                        <span>{item.category}</span>
+                        {renderStarRating(item.rating || 0)}
+                        <span className="text-xs text-gray-500 ml-2">
+                          ({item.reviews || 0} reviews)
+                        </span>
                       </div>
 
-                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
-                        <span>₱{item.price}</span>
-                        <span>{item.prep_time}</span>
-                        <span>{item.restaurant.delivery_fee}</span>
+                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                        <span>{item.category || "Dish"}</span>
+                        <span>•</span>
+                        <span>₱{item.price || "0"}</span>
+                        <span>•</span>
+                        <span>{item.prep_time || "20-30 min"}</span>
                       </div>
                     </div>
                   </li>
