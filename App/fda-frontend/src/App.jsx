@@ -1,6 +1,11 @@
 import { Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 import Layout from "./pages/CustomerLayout.jsx";
+import SessionTimeoutWarning from "./components/SessionTimeoutWarning.jsx";
+import { startSessionManagement, clearSessionTimers, extendSession, logoutUser } from "./utils/sessionManager.js";
+import { supabase } from "./utils/supabase.js";
 
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
@@ -34,8 +39,59 @@ import OnboardingReview from "./pages/Rider/RiderOnboardingReview.jsx";
 import RiderPendingScreen from "./pages/Rider/RiderPendingScreen.jsx";
 
 function App() {
+  const [isSessionWarningOpen, setIsSessionWarningOpen] = useState(false);
+  const [warningType, setWarningType] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const checkAuth = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      
+      if (!error && data.user) {
+        // User is logged in, start session management
+        startSessionManagement(
+          (type) => {
+            setWarningType(type);
+            setIsSessionWarningOpen(true);
+          },
+          () => {
+            navigate("/login");
+          }
+        );
+      }
+    };
+
+    checkAuth();
+
+    // Cleanup on unmount
+    return () => {
+      clearSessionTimers();
+    };
+  }, [navigate]);
+
+  const handleExtendSession = () => {
+    setIsSessionWarningOpen(false);
+    extendSession(
+      (type) => {
+        setWarningType(type);
+        setIsSessionWarningOpen(true);
+      },
+      () => {
+        navigate("/login");
+      }
+    );
+  };
+
+  const handleLogout = async () => {
+    setIsSessionWarningOpen(false);
+    await logoutUser();
+    navigate("/login");
+  };
+
   return (
-    <Routes>
+    <>
+      <Routes>
 
       {/* Public */}
       <Route path="/" element={<LandingPage />} />
@@ -85,6 +141,14 @@ function App() {
       </Route>
 
     </Routes>
+
+    <SessionTimeoutWarning
+      isOpen={isSessionWarningOpen}
+      timeoutType={warningType}
+      onExtend={handleExtendSession}
+      onLogout={handleLogout}
+    />
+    </>
   );
 }
 
