@@ -13,12 +13,14 @@ import {
 } from "react-icons/lu";
 import { supabase } from "../utils/supabase.js";
 import DefaultProfile from "../assets/Stock_User.jpg";
+import EditProfileModal from "./EditProfileModal.jsx";
 import "./styles/tailwind.css";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [addresses, setAddresses] = useState([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,6 +89,14 @@ const Profile = () => {
     } else {
       navigate("/home");
     }
+  };
+
+  const handleEditSave = async () => {
+    // Refresh the entire page to update navbar and all components
+    setIsEditModalOpen(false);
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   const getRoleLabel = (role) => {
@@ -167,7 +177,7 @@ const Profile = () => {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => alert("Edit profile coming soon")}
+                  onClick={() => setIsEditModalOpen(true)}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-gray-900 px-5 py-3 font-semibold hover:bg-gray-100 transition"
                 >
                   <LuPencil />
@@ -325,6 +335,14 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {isEditModalOpen && (
+        <EditProfileModal
+          user={user}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleEditSave}
+        />
+      )}
     </div>
   );
 };
