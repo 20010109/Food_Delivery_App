@@ -1,7 +1,7 @@
 import { supabase } from "./supabase.js";
 
-const SESSION_TIMEOUT = 1 * 60 * 1000; // 1 minute in milliseconds (for testing)
-const WARNING_TIME = 60 * 1000; // Warn 1 minute before logout
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+const WARNING_TIME = 1 * 60 * 1000; // Warn 1 minute before logout
 
 let inactivityTimer = null;
 let fixedTimer = null;
