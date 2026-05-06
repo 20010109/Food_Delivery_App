@@ -147,7 +147,8 @@ create table deliveries (
   order_id uuid unique references orders(order_id) on delete cascade,
   user_id uuid references auth.users(id), -- rider
   status delivery_status,
-  delivery_time timestamp
+  delivery_time timestamp,
+  created_at timestamp default now()
 );
 
 

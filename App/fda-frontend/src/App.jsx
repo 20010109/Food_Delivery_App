@@ -29,6 +29,10 @@ import AdminRestaurantsPage from "./pages/Admin/AdminRestaurantsPage.jsx";
 import AdminUsersPage from "./pages/Admin/AdminUsersPage.jsx";
 import AdminAnalyticsPage from "./pages/Admin/AdminAnalyticsPage.jsx";
 import AdminRidersPage from "./pages/Admin/AdminRidersPage.jsx";
+import AdminOrdersPage from "./pages/Admin/AdminOrdersPage.jsx";
+import AdminPaymentsPage from "./pages/Admin/AdminPaymentsPage.jsx";
+import AdminDeliveriesPage from "./pages/Admin/AdminDeliveriesPage.jsx";
+import AdminReviewsPage from "./pages/Admin/AdminReviewsPage.jsx";
 
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 
@@ -110,6 +114,10 @@ function App() {
           <Route path="/admin/riders" element={<AdminRidersPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+          <Route path="/admin/orders" element={<AdminOrdersPage />} />
+          <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+          <Route path="/admin/deliveries" element={<AdminDeliveriesPage />} />
+          <Route path="/admin/reviews" element={<AdminReviewsPage />} />
         </Route>
 
         {/* Customer routes — persistent Navbar via Layout */}
