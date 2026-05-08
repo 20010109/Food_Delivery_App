@@ -10,6 +10,8 @@ import { supabase } from "./utils/supabase.js";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
+import AuthCallback from "./pages/Auth/Callback.jsx";
 import StorePage from "./pages/StorePage.jsx";
 import ProfilePage from "./pages/Profile.jsx";
 import UserSetup from "./pages/UserSetup.jsx";
@@ -101,6 +103,8 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/banned" element={<BannedPage />} />
       <Route path="/usersetup" element={<UserSetup />} />
 

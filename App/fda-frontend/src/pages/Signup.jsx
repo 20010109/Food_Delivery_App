@@ -5,6 +5,7 @@ import slide1 from "../assets/slide1.jpg";
 import slide2 from "../assets/slide2.jpg";
 import slide3 from "../assets/slide3.jpg";
 
+const DEV_BYPASS_OTP = true;
 
 function SignupPage() {
   const OTP_LENGTH = 8;
@@ -24,7 +25,6 @@ function SignupPage() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const DEV_BYPASS_OTP = true;
 
   const areaCodes = [
     { code: "+1",   label: "+1 (US/CA)" },

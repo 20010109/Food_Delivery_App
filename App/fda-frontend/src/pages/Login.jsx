@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../utils/supabase.js";
 import { useNavigate } from "react-router-dom";
+import { handlePostLogin } from "../utils/postLoginHandler.js";
 import slide1 from "../assets/slide1.jpg";
 import slide2 from "../assets/slide2.jpg";
 import slide3 from "../assets/slide3.jpg";
+
+// ⚠️ TESTING FLAG - Set to TRUE to bypass forgot password email
+const FORGOT_PASSWORD_BYPASS = true;
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -65,39 +69,8 @@ export default function Login() {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (profileError || !profile) {
-        navigate("/usersetup");
-        return;
-      }
-
-      // 🚫 ADD THIS BAN CHECK
-      if (profile.is_active === false) {
-        await supabase.auth.signOut();
-        navigate("/banned");
-        return;
-      }
-
-      switch (profile.role) {
-        case "admin":
-          navigate("/admin");
-          break;
-        case "storeowner":
-          navigate("/home");
-          break;
-        case "rider":
-          navigate("/rider/dashboard");
-          break;
-        case "customer":
-        default:
-          navigate("/home");
-          break;
-      }
+      // Use shared post-login handler
+      await handlePostLogin(user, navigate);
     } catch (err) {
       console.error(err);
       alert("Something went wrong during login.");
@@ -154,15 +127,25 @@ export default function Login() {
     setResetError("");
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        // Supabase will append ?type=recovery&token=... to this URL
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) {
-        setResetError(error.message);
-      } else {
+      if (FORGOT_PASSWORD_BYPASS) {
+        // Testing mode: bypass email and navigate directly to reset password
+        sessionStorage.setItem("testingMode_email", resetEmail);
         setResetSent(true);
+        setTimeout(() => {
+          closeForgotModal();
+          navigate("/reset-password");
+        }, 1500);
+      } else {
+        // Production mode: send actual reset email
+        const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+
+        if (error) {
+          setResetError(error.message);
+        } else {
+          setResetSent(true);
+        }
       }
     } catch (err) {
       console.error(err);
