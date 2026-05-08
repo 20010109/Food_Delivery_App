@@ -43,6 +43,7 @@ import RiderLandingScreen from "./pages/Rider/RiderLandingScreen.jsx";
 import RiderOnboarding from "./pages/Rider/RiderOnboarding.jsx";
 import OnboardingReview from "./pages/Rider/RiderOnboardingReview.jsx";
 import RiderPendingScreen from "./pages/Rider/RiderPendingScreen.jsx";
+import RiderProfile from "./pages/Rider/RiderProfile.jsx";
 
 function App() {
   const [isSessionWarningOpen, setIsSessionWarningOpen] = useState(false);
@@ -148,6 +149,7 @@ function App() {
         <Route path="/rider/pending" element={<RiderPendingScreen />} />
         <Route element={<ProtectedRoute allowedRoles={["rider"]} />}>
           <Route path="/rider/dashboard" element={<RiderDashboard />} />
+          <Route path="/rider/profile/:id" element={<RiderProfile />} />
         </Route>
 
       </Route>

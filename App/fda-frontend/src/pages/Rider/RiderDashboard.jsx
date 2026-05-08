@@ -419,7 +419,7 @@ export default function RiderDashboard() {
       {/* BOTTOM NAV */}
       <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-100 px-6 py-3 flex justify-around">
         <button
-          onClick={() => navigate(`/profile/${riderProfile?.user_id}`)}
+          onClick={() => navigate(`/rider/profile/${riderProfile?.user_id}`)}
           className="flex flex-col items-center gap-1 text-gray-400"
         >
           <span className="text-lg">👤</span>

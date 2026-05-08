@@ -33,6 +33,7 @@ export default function SettingsPage() {
   const [walletOpen, setWalletOpen] = useState(false);
   const [cardsOpen, setCardsOpen] = useState(false);
   const [riderStatus, setRiderStatus] = useState(null);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(LS_SELECTED_ADDRESS_KEY);
@@ -42,17 +43,31 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    const fetchRiderStatus = async () => {
+    const fetchUserRoleAndStatus = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase
+
+      // Fetch user's current role
+      const { data: profileData } = await supabase
+        .from("user_profiles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profileData) {
+        setUserRole(profileData.role);
+      }
+
+      // Fetch rider status if applicable
+      const { data: riderData } = await supabase
         .from("rider_profiles")
         .select("verification_status")
         .eq("user_id", user.id)
         .maybeSingle();
-      setRiderStatus(data?.verification_status || null);
+
+      setRiderStatus(riderData?.verification_status || null);
     };
-    fetchRiderStatus();
+    fetchUserRoleAndStatus();
   }, []);
 
   const handleAddressChange = (address) => {
@@ -66,81 +81,107 @@ export default function SettingsPage() {
     setAddressOpen(false);
   };
 
-  const settingsGroups = [
-    {
-      title: "General",
-      items: [
-        {
-          label: "Saved Addresses",
-          icon: <LuMapPinned className="text-gray-600" />,
-          description:
-            selectedAddressId
-              ? "Tap to change saved address"
-              : "Manage your saved addresses",
-          onClick: () => setAddressOpen(true),
-        },
-        {
-          label: "Marketing Preferences",
-          icon: <LuBadgePercent className="text-gray-600" />,
-          description: "Email updates, promos, and notifications",
-          onClick: () => setMarketingOpen(true),
-        },
-        {
-          label: "Become a Store Owner",
-          icon: <LuTags className="text-orange-600" />,
-          description: "Start selling food on the platform",
-          onClick: () => setCreateStoreOpen(true),
-        },
-        {
-          label: "Become a Rider",
-          icon: <LuBike className="text-gray-600" />,
-          description:
-            riderStatus === null       ? "Deliver food and earn money" :
-            riderStatus === "pending"  ? "Application pending review" :
-            riderStatus === "approved" ? "Go to Rider Dashboard" :
-                                        "Application rejected — reapply",
-          onClick: () =>
-            riderStatus === null      ? navigate("/rider") :
-            riderStatus === "approved" ? navigate("/rider/dashboard") :
-                                        navigate("/rider/pending"),
-        },
-      ],
-    },
-    {
-      title: "Payments",
-      items: [
-        {
-          label: "Payment Methods",
-          icon: <LuCreditCard className="text-gray-600" />,
-          description: "Manage your payment options",
-          onClick: () => setWalletOpen(true),
-        },
-        {
-          label: "My Cards",
-          icon: <LuWallet className="text-gray-600" />,
-          description: "View saved cards",
-          onClick: () => setCardsOpen(true),
-        },
-      ],
-    },
-    {
-      title: "Other",
-      items: [
-        {
-          label: "Support",
-          icon: <LuLifeBuoy className="text-gray-600" />,
-          description: "Get help and contact support",
-          onClick: () => alert("Support page not connected yet"),
-        },
-        {
-          label: "Discounts",
-          icon: <LuTags className="text-gray-600" />,
-          description: "View your available deals",
-          onClick: () => alert("Discounts page not connected yet"),
-        },
-      ],
-    },
-  ];
+  // Handle "Become a Store Owner" click
+  const handleStoreOwnerClick = () => {
+    if (userRole && userRole !== "customer") {
+      alert("You already have the " + userRole + " assigned. Users can only have one role at a time.");
+      return;
+    }
+    setCreateStoreOpen(true);
+  };
+
+  // Handle "Become a Rider" click
+  const handleRiderClick = () => {
+    if (userRole && userRole !== "customer") {
+      alert("You already have the " + userRole + " assigned. Users can only have one role at a time.");
+      return;
+    }
+    if (riderStatus === null) {
+      navigate("/rider");
+    } else if (riderStatus === "approved") {
+      navigate("/rider/dashboard");
+    } else {
+      navigate("/rider/pending");
+    }
+  };
+
+  // Build settings groups dynamically based on user role
+  const buildSettingsGroups = () => {
+    return [
+      {
+        title: "General",
+        items: [
+          {
+            label: "Saved Addresses",
+            icon: <LuMapPinned className="text-gray-600" />,
+            description:
+              selectedAddressId
+                ? "Tap to change saved address"
+                : "Manage your saved addresses",
+            onClick: () => setAddressOpen(true),
+          },
+          {
+            label: "Marketing Preferences",
+            icon: <LuBadgePercent className="text-gray-600" />,
+            description: "Email updates, promos, and notifications",
+            onClick: () => setMarketingOpen(true),
+          },
+          {
+            label: "Become a Store Owner",
+            icon: <LuTags className="text-orange-600" />,
+            description: "Start selling food on the platform",
+            onClick: handleStoreOwnerClick,
+          },
+          {
+            label: "Become a Rider",
+            icon: <LuBike className="text-gray-600" />,
+            description:
+              riderStatus === null       ? "Deliver food and earn money" :
+              riderStatus === "pending"  ? "Application pending review" :
+              riderStatus === "approved" ? "Go to Rider Dashboard" :
+                                          "Application rejected — reapply",
+            onClick: handleRiderClick,
+          },
+        ],
+      },
+      {
+        title: "Payments",
+        items: [
+          {
+            label: "Payment Methods",
+            icon: <LuCreditCard className="text-gray-600" />,
+            description: "Manage your payment options",
+            onClick: () => setWalletOpen(true),
+          },
+          {
+            label: "My Cards",
+            icon: <LuWallet className="text-gray-600" />,
+            description: "View saved cards",
+            onClick: () => setCardsOpen(true),
+          },
+        ],
+      },
+      {
+        title: "Other",
+        items: [
+          {
+            label: "Support",
+            icon: <LuLifeBuoy className="text-gray-600" />,
+            description: "Get help and contact support",
+            onClick: () => alert("Support page not connected yet"),
+          },
+          {
+            label: "Discounts",
+            icon: <LuTags className="text-gray-600" />,
+            description: "View your available deals",
+            onClick: () => alert("Discounts page not connected yet"),
+          },
+        ],
+      },
+    ];
+  };
+
+  const settingsGroups = buildSettingsGroups();
 
   return (
     <div className="flex h-screen bg-gray-50">
