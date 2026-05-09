@@ -24,7 +24,7 @@ export const MOCK_CONVERSATIONS = [
             {
                 id: "m-2",
                 sender: "customer",
-                text: "Pabilin lang kos gawas nigga, salamat!",
+                text: "Pabilin lang kos gawas, salamat!",
                 timestamp: "10:15 AM",
             },
             {

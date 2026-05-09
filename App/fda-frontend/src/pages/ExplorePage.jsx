@@ -254,12 +254,13 @@ export default function ExplorePage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">
-                Restaurants Nearby
+                {/* Restaurants Nearby */}
+                Restaurants
               </h2>
 
-              <button className="text-sm text-gray-500 hover:text-gray-700">
+              {/* <button className="text-sm text-gray-500 hover:text-gray-700">
                 20 km ▾
-              </button>
+              </button> */}
             </div>
 
             <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -303,7 +304,7 @@ export default function ExplorePage() {
                         </h3>
 
                         <p className="text-sm text-gray-500 mt-1">
-                          {restaurant.cuisine} • {restaurant.price_range}
+                          {restaurant.address_line}
                         </p>
 
                         <div className="mt-3 flex items-center gap-4">
@@ -313,13 +314,13 @@ export default function ExplorePage() {
                           </span>
                         </div>
 
-                        <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                        {/* <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
                           <span>{restaurant.delivery_time || "20-30 min"}</span>
                           <span>•</span>
                           <span>{restaurant.delivery_fee || "Free delivery"}</span>
                           <span>•</span>
                           <span>{restaurant.distance || "Nearby"}</span>
-                        </div>
+                        </div> */}
 
                         {restaurant.promo_tag && (
                           <div className="mt-3">
