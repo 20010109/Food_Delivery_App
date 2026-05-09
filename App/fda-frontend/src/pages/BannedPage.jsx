@@ -148,7 +148,6 @@ function BannedPage() {
           <li>🛵 Try to teleport your rider manually</li>
           <li>😈 Excessive clicking (we saw everything)</li>
           <li>🍔 Asking for “extra cheese… emotionally”</li>
-          <li>🫃🏻 Being fat in general...</li>
         </ul>
 
         <button

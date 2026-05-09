@@ -229,7 +229,8 @@ export default function Login() {
             {/* SOCIAL BUTTONS */}
             <div className="flex gap-2">
               <button
-                onClick={() => handleOAuth("google")}
+                // onClick={() => handleOAuth("google")}
+                onClick={() => alert("Google login not implemented yet.")}
                 disabled={oauthLoading !== null}
                 className="flex-1 py-2 rounded-full bg-white shadow text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
@@ -237,7 +238,8 @@ export default function Login() {
               </button>
 
               <button
-                onClick={() => handleOAuth("facebook")}
+                // onClick={() => handleOAuth("facebook")}
+                onClick={() => alert("Facebook login not implemented yet.")}
                 disabled={oauthLoading !== null}
                 className="flex-1 py-2 rounded-full bg-white shadow text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
@@ -245,7 +247,8 @@ export default function Login() {
               </button>
 
               <button
-                onClick={() => handleOAuth("apple")}
+                // onClick={() => handleOAuth("apple")}
+                onClick={() => alert("Apple login not implemented yet.")}
                 disabled={oauthLoading !== null}
                 className="flex-1 py-2 rounded-full bg-white shadow text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >

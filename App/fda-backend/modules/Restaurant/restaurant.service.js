@@ -102,9 +102,37 @@ export const getApprovedRestaurants = async () => {
 
   if (error) throw error;
   
-  // Enrich with ratings and review counts
+  // Enrich with ratings, review counts, and formatted address
   const enrichedRestaurants = await Promise.all(
-    data.map((restaurant) => enrichRestaurantWithRating(restaurant))
+    data.map(async (restaurant) => {
+      const enriched = await enrichRestaurantWithRating(restaurant);
+      
+      // Fetch address separately if address_id exists
+      if (enriched.address_id) {
+        try {
+          const { data: addressData } = await supabase
+            .from("addresses")
+            .select("house_no, street, barangay, city, province, postal_code")
+            .eq("address_id", enriched.address_id)
+            .single();
+
+          if (addressData) {
+            enriched.address_line = `${addressData.house_no || ""} ${addressData.street || ""}, ${addressData.city || ""}`.trim();
+          } else {
+            enriched.address_line = null;
+          }
+        } catch (err) {
+          console.error("Error fetching address for restaurant:", enriched.restaurant_id, err);
+          enriched.address_line = null;
+        }
+      } else {
+        enriched.address_line = null;
+      }
+
+      //console.log(enriched);
+
+      return enriched;
+    })
   );
 
   return enrichedRestaurants;

@@ -275,9 +275,9 @@ const toggleStoreFavorite = (restaurantId) => {
                       </span>
                     </div>
 
-                    <div className="mt-2 text-xs text-gray-500">
+                    {/* <div className="mt-2 text-xs text-gray-500">
                       {r.delivery_time || "20–30 min delivery"}
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </li>
