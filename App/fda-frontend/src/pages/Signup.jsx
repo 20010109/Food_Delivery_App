@@ -23,6 +23,7 @@ function SignupPage() {
   const [areaCode, setAreaCode] = useState("+63");
   const [isLoading, setIsLoading] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [formError, setFormError] = useState("");
   const dropdownRef = useRef(null);
 
 
@@ -106,7 +107,7 @@ function SignupPage() {
     setIsLoading(true);
   
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -116,6 +117,12 @@ function SignupPage() {
   
       if (error) {
         alert(error.message);
+        return;
+      }
+
+      // Supabase returns an empty identities array for already-registered emails
+      if (data?.user?.identities?.length === 0) {
+        setFormError("An account with this email already exists. Please log in instead.");
         return;
       }
   
@@ -243,10 +250,13 @@ function SignupPage() {
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setFormError(""); }}
                 required
                 className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
+                {formError && (
+                  <p className="text-sm text-red-500 text-center -mt-2">{formError}</p>
+                )}
               <input
                 type="password"
                 placeholder="Password"

@@ -118,6 +118,7 @@ export default function CheckoutPage() {
   const [deliveryType, setDeliveryType] = useState("regular");
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [walletBalance, setWalletBalance] = useState(null);
+  const [walletLoaded, setWalletLoaded] = useState(false);
   const [gcashNumber, setGcashNumber] = useState(null);
   const [tip, setTip] = useState(0);
   const [address, setAddress] = useState(null);
@@ -164,57 +165,56 @@ export default function CheckoutPage() {
   const deliveryFee = selectedDelivery?.fee || 0;
   const total = subtotal + deliveryFee + Number(tip || 0);
 
-  useEffect(() => {
-    const loadCheckoutInfo = async () => {
-      try {
-        const currentAddress = await getPrimaryAddress();
-        setAddress(currentAddress || null);
-      } catch (err) {
-        console.error("Failed to load checkout address:", err.message);
-      }
+ useEffect(() => {
+  const loadCheckoutInfo = async () => {
+    const [addressResult, walletResult, cardsResult, profileResult] =
+      await Promise.allSettled([
+        getPrimaryAddress(),
+        Promise.all([getWalletBalance(), getGcashNumber()]),
+        getSavedCards(),
+        (async () => {
+          const { data } = await supabase.auth.getUser();
+          if (!data?.user) return null;
+          const { data: profileData } = await supabase
+            .from("user_profiles")
+            .select("*")
+            .eq("user_id", data.user.id)
+            .maybeSingle();
+          return { email: data.user.email, ...(profileData || {}) };
+        })(),
+      ]);
 
-      try {
-        const [walletData, gcashData] = await Promise.all([
-          getWalletBalance(),
-          getGcashNumber(),
-        ]);
+    if (addressResult.status === "fulfilled") {
+      setAddress(addressResult.value || null);
+    } else {
+      console.error("Failed to load checkout address:", addressResult.reason?.message);
+    }
 
-        setWalletBalance(walletData || null);
-        setGcashNumber(gcashData || null);
-      } catch (err) {
-        console.error("Failed to load wallet or GCash info:", err.message);
-      }
+    if (walletResult.status === "fulfilled") {
+      const [walletData, gcashData] = walletResult.value;
+      setWalletBalance(walletData ?? 0);
+      setGcashNumber(gcashData ?? null);
+    } else {
+      console.error("Failed to load wallet or GCash info:", walletResult.reason?.message);
+    }
+    setWalletLoaded(true);
 
-      try {
-        const cardsData = await getSavedCards();
-        setSavedCards(cardsData || []);
-        setMainCardId(localStorage.getItem("grubero_main_card"));
-      } catch (err) {
-        console.error("Failed to load saved cards:", err.message);
-      }
+    if (cardsResult.status === "fulfilled") {
+      setSavedCards(cardsResult.value || []);
+      setMainCardId(localStorage.getItem("grubero_main_card"));
+    } else {
+      console.error("Failed to load saved cards:", cardsResult.reason?.message);
+    }
 
-      try {
-        const { data } = await supabase.auth.getUser();
+    if (profileResult.status === "fulfilled" && profileResult.value) {
+      setProfile(profileResult.value);
+    } else if (profileResult.status === "rejected") {
+      console.error("Failed to load profile:", profileResult.reason?.message);
+    }
+  };
 
-        if (!data?.user) return;
-
-        const { data: profileData } = await supabase
-          .from("user_profiles")
-          .select("*")
-          .eq("user_id", data.user.id)
-          .maybeSingle();
-
-        setProfile({
-          email: data.user.email,
-          ...(profileData || {}),
-        });
-      } catch (err) {
-        console.error("Failed to load profile:", err.message);
-      }
-    };
-
-    loadCheckoutInfo();
-  }, []);
+  loadCheckoutInfo();
+}, []);
 
   const handlePlaceOrder = async () => {
     if (!selectedStore || items.length === 0) return;
@@ -607,7 +607,7 @@ export default function CheckoutPage() {
               {/* ← INSERT HERE */}
               {paymentMethod === "wallet" && (
                 <div className="mt-3 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-700">
-                  {walletBalance !== null ? (
+                  {walletLoaded ? (
                     <>
                       Available balance:{" "}
                       <span className={`font-bold ${Number(walletBalance) < total ? "text-red-600" : "text-green-600"}`}>

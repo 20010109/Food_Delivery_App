@@ -33,6 +33,25 @@ function UserSetup() {
   ];
 
   useEffect(() => {
+    const checkAlreadySetup = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("first_name")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (profile?.first_name) {
+        navigate("/home", { replace: true });
+      }
+    };
+
+    checkAlreadySetup();
+  }, []);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
@@ -84,7 +103,7 @@ function UserSetup() {
         throw new Error(data?.error || "Setup failed");
       }
   
-      navigate("/home");
+      navigate("/home", { replace: true });
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -147,12 +166,16 @@ function UserSetup() {
                 </select>
 
                 <input
-                  required
-                  placeholder="Contact Number"
-                  value={contactNumber}
-                  onChange={(e) => setContactNumber(e.target.value)}
-                  className="border rounded-xl px-4 py-3 w-full"
-                />
+                required
+                placeholder="Contact Number"
+                value={contactNumber}
+                onChange={(e) => setContactNumber(e.target.value.replace(/\D/g, ""))}
+                minLength={7}
+                maxLength={12}
+                pattern="[0-9]{7,12}"
+                title="Enter a valid contact number (7–12 digits)"
+                className="border rounded-xl px-4 py-3 w-full"
+              />
               </div>
             </div>
 
@@ -163,27 +186,27 @@ function UserSetup() {
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input placeholder="House No." value={houseNo}
+                <input required placeholder="House No." value={houseNo}
                   onChange={(e) => setHouseNo(e.target.value)}
                   className="border rounded-xl px-4 py-3" />
 
-                <input placeholder="Street" value={street}
+                <input required placeholder="Street" value={street}
                   onChange={(e) => setStreet(e.target.value)}
                   className="border rounded-xl px-4 py-3" />
 
-                <input placeholder="Barangay" value={barangay}
+                <input required placeholder="Barangay" value={barangay}
                   onChange={(e) => setBarangay(e.target.value)}
                   className="border rounded-xl px-4 py-3" />
 
-                <input placeholder="City" value={city}
+                <input required placeholder="City" value={city}
                   onChange={(e) => setCity(e.target.value)}
                   className="border rounded-xl px-4 py-3" />
 
-                <input placeholder="Province" value={province}
+                <input required placeholder="Province" value={province}
                   onChange={(e) => setProvince(e.target.value)}
                   className="border rounded-xl px-4 py-3" />
 
-                <input placeholder="Postal Code" value={postcode}
+                <input required placeholder="Postal Code" value={postcode}
                   onChange={(e) => setPostcode(e.target.value)}
                   className="border rounded-xl px-4 py-3" />
               </div>
