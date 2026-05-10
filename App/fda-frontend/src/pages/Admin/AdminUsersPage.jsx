@@ -48,88 +48,157 @@ function AdminUsersPage() {
 
   const roleColor = (role) => {
     const map = {
-      admin: "bg-purple-100 text-purple-700",
-      storeowner: "bg-blue-100 text-blue-700",
-      rider: "bg-yellow-100 text-yellow-700",
-      customer: "bg-green-100 text-green-700",
+      admin: "bg-purple-100 text-purple-700 ring-1 ring-purple-100",
+      storeowner: "bg-blue-100 text-blue-700 ring-1 ring-blue-100",
+      rider: "bg-yellow-100 text-yellow-700 ring-1 ring-yellow-100",
+      customer: "bg-green-100 text-green-700 ring-1 ring-green-100",
     };
-    return map[role] || "bg-gray-100 text-gray-600";
+    return map[role] || "bg-gray-100 text-gray-600 ring-1 ring-gray-200";
   };
 
+  const statusColor = (isActive) =>
+    isActive ? "bg-green-50 text-green-700 ring-1 ring-green-100" : "bg-red-50 text-red-600 ring-1 ring-red-100";
+
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-[#f7f7fb]">
       <AdminSidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AdminNavbar pageTitle="User Management"/>
+        <AdminNavbar pageTitle="User Management" />
 
         <main className="p-6 overflow-auto">
-          <h1 className="text-2xl font-bold mb-1">User Management</h1>
-          <p className="text-gray-500 text-sm mb-6">Manage all registered users</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+                <p className="text-sm text-gray-400 mt-1">
+                  Manage all registered users and their access levels
+                </p>
+              </div>
 
-          {/* Search */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search by name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border border-gray-300 rounded-lg px-4 py-2 w-72 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 w-full sm:w-80">
+                  <label className="block text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-1">
+                    Search
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full bg-transparent outline-none text-sm text-gray-700 placeholder:text-gray-400"
+                  />
+                </div>
+
+                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 min-w-[120px]">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                    Total Users
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Table */}
-          <div className="bg-white rounded-2xl shadow overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-400 text-left">
-                <tr>
-                  <th className="p-4">Name</th>
-                  <th className="p-4">Contact</th>
-                  <th className="p-4">Role</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((u) => (
-                  <tr key={u.user_id} className="border-t hover:bg-gray-50 transition">
-                    <td className="p-4 font-medium">
-                      {u.first_name} {u.last_name}
-                    </td>
-                    <td className="p-4 text-gray-500">{u.contact_number}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${roleColor(u.role)}`}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${u.is_active ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"}`}>
-                        {u.is_active ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="p-4 space-x-2">
-                      <select
-                        value={u.role}
-                        onChange={(e) => updateRole(u.user_id, e.target.value)}
-                        className="border border-gray-300 rounded-lg px-2 py-1 text-xs focus:outline-none"
-                      >
-                        <option value="customer">Customer</option>
-                        <option value="storeowner">Storeowner</option>
-                        <option value="rider">Rider</option>
-                        <option value="admin">Admin</option>
-                      </select>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Registered Users</h2>
+                <p className="text-sm text-gray-400">
+                  {filtered.length} user{filtered.length === 1 ? "" : "s"} shown
+                </p>
+              </div>
+            </div>
 
-                      <button
-                        onClick={() => toggleActive(u.user_id, u.is_active)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold text-white ${u.is_active ? "bg-red-400 hover:bg-red-500" : "bg-green-400 hover:bg-green-500"}`}
-                      >
-                        {u.is_active ? "Deactivate" : "Activate"}
-                      </button>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50/80">
+                  <tr className="text-left text-gray-400 uppercase tracking-wide text-[11px]">
+                    <th className="px-6 py-3 font-medium">Name</th>
+                    <th className="px-6 py-3 font-medium">Contact</th>
+                    <th className="px-6 py-3 font-medium">Role</th>
+                    <th className="px-6 py-3 font-medium">Status</th>
+                    <th className="px-6 py-3 font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+
+                <tbody className="divide-y divide-gray-100">
+                  {filtered.length > 0 ? (
+                    filtered.map((u) => (
+                      <tr key={u.user_id} className="hover:bg-red-50/40 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-gray-900">
+                            {u.first_name} {u.last_name}
+                          </div>
+                          <div className="text-xs text-gray-400">User ID: {u.user_id?.slice(0, 8)}</div>
+                        </td>
+
+                        <td className="px-6 py-4 text-gray-600">
+                          {u.contact_number || "No contact number"}
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${roleColor(
+                              u.role
+                            )}`}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusColor(
+                              u.is_active
+                            )}`}
+                          >
+                            {u.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                            <select
+                              value={u.role}
+                              onChange={(e) => updateRoles(u.user_id, e.target.value)}
+                              className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 outline-none transition focus:border-red-300 focus:ring-2 focus:ring-red-100"
+                            >
+                              <option value="customer">Customer</option>
+                              <option value="storeowner">Storeowner</option>
+                              <option value="rider">Rider</option>
+                              <option value="admin">Admin</option>
+                            </select>
+
+                            <button
+                              onClick={() => toggleActive(u.user_id, u.is_active)}
+                              className={`h-10 rounded-xl px-4 text-xs font-semibold text-white transition ${
+                                u.is_active
+                                  ? "bg-red-500 hover:bg-red-600"
+                                  : "bg-green-500 hover:bg-green-600"
+                              }`}
+                            >
+                              {u.is_active ? "Deactivate" : "Activate"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="px-6 py-16 text-center">
+                        <div className="mx-auto max-w-sm">
+                          <p className="text-lg font-semibold text-gray-900">No users found</p>
+                          <p className="mt-1 text-sm text-gray-400">
+                            Try a different search term or clear the search box.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </main>
       </div>
