@@ -258,26 +258,66 @@ const statusColor = (status) => {
           {/* Recent Orders table */}
           <div className="bg-white rounded-2xl shadow p-5 mb-5">
             <h2 className="font-semibold text-lg mb-4">Recent Orders</h2>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-gray-400 text-left border-b">
-                  <th className="pb-2">Order ID</th>
-                  <th className="pb-2">Date</th>
-                  <th className="pb-2">Amount</th>
-                  <th className="pb-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order.order_id} className="border-b last:border-0">
-                    <td className="py-3 text-gray-600">#{order.order_id.slice(0, 8)}</td>
-                    <td className="py-3 text-gray-600">{new Date(order.created_at).toLocaleDateString()}</td>
-                    <td className="py-3 font-semibold">₱{Number(order.total_price || 0).toLocaleString()}</td>
-                    <td className={`py-3 font-medium capitalize ${statusColor(order.status)}`}>{order.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
+                  <p className="text-sm text-gray-400">Latest 5 orders across the platform</p>
+                </div>
+                <button
+                  onClick={() => navigate("/admin/orders")}
+                  className="text-sm font-medium text-red-600 hover:text-red-700 transition"
+                >
+                  View all
+                </button>
+              </div>
+
+              {recentOrders.length ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50/80">
+                      <tr className="text-left text-gray-400 uppercase tracking-wide text-[11px]">
+                        <th className="px-6 py-3 font-medium">Order</th>
+                        <th className="px-6 py-3 font-medium">Date</th>
+                        <th className="px-6 py-3 font-medium">Amount</th>
+                        <th className="px-6 py-3 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {recentOrders.map((order) => (
+                        <tr
+                          key={order.order_id}
+                          className="hover:bg-red-50/40 transition-colors"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="font-medium text-gray-900">
+                              #{order.order_id.slice(0, 8)}
+                            </div>
+                            <div className="text-xs text-gray-400">User {order.user_id?.slice(0, 8)}</div>
+                          </td>
+                          <td className="px-6 py-4 text-gray-600">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 font-semibold text-gray-900">
+                            ₱{Number(order.total_price || 0).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-gray-100 ${statusColor(order.status)}`}>
+                              {order.status.replaceAll("_", " ")}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="px-6 py-10 text-center text-gray-500">
+                  No recent orders yet.
+                </div>
+              )}
+            </div>
+
           </div>
 
         </main>
