@@ -45,8 +45,15 @@ export default function SavedAddressModal({ open, onClose, onAddressChange }) {
     }, ${a.province || ""}, ${a.postal_code || ""}`;
 
   const handleAddAddress = async () => {
-    if (!newAddress.street || !newAddress.city) {
-      setError("Street and City are required");
+    if (
+      !newAddress.house_no ||
+      !newAddress.street ||
+      !newAddress.barangay ||
+      !newAddress.city ||
+      !newAddress.province ||
+      !newAddress.postal_code
+    ) {
+      setError("All address fields are required");
       return;
     }
 
@@ -170,6 +177,7 @@ export default function SavedAddressModal({ open, onClose, onAddressChange }) {
                       [key]: e.target.value,
                     })
                   }
+                  required
                   className="border border-gray-200 rounded-lg px-3 py-2 text-sm
                   focus:ring-2 focus:ring-red-400 focus:border-red-400
                   hover:border-gray-300 transition outline-none"
