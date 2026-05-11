@@ -2,13 +2,34 @@ import React, { useState } from "react";
 import { LuX, LuCamera, LuLoader } from "react-icons/lu";
 import { supabase } from "../utils/supabase.js";
 
+const areaCodes = [
+  { code: "+63", label: "PH (+63)" },
+  { code: "+1",  label: "US/CA (+1)" },
+  { code: "+44", label: "UK (+44)" },
+  { code: "+81", label: "JP (+81)" },
+];
+
+const parseContactNumber = (full) => {
+  if (!full) return { code: "+63", number: "" };
+  for (const ac of [...areaCodes].sort((a, b) => b.code.length - a.code.length)) {
+    if (full.startsWith(ac.code)) {
+      return { code: ac.code, number: full.slice(ac.code.length) };
+    }
+  }
+  return { code: "+63", number: full };
+};
+
 const EditProfileModal = ({ user, onClose, onSave }) => {
+  const parsed = parseContactNumber(user?.contact_number || "");
+
   const [formData, setFormData] = useState({
     first_name: user?.first_name || "",
     last_name: user?.last_name || "",
-    contact_number: user?.contact_number || "",
+    contact_number: parsed.number,
     profile_image: user?.profile_image || "",
   });
+
+  const [areaCode, setAreaCode] = useState(parsed.code);
 
   const [previewImage, setPreviewImage] = useState(user?.profile_image || null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -18,9 +39,10 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    const sanitized = name === "contact_number" ? value.replace(/\D/g, "") : value;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: sanitized,
     }));
     setError(null);
   };
@@ -122,7 +144,7 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
           body: JSON.stringify({
             first_name: formData.first_name,
             last_name: formData.last_name,
-            contact_number: formData.contact_number,
+            contact_number: `${areaCode}${formData.contact_number}`,
             profile_image: imageUrl,
           }),
         }
@@ -240,15 +262,32 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Contact Number
               </label>
-              <input
-                type="tel"
-                name="contact_number"
-                value={formData.contact_number}
-                onChange={handleInputChange}
-                placeholder="Enter your contact number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
-                disabled={loading}
-              />
+              <div className="flex gap-2">
+                <select
+                  value={areaCode}
+                  onChange={(e) => setAreaCode(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
+                  disabled={loading}
+                >
+                  {areaCodes.map((c) => (
+                    <option key={c.code} value={c.code}>{c.label}</option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  name="contact_number"
+                  value={formData.contact_number}
+                  onChange={handleInputChange}
+                  placeholder="Contact number"
+                  minLength={7}
+                  maxLength={12}
+                  pattern="[0-9]{7,12}"
+                  title="Enter a valid contact number (7–12 digits)"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
+                  disabled={loading}
+                  required
+                />
+              </div>
             </div>
           </div>
 
