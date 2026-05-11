@@ -8,6 +8,7 @@ import {
   handleUpdateRiderProfile,
   handleUpdateAvailability,
   handleUpdateVerificationStatus,
+  handleDeleteRider,
   handleGetAllRiders,
   handleGetAvailableOrders,
   handleClaimDelivery,
@@ -38,5 +39,6 @@ router.put("/status", ...riderOnly, handleUpdateDeliveryStatus);
 // Admin
 router.get("/", ...adminOnly, handleGetAllRiders);
 router.patch("/verify", ...adminOnly, handleUpdateVerificationStatus);
+router.delete("/:id", ...adminOnly, handleDeleteRider);
 
 export default router;

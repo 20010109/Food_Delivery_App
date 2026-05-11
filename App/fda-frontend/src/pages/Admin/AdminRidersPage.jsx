@@ -83,6 +83,39 @@ function AdminRidersPage() {
     }
   };
 
+  // =========================
+  // DELETE RIDER
+  // =========================
+  const deleteRider = async (id) => {
+    if (!window.confirm("Remove this rider's application? They will be able to reapply.")) return;
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) return;
+
+      const res = await fetch(`http://localhost:3000/api/rider/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete rider");
+      }
+
+      setSelectedRider(null);
+      fetchRiders();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
     // =========================
   // STATUS STYLING
   // =========================
@@ -146,19 +179,32 @@ function AdminRidersPage() {
 
           {/* ACTIONS */}
           <div className="flex gap-2 mt-6">
-            <button
-              onClick={() => updateStatus(rider.id, "approved")}
-              className="flex-1 bg-green-600 text-white py-2 rounded-lg"
-            >
-              Approve
-            </button>
+            {rider.verification_status === "pending" && (
+              <>
+                <button
+                  onClick={() => updateStatus(rider.id, "approved")}
+                  className="flex-1 bg-green-600 text-white py-2 rounded-lg"
+                >
+                  Approve
+                </button>
 
-            <button
-              onClick={() => updateStatus(rider.id, "denied")}
-              className="flex-1 bg-red-600 text-white py-2 rounded-lg"
-            >
-              Deny
-            </button>
+                <button
+                  onClick={() => deleteRider(rider.id)}
+                  className="flex-1 bg-red-600 text-white py-2 rounded-lg"
+                >
+                  Deny
+                </button>
+              </>
+            )}
+
+            {rider.verification_status === "approved" && (
+              <button
+                onClick={() => deleteRider(rider.id)}
+                className="flex-1 bg-gray-700 text-white py-2 rounded-lg"
+              >
+                Delete
+              </button>
+            )}
           </div>
         </div>
       </div>

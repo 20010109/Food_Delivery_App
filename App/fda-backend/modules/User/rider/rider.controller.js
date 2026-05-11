@@ -4,6 +4,7 @@ import {
   updateRiderProfile,
   updateRiderAvailability,
   updateRiderVerificationStatus,
+  deleteRiderProfile,
   getAllRiders,
 } from "./rider.service.js";
 
@@ -112,6 +113,25 @@ export const handleUpdateVerificationStatus = async (req, res) => {
     );
 
     return res.json({ success: true, data });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// =========================
+// ADMIN: DELETE RIDER
+// =========================
+export const handleDeleteRider = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "Missing rider id" });
+    }
+
+    await deleteRiderProfile(req.supabase, id);
+
+    return res.json({ success: true });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

@@ -94,6 +94,37 @@ export const updateRiderAvailability = async (
 };
 
 // =========================
+// =========================
+// ADMIN: DELETE RIDER PROFILE
+// =========================
+export const deleteRiderProfile = async (supabase, rider_id) => {
+  // 1. Get user_id so we can revert role
+  const { data: rider, error: fetchError } = await supabase
+    .from("rider_profiles")
+    .select("user_id")
+    .eq("id", rider_id)
+    .single();
+
+  if (fetchError) throw fetchError;
+
+  // 2. Delete the rider profile
+  const { error: deleteError } = await supabase
+    .from("rider_profiles")
+    .delete()
+    .eq("id", rider_id);
+
+  if (deleteError) throw deleteError;
+
+  // 3. Revert role back to customer so they lose rider access
+  const { error: roleError } = await supabase
+    .from("user_profiles")
+    .update({ role: "customer" })
+    .eq("user_id", rider.user_id);
+
+  if (roleError) throw roleError;
+};
+
+// =========================
 // ADMIN: UPDATE VERIFICATION STATUS
 // =========================
 export const updateRiderVerificationStatus = async (
