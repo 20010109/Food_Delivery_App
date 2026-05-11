@@ -225,7 +225,7 @@ const toggleStoreFavorite = (restaurantId) => {
 
       {/* STORES SECTION (UNCHANGED UI) */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900">All Restaurants</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Featured Restaurants</h2>
 
         <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredStores.slice(0, 6).map((r) => {
@@ -284,11 +284,6 @@ const toggleStoreFavorite = (restaurantId) => {
             );
           })}
         </ul>
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900">Order Again</h2>
-         
       </div>
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
