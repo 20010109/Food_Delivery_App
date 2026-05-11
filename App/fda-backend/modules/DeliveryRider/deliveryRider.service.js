@@ -1,6 +1,50 @@
 
 
 // =========================
+// AUTO-CANCEL PENDING ORDERS
+// =========================
+const autoCancelExpiredOrders = async (supabase) => {
+  const TIMEOUT_MINUTES = 5;
+  const expiryTime = new Date(Date.now() - TIMEOUT_MINUTES * 60 * 1000);
+
+  try {
+    // Get all pending orders older than 5 minutes
+    const { data: expiredOrders, error: fetchError } = await supabase
+      .from("orders")
+      .select("order_id")
+      .eq("status", "pending")
+      .lt("created_at", expiryTime.toISOString());
+
+    if (fetchError) throw fetchError;
+
+    if (expiredOrders && expiredOrders.length > 0) {
+      const orderIds = expiredOrders.map(o => o.order_id);
+      
+      // Cancel all expired orders
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({ status: "cancelled" })
+        .in("order_id", orderIds);
+
+      if (updateError) throw updateError;
+
+      // Also cancel corresponding deliveries
+      const { error: deliveryError } = await supabase
+        .from("deliveries")
+        .update({ status: "cancelled" })
+        .in("order_id", orderIds)
+        .eq("status", "pending");
+
+      if (deliveryError) throw deliveryError;
+
+      console.log(`Auto-cancelled ${orderIds.length} expired orders`);
+    }
+  } catch (err) {
+    console.error("Error in autoCancelExpiredOrders:", err.message);
+  }
+};
+
+// =========================
 // CURRENT DELIVERIES
 // =========================
 export const getRiderDeliveries = async (supabase, rider_id) => {
@@ -98,6 +142,9 @@ export const getRiderDeliveryHistory = async (supabase, rider_id) => {
 // AVAILABLE DELIVERIES
 // =========================
 export const getAvailableDeliveries = async (supabase) => {
+  // Auto-cancel any pending orders older than 5 minutes
+  await autoCancelExpiredOrders(supabase);
+
   const { data, error } = await supabase
     .from("deliveries")
     .select(`
@@ -155,6 +202,12 @@ export const acceptDelivery = async (supabase, delivery_id, rider_id) => {
   if (!data) {
     throw new Error("Delivery already taken or unavailable");
   }
+
+  // Update order status to "preparing" to show a rider has been assigned
+  await supabase
+    .from("orders")
+    .update({ status: "preparing" })
+    .eq("order_id", data.order_id);
 
   return data;
 };

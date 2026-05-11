@@ -201,7 +201,7 @@ export const getAvailableOrders = async (supabase) => {
         menu_items ( name, price )
       )
     `)
-    .eq("status", "out_for_delivery");
+    .eq("status", "pending");
 
     
     // 3. Exclude assigned orders ONLY if there are any
@@ -220,7 +220,7 @@ export const getAvailableOrders = async (supabase) => {
 // CLAIM AN ORDER
 // =========================
 export const claimDelivery = async (supabase, riderId, orderId) => {
-  // Check rider has no active delivery
+  // 1. Check rider has no active delivery
   const { data: active } = await supabase
     .from("deliveries")
     .select("delivery_id")
@@ -232,18 +232,30 @@ export const claimDelivery = async (supabase, riderId, orderId) => {
     throw new Error("You already have an active delivery.");
   }
 
-  const { data, error } = await supabase
+  // 2. Insert delivery
+  const { data: delivery, error: deliveryError } = await supabase
     .from("deliveries")
-    .insert([{
-      order_id: orderId,
-      user_id: riderId,
-      status: "assigned",
-    }])
+    .insert([
+      {
+        order_id: orderId,
+        user_id: riderId,
+        status: "assigned",
+      },
+    ])
     .select()
     .single();
 
-  if (error) throw error;
-  return data;
+  if (deliveryError) throw deliveryError;
+
+  // 3. Update order status → preparing
+  const { error: orderError } = await supabase
+    .from("orders")
+    .update({ status: "preparing" })
+    .eq("order_id", orderId);
+
+  if (orderError) throw orderError;
+
+  return delivery;
 };
 
 // =========================
@@ -344,14 +356,23 @@ export const updateDeliveryStatus = async (
   if (fetchErr || !delivery) throw new Error("Delivery not found.");
 
   const updates = { status: newStatus };
-  if (newStatus === "delivered") {
-    updates.delivery_time = new Date().toISOString();
-    // Also mark the order as completed
-    await supabase
-      .from("orders")
-      .update({ status: "completed" })
-      .eq("order_id", delivery.order_id);
-  }
+  if (newStatus === "picked_up") {
+  updates.delivery_time = new Date().toISOString();
+
+  await supabase
+    .from("orders")
+    .update({ status: "out_for_delivery" })
+    .eq("order_id", delivery.order_id);
+}
+
+if (newStatus === "delivered") {
+  updates.delivery_time = new Date().toISOString();
+
+  await supabase
+    .from("orders")
+    .update({ status: "completed" })
+    .eq("order_id", delivery.order_id);
+}
 
   const { data, error } = await supabase
     .from("deliveries")
