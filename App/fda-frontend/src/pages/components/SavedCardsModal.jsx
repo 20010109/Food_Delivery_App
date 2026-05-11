@@ -70,6 +70,31 @@ export default function SavedCardsModal({ open, onClose }) {
       setError("All fields are required.");
       return;
     }
+
+    // Card number must be exactly 16 digits
+    const digits = cardNumber.replace(/\s/g, "");
+    if (digits.length !== 16) {
+      setError("Card number must be exactly 16 digits.");
+      return;
+    }
+
+    // Expiry month must be 01–12
+    const month = parseInt(expiryMonth, 10);
+    const year = parseInt(expiryYear, 10);
+    if (isNaN(month) || month < 1 || month > 12) {
+      setError("Expiry month must be between 01 and 12.");
+      return;
+    }
+
+    // Card must not be expired (YY is 2-digit, e.g. 26 = 2026)
+    const now = new Date();
+    const currentYear = now.getFullYear() % 100; // e.g. 26
+    const currentMonth = now.getMonth() + 1;     // 1–12
+    if (year < currentYear || (year === currentYear && month < currentMonth)) {
+      setError("This card has already expired.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
