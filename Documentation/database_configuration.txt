@@ -50,7 +50,9 @@ create table user_profiles (
   contact_number text not null,
   profile_image text,
   is_active boolean default true,
-  created_at timestamp default now()
+  created_at timestamp default now(),
+  wallet_balance float default 0,
+  gcash_number text,
 );
 
 -- =========================
