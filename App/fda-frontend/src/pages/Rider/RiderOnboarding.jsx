@@ -90,6 +90,7 @@ function RiderOnboarding() {
         </select>
 
         <input
+          required
           placeholder="Plate Number"
           value={plateNumber}
           onChange={(e) => setPlateNumber(e.target.value)}
@@ -97,6 +98,7 @@ function RiderOnboarding() {
         />
 
         <input
+          required
           placeholder="License Number"
           value={licenseNumber}
           onChange={(e) => setLicenseNumber(e.target.value)}
@@ -104,6 +106,7 @@ function RiderOnboarding() {
         />
 
         <input
+          required
           placeholder="OR Code"
           value={orCode}
           onChange={(e) => setOrCode(e.target.value)}
@@ -111,6 +114,7 @@ function RiderOnboarding() {
         />
 
         <input
+          required
           placeholder="CR Code"
           value={crCode}
           onChange={(e) => setCrCode(e.target.value)}
