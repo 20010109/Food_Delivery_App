@@ -174,7 +174,7 @@ export const updateUserOrderStatus = async (
     "pending",
     "preparing",
     "out_for_delivery",
-    "delivered",
+    "completed",
     "cancelled",
   ];
 
@@ -205,8 +205,9 @@ export const deleteUserOrder = async (supabase, order_id, user_id) => {
 
   if (fetchError) throw fetchError;
 
-  if (order.status !== "pending") {
-    throw new Error("Only pending orders can be cancelled.");
+  // Only allow cancellation if order is still pending or preparing
+  if (order.status !== "pending" && order.status !== "preparing") {
+    throw new Error("Orders can only be cancelled before the rider picks them up for delivery.");
   }
 
   const { data: cancelledOrder, error } = await supabase
@@ -214,7 +215,7 @@ export const deleteUserOrder = async (supabase, order_id, user_id) => {
     .update({ status: "cancelled" })
     .eq("order_id", order_id)
     .eq("user_id", user_id)
-    .eq("status", "pending")
+    .in("status", ["pending", "preparing"])
     .select()
     .single();
 
@@ -351,7 +352,7 @@ export const getRestaurantOrderStats = async (supabase, restaurantId) => {
     .reduce((sum, o) => sum + Number(o.total_price || 0), 0);
 
   const activeOrders = data.filter((o) =>
-    ["pending", "preparing"].includes(o.status)
+    ["pending", "picked_up"].includes(o.status)
   ).length;
 
   return {

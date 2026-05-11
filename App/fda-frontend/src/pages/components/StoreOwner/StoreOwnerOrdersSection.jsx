@@ -160,6 +160,16 @@ function StoreOwnerOrdersSection({ restaurantId }) {
                         )}
                       </p>
                     )}
+                    {order.delivery && order.delivery.user_profiles && (
+                      <p className="text-sm text-blue-600 mt-1">
+                        🚗 Driver: {order.delivery.user_profiles.first_name} {order.delivery.user_profiles.last_name}
+                        {order.delivery.user_profiles.contact_number && (
+                          <span className="ml-2 text-gray-400">
+                            · {order.delivery.user_profiles.contact_number}
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   <span
@@ -205,26 +215,15 @@ function StoreOwnerOrdersSection({ restaurantId }) {
                       Total: ₱{Number(order.total_price).toFixed(2)}
                   </p>
 
-                  {order.status !== "completed" && order.status !== "cancelled" ? (
-                      <select
-                      disabled={updating === order.order_id}
-                      value={order.status}
-                      onChange={(e) =>
-                          handleStatusUpdate(order.order_id, e.target.value)
-                      }
-                      className="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white disabled:opacity-50 cursor-pointer"
-                      >
-                      <option value="pending">Pending</option>
-                      <option value="preparing">Preparing</option>
-                      <option value="out_for_delivery">Out for Delivery</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                      </select>
-                  ) : (
-                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[order.status]}`}>
-                      {STATUS_LABELS[order.status]}
-                      </span>
-                  )}
+                  {/* <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[order.status]}`}>
+                    {STATUS_LABELS[order.status]}
+                  </span> */}
+                  {(order.status === "pending" ) ? 
+                  <button onClick={(e) => handleStatusUpdate(order.order_id, "cancelled")} className="bg-red-400 hover:bg-red-500 rounded-full text-xs font-semibold px-3 py-1 ">
+                    Cancel
+                  </button> :
+                  ''}
+                  
                   </div>
               </div>
             );
