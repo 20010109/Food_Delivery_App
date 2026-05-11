@@ -1,115 +1,121 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LuChevronLeft, LuChevronRight, LuChevronRight as LuViewMore } from "react-icons/lu";
+import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+
+const INTERVAL_MS = 4000;
 
 export default function CategoryCarousel() {
   const navigate = useNavigate();
-  const scrollRef = useRef(null);
+  const [restaurants, setRestaurants] = useState([]);
+  const [current, setCurrent] = useState(0);
+  const timerRef = useRef(null);
 
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
+  useEffect(() => {
+    fetch("http://localhost:3000/api/restaurants")
+      .then((r) => r.json())
+      .then((data) => setRestaurants(Array.isArray(data) ? data : data?.data || []))
+      .catch(() => {});
+  }, []);
 
-  const categories = useMemo(
-    () => [
-      { key: "Filipino", emoji: "🍛", label: "Filipino" },
-      { key: "Burgers", emoji: "🍔", label: "Burgers" },
-      { key: "Pizza", emoji: "🍕", label: "Pizza" },
-      { key: "Chicken", emoji: "🍗", label: "Chicken" },
-      { key: "Tacos", emoji: "🌮", label: "Tacos" },
-      { key: "Noodles", emoji: "🍜", label: "Noodles" },
-      { key: "Salads", emoji: "🥗", label: "Salads" },
-      { key: "Desserts", emoji: "🍦", label: "Desserts" },
-      { key: "Coffee", emoji: "☕", label: "Coffee" },
-      { key: "Milk Tea", emoji: "🧋", label: "Milk Tea" },
-      { key: "Donut", emoji: "🍩", label: "Donut" },
-      { key: "Ice Cream", emoji: "🍨", label: "Ice Cream" },
-    ],
-    []
-  );
+  const count = restaurants.length;
 
-  const updateArrowVisibility = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const isAtStart = el.scrollLeft <= 5;
-    const isAtEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 5;
-
-    setShowLeftArrow(!isAtStart);
-    setShowRightArrow(!isAtEnd);
+  const startTimer = () => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % count);
+    }, INTERVAL_MS);
   };
 
   useEffect(() => {
-    updateArrowVisibility();
+    if (count === 0) return;
+    startTimer();
+    return () => clearInterval(timerRef.current);
+  }, [count]);
 
-    const el = scrollRef.current;
-    if (!el) return;
-
-    el.addEventListener("scroll", updateArrowVisibility);
-    window.addEventListener("resize", updateArrowVisibility);
-
-    return () => {
-      el.removeEventListener("scroll", updateArrowVisibility);
-      window.removeEventListener("resize", updateArrowVisibility);
-    };
-  }, []);
-
-  const scrollLeft = () => {
-    scrollRef.current?.scrollBy({ left: -320, behavior: "smooth" });
+  const goTo = (index) => {
+    setCurrent((index + count) % count);
+    startTimer();
   };
 
-  const scrollRight = () => {
-    scrollRef.current?.scrollBy({ left: 320, behavior: "smooth" });
-  };
+  if (count === 0) return null;
 
-  const handleCategoryClick = (categoryLabel) => {
-    navigate(`/explore?q=${encodeURIComponent(categoryLabel)}`);
-  };
+  const r = restaurants[current];
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900">Explore Categories</h2>
+    <div className="space-y-3">
+      <h2 className="text-2xl font-bold text-gray-900">Featured Restaurants</h2>
 
-      <div className="relative">
-        {showLeftArrow && (
-          <button
-            type="button"
-            onClick={scrollLeft}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 flex items-center justify-center"
+      <div className="relative overflow-hidden rounded-2xl h-72 bg-gray-900 shadow-md select-none">
+
+        {/* Slides */}
+        {restaurants.map((item, i) => (
+          <div
+            key={item.restaurant_id}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              i === current ? "opacity-100 z-10" : "opacity-0 z-0"
+            }`}
           >
-            <LuChevronLeft className="text-2xl" />
-          </button>
-        )}
+            {/* Full-bleed background image */}
+            <img
+              src={item.background_image || item.profile_image || "https://placehold.co/1400x500/1f2937/white?text=No+Image"}
+              alt={item.name}
+              className="absolute inset-0 w-full h-full object-cover object-center"
+            />
 
-        <div
-          ref={scrollRef}
-          className="ml-0 mr-14 flex gap-4 overflow-x-auto scroll-smooth no-scrollbar"
-        >
-          {categories.map((category) => (
-            <button
-              key={category.key}
-              type="button"
-              onClick={() => handleCategoryClick(category.label)}
-              className="shrink-0 flex flex-col items-center gap-2 p-4 w-24 rounded-2xl border border-gray-100 bg-gray-50 hover:border-red-300 hover:bg-red-50 transition group"
-            >
-              <span className="text-3xl">{category.emoji}</span>
-              <span className="text-xs font-semibold text-gray-600 group-hover:text-red-600 transition text-center">
-                {category.label}
+            {/* Dark gradient overlay for text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+
+            {/* Text content */}
+            <div className="absolute inset-0 flex flex-col justify-center px-10 gap-3 z-10 w-1/2">
+              <span className="text-xs font-semibold tracking-widest text-red-400 uppercase">
+                Featured
               </span>
-            </button>
+              <h3 className="text-3xl font-bold text-white leading-tight">
+                {item.name}
+              </h3>
+              {item.address_line && (
+                <p className="text-sm text-gray-300 truncate">{item.address_line}</p>
+              )}
+              <button
+                onClick={() => navigate(`/store/${item.restaurant_id}`)}
+                className="mt-1 self-start bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition"
+              >
+                Order Now
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {/* Prev arrow */}
+        <button
+          onClick={() => goTo(current - 1)}
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-sm flex items-center justify-center text-white transition"
+        >
+          <LuChevronLeft size={22} />
+        </button>
+
+        {/* Next arrow */}
+        <button
+          onClick={() => goTo(current + 1)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-sm flex items-center justify-center text-white transition"
+        >
+          <LuChevronRight size={22} />
+        </button>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+          {restaurants.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                i === current ? "w-6 bg-white" : "w-1.5 bg-white/40"
+              }`}
+            />
           ))}
         </div>
 
-        {showRightArrow && (
-          <button
-            type="button"
-            onClick={scrollRight}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-white border border-gray-200 shadow hover:bg-gray-50 flex items-center justify-center"
-          >
-            <LuChevronRight className="text-2xl" />
-          </button>
-        )}
       </div>
-
     </div>
   );
 }

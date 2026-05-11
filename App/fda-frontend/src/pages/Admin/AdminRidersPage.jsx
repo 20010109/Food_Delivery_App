@@ -83,9 +83,19 @@ function AdminRidersPage() {
     }
   };
 
+    // =========================
+  // STATUS STYLING
+  // =========================
+  const getVerificationStatusClass = (status) => {
+    if (status === "approved") return "bg-green-100 text-green-700";
+    if (["denied", "rejected"].includes(status)) return "bg-red-100 text-red-700";
+    return "bg-yellow-100 text-yellow-700";
+  };
+
   // =========================
   // MODAL
   // =========================
+
   const RiderModal = ({ rider, onClose }) => {
     if (!rider) return null;
 
@@ -125,8 +135,11 @@ function AdminRidersPage() {
 
             <p className="pt-2">
               <b>Status:</b>{" "}
-              <span className="capitalize">
-                {rider.verification_status}
+              <span className={`ml-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${getVerificationStatusClass(
+                  rider.verification_status
+                )}`}
+                >
+                  {rider.verification_status}
               </span>
             </p>
           </div>
@@ -198,15 +211,9 @@ function AdminRidersPage() {
 
                   {/* STATUS BADGE */}
                   <span
-                    className={`text-xs px-3 py-1 rounded-full capitalize
-                      ${
-                        rider.verification_status === "approved"
-                          ? "bg-green-100 text-green-700"
-                          : rider.verification_status === "rejected"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }
-                    `}
+                    className={`text-xs px-3 py-1 rounded-full capitalize ${getVerificationStatusClass(
+                      rider.verification_status
+                    )}`}
                   >
                     {rider.verification_status}
                   </span>

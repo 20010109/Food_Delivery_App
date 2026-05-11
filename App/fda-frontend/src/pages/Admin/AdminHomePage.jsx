@@ -22,6 +22,7 @@ function AdminHomePage() {
   const [userId, setUserId] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [ordersChartData, setOrdersChartData] = useState([]);
+  const [rawOrders, setRawOrders] = useState([]);
   const [summary, setSummary] = useState({ onDelivery: 0, delivered: 0, cancelled: 0 });
   const [activeTab, setActiveTab] = useState("Monthly");
   const navigate = useNavigate();
@@ -91,6 +92,57 @@ const fetchRecentOrders = async () => {
     if (error) return console.error(error);
     setRecentOrders(data);
 };
+const computeChartData = (data, tab) => {
+  if (tab === "Monthly") {
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const grouped = {};
+    MONTHS.forEach((m) => (grouped[m] = 0));
+    data.forEach((order) => {
+      const month = MONTHS[new Date(order.created_at).getMonth()];
+      grouped[month] += Number(order.total_price || 0);
+    });
+    return MONTHS.map((month) => ({ label: month, revenue: grouped[month] }));
+  }
+
+  if (tab === "Weekly") {
+        const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const today = new Date();
+    const result = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      result.push({ label: DAYS[d.getDay()], revenue: 0, date: d.toDateString() });
+    }
+    data.forEach((order) => {
+      const entry = result.find((r) => r.date === new Date(order.created_at).toDateString());
+      if (entry) entry.revenue += Number(order.total_price || 0);
+    });
+    return result.map(({ label, revenue }) => ({ label, revenue }));
+  }
+
+  if (tab === "Today") {
+    const todayStr = new Date().toDateString();
+    const hours = Array.from({ length: 24 }, (_, i) => ({
+      label: i === 0 ? "12AM" : i < 12 ? `${i}AM` : i === 12 ? "12PM" : `${i - 12}PM`,
+      revenue: 0,
+    }));
+    data.forEach((order) => {
+      const d = new Date(order.created_at);
+      if (d.toDateString() === todayStr) {
+        hours[d.getHours()].revenue += Number(order.total_price || 0);
+      }
+    });
+    return hours;
+  }
+
+  return [];
+};
+
+  useEffect(() => {
+    if (rawOrders.length > 0) {
+      setChartData(computeChartData(rawOrders, activeTab));
+    }
+  }, [activeTab]);
 
 const fetchChartData = async () => {
   const { data, error } = await supabase
@@ -99,16 +151,8 @@ const fetchChartData = async () => {
 
   if (error) return console.error(error);
 
-  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const grouped = {};
-  MONTHS.forEach((m) => (grouped[m] = 0));
-
-  data.forEach((order) => {
-    const month = MONTHS[new Date(order.created_at).getMonth()];
-    grouped[month] += Number(order.total_price || 0);
-  });
-
-  setChartData(MONTHS.map((month) => ({ month, revenue: grouped[month] })));
+  setRawOrders(data);
+  setChartData(computeChartData(data, activeTab));
 };
 
 const fetchOrdersChart = async () => {
@@ -208,7 +252,7 @@ const statusColor = (status) => {
               <div className="flex items-center justify-between mb-1">
                 <div>
                   <h2 className="font-semibold text-lg">Revenue</h2>
-                  <p className="text-xs text-gray-400">Monthly income overview</p>
+                  <p className="text-xs text-gray-400">{activeTab === "Monthly" ? "Monthly income overview" : activeTab === "Weekly" ? "Last 7 days" : "Today by hour"}</p>
                 </div>
                 <div className="flex gap-1 bg-gray-100 rounded-xl p-1 text-xs">
                   {["Monthly", "Weekly", "Today"].map((t) => (
@@ -228,7 +272,7 @@ const statusColor = (status) => {
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
                   <Tooltip formatter={(v) => `₱${Number(v).toLocaleString()}`} />
                   <Line type="monotone" dataKey="revenue" stroke="#dc2626" strokeWidth={2.5} dot={{ fill: "#dc2626", r: 4 }} activeDot={{ r: 6 }} />

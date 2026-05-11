@@ -35,6 +35,8 @@ import AdminOrdersPage from "./pages/Admin/AdminOrdersPage.jsx";
 import AdminPaymentsPage from "./pages/Admin/AdminPaymentsPage.jsx";
 import AdminDeliveriesPage from "./pages/Admin/AdminDeliveriesPage.jsx";
 import AdminReviewsPage from "./pages/Admin/AdminReviewsPage.jsx";
+import AdminSettingsPage from "./pages/Admin/AdminSettingsPage.jsx";
+import AdminProfilePage from "./pages/Admin/AdminProfilePage.jsx";
 
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 
@@ -123,6 +125,8 @@ function App() {
           <Route path="/admin/payments" element={<AdminPaymentsPage />} />
           <Route path="/admin/deliveries" element={<AdminDeliveriesPage />} />
           <Route path="/admin/reviews" element={<AdminReviewsPage />} />
+          <Route path="/admin/settings" element={<AdminSettingsPage />} />
+          <Route path="/admin/profile" element={<AdminProfilePage />} />
         </Route>
 
         {/* Customer routes — persistent Navbar via Layout */}
