@@ -62,6 +62,8 @@ function CustomerDashboard() {
 
   const [filters, setFilters] = useState({});
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [menuItems, setMenuItems] = useState([]);
+  const [menuLoading, setMenuLoading] = useState(false);
 
   const [isAddressListOpen, setIsAddressListOpen] = useState(false);
 
@@ -121,6 +123,20 @@ function CustomerDashboard() {
     fetchRestaurants();
   }, []);
 
+  // Fetch all menu items once (lazy — only on first filter activation)
+  const menuItemsFetched = React.useRef(false);
+  useEffect(() => {
+    const hasFilters = Object.values(filters).some(Boolean);
+    if (!hasFilters || menuItemsFetched.current) return;
+    menuItemsFetched.current = true;
+    setMenuLoading(true);
+    fetch("http://localhost:3000/api/menu/all-public")
+      .then((r) => r.json())
+      .then((data) => setMenuItems(Array.isArray(data) ? data : []))
+      .catch(() => setMenuItems([]))
+      .finally(() => setMenuLoading(false));
+  }, [filters]);
+
 const toggleStoreFavorite = (restaurantId) => {
   const key = toKey(restaurantId);
 
@@ -148,43 +164,60 @@ const toggleStoreFavorite = (restaurantId) => {
   };
 
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const showFoods = activeFilterCount > 0;
 
-  const filteredStores = useMemo(() => {
+  // Restaurant lookup map for rating/review_count
+  const restaurantMap = useMemo(() => {
+    const map = {};
+    restaurants.forEach((r) => { map[r.restaurant_id] = r; });
+    return map;
+  }, [restaurants]);
+
+  const filteredFoods = useMemo(() => {
+    if (!showFoods) return [];
     const q = query.trim().toLowerCase();
-    let results = restaurants;
+    let results = menuItems.map((item) => ({
+      ...item,
+      restaurant_rating: restaurantMap[item.restaurant_id]?.rating || 0,
+      restaurant_reviews: restaurantMap[item.restaurant_id]?.review_count || 0,
+    }));
 
-    if (filters.cuisine) {
-      results = results.filter((s) => s.cuisine === filters.cuisine);
+    if (q) {
+      results = results.filter((i) => i.name?.toLowerCase().includes(q) || i.restaurant_name?.toLowerCase().includes(q));
     }
 
     if (filters.priceRange) {
-      results = results.filter((s) => s.price_range === filters.priceRange);
-    }
-
-    if (filters.deliveryTime) {
-      results = results.filter((s) => s.delivery_time === filters.deliveryTime);
-    }
-
-    if (q) {
-      results = results.filter(
-        (s) =>
-          s.name?.toLowerCase().includes(q) ||
-          s.address_line?.toLowerCase().includes(q)
-      );
+      results = results.filter((i) => {
+        const p = Number(i.price || 0);
+        if (filters.priceRange === "₱") return p < 100;
+        if (filters.priceRange === "₱₱") return p >= 100 && p <= 300;
+        if (filters.priceRange === "₱₱₱") return p > 300;
+        return true;
+      });
     }
 
     if (filters.sortBy === "rating") {
-      results = [...results].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      results = [...results].sort((a, b) => b.restaurant_rating - a.restaurant_rating);
     } else if (filters.sortBy === "reviews") {
-      results = [...results].sort((a, b) => (b.review_count || 0) - (a.review_count || 0));
+      results = [...results].sort((a, b) => b.restaurant_reviews - a.restaurant_reviews);
     }
 
     return results;
-  }, [query, filters, restaurants]);
+  }, [showFoods, menuItems, filters, query, restaurantMap]);
 
   const removeFilter = (key) => {
     setFilters((prev) => { const next = { ...prev }; delete next[key]; return next; });
   };
+
+  const filteredStores = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return restaurants;
+    return restaurants.filter(
+      (s) =>
+        s.name?.toLowerCase().includes(q) ||
+        s.address_line?.toLowerCase().includes(q)
+    );
+  }, [query, restaurants]);
 
   const FILTER_LABELS = { cuisine: "Cuisine", priceRange: "Price", deliveryTime: "Delivery", sortBy: "Sort" };
 
@@ -264,7 +297,46 @@ const toggleStoreFavorite = (restaurantId) => {
 
       <CategoryCarousel />
 
-      {/* STORES SECTION (UNCHANGED UI) */}
+      {/* FOOD ITEMS GRID — shown when filters are active */}
+      {showFoods ? (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900">Food Results</h2>
+          {menuLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 animate-pulse h-28" />
+              ))}
+            </div>
+          ) : filteredFoods.length === 0 ? (
+            <p className="text-gray-500 text-sm">No foods match your filters.</p>
+          ) : (
+            <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {filteredFoods.map((item) => (
+                <li
+                  key={item.item_id}
+                  onClick={() => navigate(`/store/${item.restaurant_id}`)}
+                  className="bg-white rounded-2xl border border-gray-200 p-4 cursor-pointer hover:shadow-md transition flex gap-4"
+                >
+                  <img
+                    src={item.item_image || "https://via.placeholder.com/80"}
+                    alt={item.name}
+                    className="w-20 h-20 object-cover rounded-xl bg-gray-50 border border-gray-100 shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">{item.name}</h3>
+                    <p className="text-xs text-gray-500 mt-0.5 truncate">{item.restaurant_name}</p>
+                    <p className="text-sm font-bold text-red-600 mt-2">₱{Number(item.price).toFixed(2)}</p>
+                    {item.restaurant_rating > 0 && (
+                      <div className="mt-1">{renderStarRating(item.restaurant_rating)}</div>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
+        /* STORES SECTION — shown when no filters active */
       <div className="space-y-4">
         <h2 className="text-2xl font-bold text-gray-900">Featured Restaurants</h2>
 
@@ -326,6 +398,7 @@ const toggleStoreFavorite = (restaurantId) => {
           })}
         </ul>
       </div>
+      )}
 
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </section>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ReactDOM from "react-dom";
 import { LuX } from "react-icons/lu";
 
 const CUISINES = ["Burgers", "Pizza", "Fried Chicken", "Filipino", "Chinese", "Japanese", "Korean"];
@@ -64,7 +65,7 @@ export default function SearchFiltersModal({
 
   if (!open) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
 
@@ -120,6 +121,7 @@ export default function SearchFiltersModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
