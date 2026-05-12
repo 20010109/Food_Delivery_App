@@ -43,7 +43,7 @@ export default function CategoryCarousel() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-2xl font-bold text-gray-900">Featured Restaurants</h2>
+      {/* <h2 className="text-2xl font-bold text-gray-900">Featured Restaurants</h2> */}
 
       <div className="relative overflow-hidden rounded-2xl h-72 bg-gray-900 shadow-md select-none">
 
@@ -66,7 +66,7 @@ export default function CategoryCarousel() {
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
             {/* Text content */}
-            <div className="absolute inset-0 flex flex-col justify-center px-10 gap-3 z-10 w-1/2">
+            <div className="absolute inset-0 flex flex-col justify-center px-15 gap-3 z-10 w-1/2">
               <span className="text-xs font-semibold tracking-widest text-red-400 uppercase">
                 Featured
               </span>
