@@ -10,6 +10,7 @@ import orderRoute from "./modules/Order/order.routes.js";
 import paymentRoute from "./modules/Payments/payments.routes.js";
 import reviewRoute from "./modules/Reviews/reviews.route.js";
 import riderRoute from "./modules/user/rider/rider.routes.js";
+import cartRoute from "./modules/Cart/cart.routes.js";
 import { supabase } from "./config/supabase.js";
 
 const app = express();
@@ -37,6 +38,8 @@ app.use('/api/orders', orderRoute);
 app.use('/api/payments', paymentRoute);
 //review routes
 app.use('/api/reviews', reviewRoute)
+// cart routes
+app.use('/api/cart', cartRoute);
 
 // rider routes
 app.use('/api/rider', riderRoute)

@@ -182,12 +182,40 @@ create table saved_cards (
 
 
 -- =========================
+-- CARTS (USER CART)
+-- =========================
+create table carts (
+  cart_id uuid primary key default gen_random_uuid(),
+  user_id uuid unique references auth.users(id) on delete cascade,
+  created_at timestamp default now(),
+  updated_at timestamp default now()
+);
+
+
+-- =========================
+-- CART ITEMS
+-- =========================
+create table cart_items (
+  cart_item_id uuid primary key default gen_random_uuid(),
+  cart_id uuid references carts(cart_id) on delete cascade,
+  item_id uuid references menu_items(item_id) on delete cascade,
+  restaurant_id uuid references restaurants(restaurant_id) on delete cascade,
+  quantity integer not null default 1,
+  created_at timestamp default now()
+);
+
+
+-- =========================
 -- INDEXES (PERFORMANCE)
 -- =========================
 create index idx_addresses_user_id on addresses(user_id);
 create index idx_orders_user_id on orders(user_id);
 create index idx_orders_restaurant_id on orders(restaurant_id);
 create index idx_menu_restaurant_id on menu_items(restaurant_id);
+
+create index idx_carts_user_id on carts(user_id);
+create index idx_cart_items_cart_id on cart_items(cart_id);
+create index idx_cart_items_restaurant_id on cart_items(restaurant_id);
 
 
 
