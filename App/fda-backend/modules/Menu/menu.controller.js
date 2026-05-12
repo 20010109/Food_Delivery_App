@@ -115,3 +115,12 @@ export const getPublicMenu = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+export const getAllPublicItems = async (req, res) => {
+  try {
+    const data = await menuService.getAllPublicMenuItems();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

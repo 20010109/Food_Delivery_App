@@ -9,6 +9,7 @@ const storeownerOnly = [authenticate, roleCheck("storeowner")];
 
 // ===== PUBLIC =====
 router.get("/popular", menuController.getPopularMenuItems);
+router.get("/all-public", menuController.getAllPublicItems);
 router.get("/public/:restaurantId", menuController.getPublicMenu);
 
 // ===== CRUD (item-specific FIRST) =====

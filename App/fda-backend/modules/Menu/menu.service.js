@@ -108,7 +108,7 @@ export const deleteMenuItem = async (client, userId, itemId) => {
 };
 
 /**
- * PUBLIC MENU
+ * PUBLIC MENU (single restaurant)
  */
 export const getPublicMenu = async (restaurantId) => {
   const { data, error } = await supabase
@@ -119,4 +119,30 @@ export const getPublicMenu = async (restaurantId) => {
   if (error) throw error;
 
   return data;
+};
+
+/**
+ * ALL PUBLIC MENU ITEMS (all approved restaurants)
+ */
+export const getAllPublicMenuItems = async () => {
+  const { data, error } = await supabase
+    .from("menu_items")
+    .select(`
+      item_id, name, price, description, item_image, restaurant_id,
+      restaurants!inner(name, profile_image, status)
+    `)
+    .eq("restaurants.status", "approved");
+
+  if (error) throw error;
+
+  return (data || []).map((item) => ({
+    item_id: item.item_id,
+    name: item.name,
+    price: item.price,
+    description: item.description,
+    item_image: item.item_image,
+    restaurant_id: item.restaurant_id,
+    restaurant_name: item.restaurants?.name ?? null,
+    restaurant_image: item.restaurants?.profile_image ?? null,
+  }));
 };
