@@ -48,6 +48,13 @@ export default function StorePage() {
     0
   );
 
+  const priceRange = menu.length > 0
+    ? {
+        min: Math.min(...menu.map(item => Number(item.price || 0))),
+        max: Math.max(...menu.map(item => Number(item.price || 0))),
+      }
+    : null;
+
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -112,6 +119,11 @@ export default function StorePage() {
 
     fetchData();
   }, [storeId]);
+
+  const averageRating =
+  reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length
+    : 0;
 
   useEffect(() => {
     const favStores = readLSArray(LS_FAV_STORES_KEY);
@@ -271,18 +283,16 @@ export default function StorePage() {
               </div>
 
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500">
-                <span>Cuisine: {store.cuisine || "Not specified"}</span>
-                <span>•</span>
-                <span>
-                  Price Range: {store.price_range || "Not specified"}
-                </span>
-                <span>•</span>
+                {priceRange && (
+                  <>
+                    <span>
+                      Price Range: ₱{priceRange.min} - ₱{priceRange.max}
+                    </span>
+                    <span>•</span>
+                  </>
+                )}
                 <span className="flex items-center gap-1">
-                  {renderStarRating(store.rating || 0)}
-                </span>
-                <span>•</span>
-                <span>
-                  Delivery Time: {store.delivery_time || "20-30 mins"}
+                  {renderStarRating(averageRating || 0)}
                 </span>
               </div>
             </div>
