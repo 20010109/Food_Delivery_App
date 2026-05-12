@@ -393,24 +393,24 @@ export default function ExplorePage() {
                           </p>
                         </div>
 
-                        <span className="shrink-0 inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-600">
+                        {/* <span className="shrink-0 inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-600">
                           {item.badge}
-                        </span>
+                        </span> */}
                       </div>
 
-                      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
+                      {/* <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-500">
                         {renderStarRating(item.rating || 0)}
                         <span className="text-xs text-gray-500 ml-2">
                           ({item.reviews || 0} reviews)
                         </span>
-                      </div>
+                      </div> */}
 
                       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
-                        <span>{item.category || "Dish"}</span>
-                        <span>•</span>
+                        {/* <span>{item.category || "Dish"}</span>
+                        <span>•</span> */}
                         <span>₱{item.price || "0"}</span>
-                        <span>•</span>
-                        <span>{item.prep_time || "20-30 min"}</span>
+                        {/* <span>•</span>
+                        <span>{item.prep_time || "20-30 min"}</span> */}
                       </div>
                     </div>
                   </li>
