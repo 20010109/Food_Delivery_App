@@ -50,7 +50,7 @@ function AdminSidebar() {
 
   const handleProfileClick = () => {
     if (!user) return;
-    navigate(`/profile/${user.id}`);
+    navigate(`/admin/profile`);
   };
 
   return (
