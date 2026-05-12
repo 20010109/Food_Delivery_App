@@ -10,13 +10,17 @@ import {
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const computeChartData = (data, tab) => {
+const computeChartData = (data, tab, offset = 0) => {
   if (tab === "Monthly") {
+    const year = new Date().getFullYear() + offset;
     const grouped = {};
     MONTH_NAMES.forEach((m) => (grouped[m] = 0));
     data.forEach((order) => {
-      const month = MONTH_NAMES[new Date(order.created_at).getMonth()];
-      grouped[month] += Number(order.total_price || 0);
+      const d = new Date(order.created_at);
+      if (d.getFullYear() === year) {
+        const month = MONTH_NAMES[d.getMonth()];
+        grouped[month] += Number(order.total_price || 0);
+      }
     });
     return MONTH_NAMES.map((month) => ({ label: month, revenue: grouped[month] }));
   }
@@ -26,7 +30,7 @@ const computeChartData = (data, tab) => {
     const result = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
-      d.setDate(today.getDate() - i);
+      d.setDate(today.getDate() - i + offset * 7);
       result.push({ label: DAYS[d.getDay()], revenue: 0, date: d.toDateString() });
     }
     data.forEach((order) => {
@@ -36,14 +40,16 @@ const computeChartData = (data, tab) => {
     return result.map(({ label, revenue }) => ({ label, revenue }));
   }
   if (tab === "Today") {
-    const todayStr = new Date().toDateString();
+    const target = new Date();
+    target.setDate(target.getDate() + offset);
+    const targetStr = target.toDateString();
     const hours = Array.from({ length: 24 }, (_, i) => ({
       label: i === 0 ? "12AM" : i < 12 ? `${i}AM` : i === 12 ? "12PM" : `${i - 12}PM`,
       revenue: 0,
     }));
     data.forEach((order) => {
       const d = new Date(order.created_at);
-      if (d.toDateString() === todayStr) {
+      if (d.toDateString() === targetStr) {
         hours[d.getHours()].revenue += Number(order.total_price || 0);
       }
     });
@@ -52,11 +58,35 @@ const computeChartData = (data, tab) => {
   return [];
 };
 
+const getPeriodLabel = (tab, offset) => {
+  const today = new Date();
+  if (tab === "Monthly") {
+    return String(today.getFullYear() + offset);
+  }
+  if (tab === "Weekly") {
+    const end = new Date(today);
+    end.setDate(today.getDate() + offset * 7);
+    const start = new Date(end);
+    start.setDate(end.getDate() - 6);
+    const fmt = (d) => `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`;
+    return `${fmt(start)} – ${fmt(end)}`;
+  }
+  if (tab === "Today") {
+    const d = new Date(today);
+    d.setDate(today.getDate() + offset);
+    if (offset === 0) return "Today";
+    if (offset === -1) return "Yesterday";
+    return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  }
+  return "";
+};
+
 function AdminAnalyticsPage() {
   const [revenueData, setRevenueData] = useState([]);
   const [ordersData, setOrdersData] = useState([]);
   const [rawOrders, setRawOrders] = useState([]);
   const [activeTab, setActiveTab] = useState("Monthly");
+  const [offset, setOffset] = useState(0);
   const [adminName, setAdminName] = useState("Admin");
 
   const [summary, setSummary] = useState({
@@ -73,10 +103,14 @@ function AdminAnalyticsPage() {
   }, []);
 
   useEffect(() => {
-    if (rawOrders.length > 0) {
-      setRevenueData(computeChartData(rawOrders, activeTab));
-    }
+    setOffset(0);
   }, [activeTab]);
+
+  useEffect(() => {
+    if (rawOrders.length > 0) {
+      setRevenueData(computeChartData(rawOrders, activeTab, offset));
+    }
+  }, [activeTab, offset]);
 
   const fetchAdminProfile = async () => {
     const { data: authData } = await supabase.auth.getUser();
@@ -102,7 +136,7 @@ function AdminAnalyticsPage() {
     setSummary((prev) => ({ ...prev, totalRevenue }));
 
     setRawOrders(data);
-    setRevenueData(computeChartData(data, activeTab));
+    setRevenueData(computeChartData(data, activeTab, offset));
   };
 
   const fetchOrdersData = async () => {
@@ -175,7 +209,7 @@ function AdminAnalyticsPage() {
               <div className="flex items-center justify-between mb-1">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-800">Revenue</h2>
-                  <p className="text-xs text-gray-400">{activeTab === "Monthly" ? "Monthly income overview" : activeTab === "Weekly" ? "Last 7 days" : "Today by hour"}</p>
+                  <p className="text-xs text-gray-400">{getPeriodLabel(activeTab, offset)}</p>
                 </div>
 
                 {/* Tab switcher matching image style */}
@@ -196,9 +230,26 @@ function AdminAnalyticsPage() {
                 </div>
               </div>
 
-              <p className="text-2xl font-bold text-gray-800 mt-3 mb-4">
-                ₱{summary.totalRevenue.toLocaleString()}
-              </p>
+              <div className="flex items-center justify-between mt-3 mb-4">
+                <p className="text-2xl font-bold text-gray-800">
+                  ₱{revenueData.reduce((s, d) => s + (d.revenue || 0), 0).toLocaleString()}
+                </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setOffset((o) => o - 1)}
+                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
+                  >
+                    &#8249;
+                  </button>
+                  <button
+                    onClick={() => setOffset((o) => Math.min(o + 1, 0))}
+                    disabled={offset >= 0}
+                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    &#8250;
+                  </button>
+                </div>
+              </div>
 
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={revenueData}>
