@@ -16,6 +16,7 @@ export default function TopBar({
   onOpenAddress,
   addressLabel = "Set address",
   walletBalance = null,
+  activeFilterCount = 0,
 }) {
   return (
     <div className="flex items-center gap-4">
@@ -55,11 +56,20 @@ export default function TopBar({
 
         <button
           type="button"
-          className="h-10 w-10 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center"
+          className={`relative h-10 w-10 rounded-lg border flex items-center justify-center transition ${
+            activeFilterCount > 0
+              ? "bg-red-600 border-red-600 text-white"
+              : "border-gray-200 bg-white hover:bg-gray-50"
+          }`}
           onClick={onOpenFilters}
           title="Filters"
         >
           <LuSlidersHorizontal />
+          {activeFilterCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-red-600 text-[10px] font-bold rounded-full flex items-center justify-center border border-red-200">
+              {activeFilterCount}
+            </span>
+          )}
         </button>
 
         <button

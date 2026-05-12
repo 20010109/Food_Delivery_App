@@ -147,6 +147,8 @@ const toggleStoreFavorite = (restaurantId) => {
     });
   };
 
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+
   const filteredStores = useMemo(() => {
     const q = query.trim().toLowerCase();
     let results = restaurants;
@@ -171,8 +173,20 @@ const toggleStoreFavorite = (restaurantId) => {
       );
     }
 
+    if (filters.sortBy === "rating") {
+      results = [...results].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (filters.sortBy === "reviews") {
+      results = [...results].sort((a, b) => (b.review_count || 0) - (a.review_count || 0));
+    }
+
     return results;
   }, [query, filters, restaurants]);
+
+  const removeFilter = (key) => {
+    setFilters((prev) => { const next = { ...prev }; delete next[key]; return next; });
+  };
+
+  const FILTER_LABELS = { cuisine: "Cuisine", priceRange: "Price", deliveryTime: "Delivery", sortBy: "Sort" };
 
   if (loading) {
     return <p className="p-6">Loading restaurants...</p>;
@@ -191,6 +205,7 @@ const toggleStoreFavorite = (restaurantId) => {
         addressLabel={address?.label?.trim() || "Set address"}
         onOpenAddress={() => setIsAddressListOpen(true)}
         walletBalance={walletBalance}
+        activeFilterCount={activeFilterCount}
       />
 
 
@@ -201,6 +216,32 @@ const toggleStoreFavorite = (restaurantId) => {
         onApplyFilters={setFilters}
         initialFilters={filters}
       />
+
+      {/* ACTIVE FILTER CHIPS */}
+      {activeFilterCount > 0 && (
+        <div className="flex flex-wrap gap-2 -mt-4">
+          {Object.entries(filters).filter(([, v]) => v).map(([key, val]) => (
+            <span
+              key={key}
+              className="inline-flex items-center gap-1.5 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-3 py-1.5 rounded-full"
+            >
+              <span className="text-red-400 font-normal">{FILTER_LABELS[key] || key}:</span> {val}
+              <button
+                onClick={() => removeFilter(key)}
+                className="ml-0.5 text-red-400 hover:text-red-600"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <button
+            onClick={() => setFilters({})}
+            className="text-xs text-gray-400 hover:text-gray-600 underline px-1"
+          >
+            Clear all
+          </button>
+        </div>
+      )}
 
       {/* ADDRESS MODAL (UNCHANGED) */}
       {/* <AddressModal open={false} onClose={() => {}} /> */}
