@@ -7,7 +7,7 @@ import slide2 from "../assets/slide2.jpg";
 import slide3 from "../assets/slide3.jpg";
 
 // ⚠️ TESTING FLAG - Set to TRUE to bypass forgot password email
-const FORGOT_PASSWORD_BYPASS = true;
+const FORGOT_PASSWORD_BYPASS = false;
 
 export default function Login() {
   const [email, setEmail] = useState("");
