@@ -152,14 +152,14 @@ export default function MessagesPage() {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
 
-      <main className="flex-1 min-w-0 min-h-0 overflow-hidden bg-gray-100 p-6">
+      <main className="flex-1 min-w-0 min-h-0 overflow-hidden bg-gray-100 p-4">
         <div className="h-full rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden">
           <div className="grid h-full grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)]">
-            <aside className="border-r border-gray-200 bg-gray-50/70">
-              <div className="border-b border-gray-200 px-6 pt-7 pb-5">
+            <aside className="border-r border-gray-200 bg-gray-50/70 flex flex-col">
+              <div className="shrink-0 border-b border-gray-200 px-6 pt-6 pb-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="mt-4 text-sm font-medium text-red-600">Messages</p>
+                    <p className="text-sm font-medium text-red-600">Messages</p>
                     <h1 className="text-2xl font-bold text-gray-900">
                       Chat with your rider
                     </h1>
@@ -182,7 +182,7 @@ export default function MessagesPage() {
                 </div>
               </div>
 
-              <div className="h-[calc(100%-132px)] overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {filteredConversations.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center">
                     <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-500">
@@ -213,10 +213,11 @@ export default function MessagesPage() {
                         }`}
                       >
                         <div className="flex items-start gap-4">
+                          {/* FIX: removed mt-5, avatar now aligns with text */}
                           <img
                             src={conversation.rider.avatar}
                             alt={conversation.rider.name}
-                            className="mt-5 h-12 w-12 rounded-2xl object-cover"
+                            className="h-12 w-12 rounded-2xl object-cover flex-shrink-0"
                           />
 
                           <div className="min-w-0 flex-1 pt-1">
@@ -266,9 +267,10 @@ export default function MessagesPage() {
             <section className="flex h-full min-h-0 flex-col">
               {activeConversation ? (
                 <>
-                  <header className="shrink-0 border-b border-gray-200 px-8 pt-14 pb-5 flex flex-col justify-end">
-                    <div className="flex flex-row items-end justify-between gap-4">
-                      <div className="flex items-end gap-4">
+                  {/* FIX: reduced pt-14 → pt-5 for a tighter header */}
+                  <header className="shrink-0 border-b border-gray-200 px-8 py-4 flex flex-col justify-end">
+                    <div className="flex flex-row items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
                         <img
                           src={activeConversation.rider.avatar}
                           alt={activeConversation.rider.name}
@@ -283,7 +285,7 @@ export default function MessagesPage() {
                             {activeConversation.rider.vehicle}
                           </p>
 
-                          <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
                             <span className="rounded-full bg-red-50 px-3 py-1 font-semibold text-red-700">
                               {activeConversation.status}
                             </span>
@@ -310,9 +312,10 @@ export default function MessagesPage() {
                     </div>
                   </header>
 
-                  <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,_rgba(254,226,226,0.55),_transparent_35%),linear-gradient(to_bottom,_#ffffff,_#f9fafb)] px-8 py-8">
+                  {/* FIX: simplified background, removed heavy radial gradient */}
+                  <div className="flex-1 overflow-y-auto bg-gray-50 px-8 py-6">
                     <div className="mx-auto w-full max-w-4xl space-y-5">
-                      <div className="rounded-2xl border border-red-100 bg-white/80 px-4 py-3 text-sm text-gray-600 shadow-sm">
+                      <div className="rounded-2xl border border-red-100 bg-white px-4 py-3 text-sm text-gray-600">
                         You are chatting directly with your assigned rider for
                         this delivery.
                       </div>
@@ -328,7 +331,7 @@ export default function MessagesPage() {
                             }`}
                           >
                             <div
-                              className={`max-w-[75%] rounded-3xl px-4 py-3 shadow-sm ${
+                              className={`max-w-[75%] rounded-3xl px-4 py-3 ${
                                 isOwnMessage
                                   ? "rounded-br-md bg-red-600 text-white"
                                   : "rounded-bl-md border border-gray-200 bg-white text-gray-900"
@@ -338,7 +341,7 @@ export default function MessagesPage() {
                                 {message.text}
                               </p>
                               <p
-                                className={`mt-2 text-[11px] ${
+                                className={`mt-1.5 text-[11px] ${
                                   isOwnMessage
                                     ? "text-red-100"
                                     : "text-gray-400"
@@ -355,6 +358,7 @@ export default function MessagesPage() {
                     </div>
                   </div>
 
+                  {/* FIX: reduced mt-6 → mt-2 on "Logged in as" */}
                   <footer className="border-t border-gray-200 bg-white px-10 py-4">
                     <div className="flex w-full items-center gap-3">
                       <button
@@ -385,7 +389,8 @@ export default function MessagesPage() {
                       </form>
                     </div>
 
-                    <div className="mt-6 w-full text-center text-xs text-gray-400">
+                    {/* FIX: mt-6 → mt-2 */}
+                    <div className="mt-2 w-full text-center text-xs text-gray-400">
                       Logged in as{" "}
                       {loadingUser ? "loading..." : formatUserName(currentUser)}
                     </div>
