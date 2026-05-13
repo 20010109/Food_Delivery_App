@@ -192,13 +192,13 @@ function AdminUsersPage() {
                         <td className="px-6 py-4 text-gray-600">{u.contact_number || "—"}</td>
 
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${roleColor(u.role)}`}>
+                          <span className={`inline-flex items-center justify-center w-24 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${roleColor(u.role)}`}>
                             {u.role}
                           </span>
                         </td>
 
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(u.is_active)}`}>
+                          <span className={`inline-flex items-center justify-center w-20 rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(u.is_active)}`}>
                             {u.is_active ? "Active" : "Inactive"}
                           </span>
                         </td>
@@ -218,7 +218,7 @@ function AdminUsersPage() {
 
                             <button
                               onClick={() => toggleActive(u.user_id, u.is_active)}
-                              className={`h-9 rounded-xl px-4 text-xs font-semibold text-white transition ${
+                              className={`h-9 w-28 rounded-xl text-xs font-semibold text-white transition ${
                                 u.is_active ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
                               }`}
                             >
