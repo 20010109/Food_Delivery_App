@@ -1,20 +1,20 @@
-import React from "react";
-import Navbar from './components/Navbar.jsx';
+import { useState } from "react";
+import StoreOwnerSidebar from "./components/StoreOwner/StoreOwnerSidebar.jsx";
 import StoreOwnerDashboard from "./components/StoreOwner/StoreOwnerDashboard.jsx";
-import './styles/tailwind.css'
 
 function StoreOwnerHomePage() {
+  const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="flex h-screen">
-      <Navbar />
-      <main className="flex-1 bg-gray-100 p-8 overflow-auto">
-        <StoreOwnerDashboard />
-      </main>
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <StoreOwnerSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <StoreOwnerDashboard activeTab={activeTab} />
+      </div>
     </div>
   );
-
 }
 
 export default StoreOwnerHomePage;
+
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase.js";
+import { LuRefreshCw, LuX } from "react-icons/lu";
 
 const STATUS_STYLES = {
   pending:          "bg-yellow-100 text-yellow-700",
@@ -90,7 +91,9 @@ function StoreOwnerOrdersSection({ restaurantId }) {
   const tabs = ["all", "pending", "preparing", "out_for_delivery", "completed", "cancelled"];
 
   if (loading) {
-    return <p className="text-gray-500 text-sm">Loading orders...</p>;
+    return (
+      <div className="py-12 text-center text-gray-400 text-sm animate-pulse">Loading orders...</div>
+    );
   }
 
   return (
@@ -98,22 +101,25 @@ function StoreOwnerOrdersSection({ restaurantId }) {
 
       {/* HEADER */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Orders</h2>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">Orders</h2>
+          <p className="text-sm text-gray-400 mt-0.5">{orders.length} total order{orders.length !== 1 ? "s" : ""}</p>
+        </div>
         <button
           onClick={fetchOrders}
-          className="text-sm text-gray-500 hover:text-gray-800 border rounded-lg px-3 py-1"
+          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-xl px-3 py-2 transition hover:border-gray-400"
         >
-          ↻ Refresh
+          <LuRefreshCw size={13} /> Refresh
         </button>
       </div>
 
       {/* FILTER TABS */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setFilter(tab)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
               filter === tab
                 ? "bg-gray-900 text-white border-gray-900"
                 : "text-gray-500 border-gray-200 hover:border-gray-400"
@@ -126,20 +132,18 @@ function StoreOwnerOrdersSection({ restaurantId }) {
         ))}
       </div>
 
-      {/* ORDERS LIST */}
+      {/* ORDERS */}
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400 text-sm">
-          No orders found.
-        </div>
+        <div className="text-center py-16 text-gray-400 text-sm">No orders found.</div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filtered.map((order) => {
             const customer = order.user_profiles;
 
             return (
               <div
                 key={order.order_id}
-                className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4"
+                className="border border-gray-100 rounded-2xl p-5 space-y-3 hover:shadow-sm transition"
               >
                 {/* ORDER HEADER */}
                 <div className="flex items-start justify-between gap-3">
@@ -147,60 +151,46 @@ function StoreOwnerOrdersSection({ restaurantId }) {
                     <p className="font-semibold text-gray-900">
                       Order #{order.order_id.slice(-8).toUpperCase()}
                     </p>
-                    <p className="text-sm text-gray-500 mt-0.5">
+                    <p className="text-xs text-gray-400 mt-0.5">
                       {new Date(order.created_at).toLocaleString()}
                     </p>
                     {customer && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        👤 {customer.first_name} {customer.last_name}
+                      <p className="text-sm text-gray-600 mt-1.5">
+                        {customer.first_name} {customer.last_name}
                         {customer.contact_number && (
-                          <span className="ml-2 text-gray-400">
-                            · {customer.contact_number}
-                          </span>
+                          <span className="ml-2 text-gray-400 text-xs">· {customer.contact_number}</span>
                         )}
                       </p>
                     )}
-                    {order.delivery && order.delivery.user_profiles && (
+                    {order.delivery?.user_profiles && (
                       <p className="text-sm text-blue-600 mt-1">
-                        🚗 Driver: {order.delivery.user_profiles.first_name} {order.delivery.user_profiles.last_name}
+                        Rider: {order.delivery.user_profiles.first_name} {order.delivery.user_profiles.last_name}
                         {order.delivery.user_profiles.contact_number && (
-                          <span className="ml-2 text-gray-400">
-                            · {order.delivery.user_profiles.contact_number}
-                          </span>
+                          <span className="ml-2 text-gray-400 text-xs">· {order.delivery.user_profiles.contact_number}</span>
                         )}
                       </p>
                     )}
                   </div>
 
-                  <span
-                    className={`shrink-0 text-xs font-semibold px-3 py-1 rounded-full ${
-                      STATUS_STYLES[order.status]
-                    }`}
-                  >
+                  <span className={`shrink-0 text-xs font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[order.status]}`}>
                     {STATUS_LABELS[order.status]}
                   </span>
                 </div>
 
                 {/* ORDER ITEMS */}
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
                   {order.order_items?.map((item) => (
-                    <div
-                      key={item.order_item_id}
-                      className="flex items-center gap-3 py-2"
-                    >
+                    <div key={item.order_item_id} className="flex items-center gap-3 px-4 py-2.5 bg-gray-50">
                       {item.menu_items?.item_image && (
                         <img
                           src={item.menu_items.item_image}
-                          className="w-10 h-10 rounded-lg object-cover bg-gray-100"
+                          className="w-9 h-9 rounded-lg object-cover bg-gray-200 shrink-0"
+                          alt={item.menu_items?.name}
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {item.menu_items?.name}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          x{item.quantity} · ₱{item.menu_items?.price}
-                        </p>
+                        <p className="text-sm font-medium text-gray-800 truncate">{item.menu_items?.name}</p>
+                        <p className="text-xs text-gray-400">x{item.quantity} · ₱{item.menu_items?.price}</p>
                       </div>
                       <p className="text-sm font-semibold text-gray-700 shrink-0">
                         ₱{(item.quantity * item.menu_items?.price).toFixed(2)}
@@ -210,21 +200,20 @@ function StoreOwnerOrdersSection({ restaurantId }) {
                 </div>
 
                 {/* ORDER FOOTER */}
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                <div className="flex items-center justify-between pt-1">
                   <p className="font-bold text-gray-900">
-                      Total: ₱{Number(order.total_price).toFixed(2)}
+                    Total: ₱{Number(order.total_price).toFixed(2)}
                   </p>
-
-                  {/* <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_STYLES[order.status]}`}>
-                    {STATUS_LABELS[order.status]}
-                  </span> */}
-                  {(order.status === "pending" ) ? 
-                  <button onClick={(e) => handleStatusUpdate(order.order_id, "cancelled")} className="bg-red-400 hover:bg-red-500 rounded-full text-xs font-semibold px-3 py-1 ">
-                    Cancel
-                  </button> :
-                  ''}
-                  
-                  </div>
+                  {order.status === "pending" && (
+                    <button
+                      onClick={() => handleStatusUpdate(order.order_id, "cancelled")}
+                      disabled={updating === order.order_id}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-red-600 border border-red-200 hover:bg-red-50 rounded-xl px-3 py-1.5 transition"
+                    >
+                      <LuX size={12} /> Cancel Order
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}

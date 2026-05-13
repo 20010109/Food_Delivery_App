@@ -34,7 +34,7 @@ export const handlePostLogin = async (user, navigate) => {
       navigate("/admin");
       break;
     case "storeowner":
-      navigate("/home");
+      navigate("/storeowner/home");
       break;
     case "rider":
       navigate("/rider/dashboard");

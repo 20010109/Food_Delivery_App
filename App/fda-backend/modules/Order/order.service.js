@@ -370,10 +370,53 @@ export const getRestaurantOrderStats = async (supabase, restaurantId) => {
     ["pending", "picked_up"].includes(o.status)
   ).length;
 
+  // ========================
+  // CHART DATA — last 7 days
+  // ========================
+  const dayLabels = [];
+  const revenueByDay = [];
+  const ordersByDay = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    const next = new Date(d);
+    next.setDate(next.getDate() + 1);
+
+    const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    dayLabels.push(label);
+
+    const dayOrders = orders.filter((o) => {
+      const t = new Date(o.created_at);
+      return t >= d && t < next;
+    });
+
+    ordersByDay.push({ date: label, orders: dayOrders.length });
+    revenueByDay.push({
+      date: label,
+      revenue: dayOrders
+        .filter((o) => o.status === "completed")
+        .reduce((sum, o) => sum + Number(o.total_price || 0), 0),
+    });
+  }
+
+  // orders by status counts
+  const statusCounts = {};
+  for (const o of orders) {
+    statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+  }
+  const ordersByStatus = Object.entries(statusCounts).map(([status, count]) => ({
+    status,
+    count,
+  }));
+
   return {
     ordersToday: todayOrders.length,
     totalRevenue: revenue,
     activeOrders,
-    totalMenuItems: menuCount || 0, // 👈 merged here
+    totalMenuItems: menuCount || 0,
+    revenueByDay,
+    ordersByDay,
+    ordersByStatus,
   };
 };

@@ -1,41 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase.js";
 
+import StoreOwnerNavbar from "./StoreOwnerNavbar.jsx";
 import StoreOwnerEditStoreModal from "./StoreOwnerEditStoreModal.jsx";
 import StoreOwnerCreateStoreModal from "./StoreOwnerCreateStoreModal.jsx";
 import MenuSection from "./MenuSection.jsx";
 import StoreStats from "./StoreStats.jsx";
 import StoreOwnerOrdersSection from "./StoreOwnerOrdersSection.jsx";
+import StoreOwnerAnalytics from "./StoreOwnerAnalytics.jsx";
+import OverviewSummary from "./OverviewSummary.jsx";
+import { LuPencil, LuPlus, LuPhone, LuMapPin } from "react-icons/lu";
 
-function StoreOwnerDashboard() {
+function StoreOwnerDashboard({ activeTab }) {
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [editOpen, setEditOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
 
-  // ================= FETCH RESTAURANT =================
   const fetchRestaurant = async () => {
     try {
       setLoading(true);
-
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
-
       if (!token) return;
 
-      const res = await fetch(
-        "http://localhost:3000/api/restaurants/storeowner",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
+      const res = await fetch("http://localhost:3000/api/restaurants/storeowner", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
-
-      const normalized =
-        Array.isArray(data) ? data[0] : data?.restaurant || data || null;
-
+      const normalized = Array.isArray(data) ? data[0] : data?.restaurant || data || null;
       setRestaurant(normalized);
     } catch (err) {
       console.error(err);
@@ -49,24 +42,17 @@ function StoreOwnerDashboard() {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
-  
       if (!token || !restaurant) return;
-  
+
       const res = await fetch(
         `http://localhost:3000/api/restaurants/storeowner/${restaurant.restaurant_id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify(updatedData),
         }
       );
-  
       const data = await res.json();
-  
-      // refresh UI
       setRestaurant(data || updatedData);
       setEditOpen(false);
     } catch (err) {
@@ -74,163 +60,145 @@ function StoreOwnerDashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchRestaurant();
-  }, []);
+  useEffect(() => { fetchRestaurant(); }, []);
 
-  // ================= DELETE =================
-  const handleDelete = async () => {
-    if (!restaurant) return;
-
-    const ok = confirm("Delete your restaurant?");
-    if (!ok) return;
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData?.session?.access_token;
-
-    await fetch(
-      `http://localhost:3000/api/restaurants/storeowner/${restaurant.restaurant_id}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      }
+  if (loading) {
+    return (
+      <>
+        <StoreOwnerNavbar activeTab={activeTab} />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-gray-400 text-sm animate-pulse">Loading your store...</p>
+        </div>
+      </>
     );
+  }
 
-    setRestaurant(null);
-  };
+  if (!restaurant) {
+    return (
+      <>
+        <StoreOwnerNavbar activeTab={activeTab} />
+        <main className="flex-1 flex items-center justify-center p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center space-y-4 max-w-sm w-full">
+            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto">
+              <LuPlus size={28} className="text-red-500" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">No restaurant yet</h2>
+            <p className="text-sm text-gray-400">Create your restaurant to start managing orders and menu.</p>
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition"
+            >
+              Create Restaurant
+            </button>
+          </div>
+        </main>
+        <StoreOwnerCreateStoreModal
+          open={createOpen}
+          onClose={() => setCreateOpen(false)}
+          onSuccess={fetchRestaurant}
+        />
+      </>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-10">
+    <>
+      <StoreOwnerNavbar
+        activeTab={activeTab}
+        restaurantName={restaurant.name}
+        onRefresh={fetchRestaurant}
+      />
 
-      {/* ================= HERO ================= */}
-      {restaurant && (
-        <div className="relative bg-white border rounded-2xl overflow-hidden">
+      <main className="flex-1 overflow-auto p-6 space-y-6">
 
-          {/* COVER */}
-          <div
-            className="h-72 bg-cover bg-center relative"
-            style={{
-              backgroundImage: `url(${
-                restaurant.background_image ||
-                "https://via.placeholder.com/1200x400"
-              })`,
-            }}
-          >
+        {/* ===== OVERVIEW ===== */}
+        {activeTab === "overview" && (
+          <div className="space-y-6">
 
-            {/* EDIT BUTTON */}
-            <button
-              onClick={() => setEditOpen(true)}
-              className="absolute top-4 right-4 bg-white/90 hover:bg-white px-4 py-2 rounded-xl text-sm shadow"
-            >
-              Edit Store
-            </button>
-
-            {/* PROFILE INFO */}
-            <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/60 to-transparent flex items-end gap-4">
-
-              <div className="h-20 w-20 rounded-2xl overflow-hidden border-4 border-white bg-gray-200">
-                <img
-                  src={restaurant.profile_image}
-                  className="w-full h-full object-cover"
-                />
+            {/* Store Hero Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div
+                className="h-44 bg-cover bg-center relative"
+                style={{
+                  backgroundImage: `url(${restaurant.background_image || "https://placehold.co/1200x400/f3f4f6/9ca3af?text=Cover+Image"})`,
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <button
+                  onClick={() => setEditOpen(true)}
+                  className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-xl shadow flex items-center gap-1.5 transition"
+                >
+                  <LuPencil size={12} /> Edit Store
+                </button>
+                <div className="absolute bottom-0 left-0 p-5 flex items-end gap-4">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow bg-gray-200 shrink-0">
+                    <img src={restaurant.profile_image} alt="logo" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="text-white">
+                    <h2 className="text-xl font-bold">{restaurant.name}</h2>
+                    <span className={`inline-block mt-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
+                      restaurant.status === "open" ? "bg-green-500" : "bg-gray-500"
+                    }`}>
+                      {restaurant.status}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="text-white">
-                <h1 className="text-2xl font-bold">
-                  {restaurant.name}
-                </h1>
-
-                <p className="text-sm text-white/80">
-                  {restaurant.contact_info}
-                </p>
-
-                <span className="inline-block mt-2 text-xs px-3 py-1 rounded-full bg-white/20">
-                  {restaurant.status}
-                </span>
+              <div className="px-6 py-3 flex flex-wrap gap-4 text-sm text-gray-500 border-t border-gray-100">
+                {restaurant.contact_info && (
+                  <span className="flex items-center gap-1.5">
+                    <LuPhone size={13} className="text-gray-400" /> {restaurant.contact_info}
+                  </span>
+                )}
+                {restaurant.addresses && (
+                  <span className="flex items-center gap-1.5">
+                    <LuMapPin size={13} className="text-gray-400" />
+                    {[restaurant.addresses.barangay, restaurant.addresses.city].filter(Boolean).join(", ")}
+                  </span>
+                )}
               </div>
-
             </div>
 
+            {/* Stats */}
+            <StoreStats restaurantId={restaurant.restaurant_id} />
+
+            {/* Weekly Summary */}
+            <OverviewSummary restaurantId={restaurant.restaurant_id} />
+
           </div>
+        )}
 
-        </div>
-      )}
+        {/* ===== ANALYTICS ===== */}
+        {activeTab === "analytics" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <StoreOwnerAnalytics restaurantId={restaurant.restaurant_id} />
+          </div>
+        )}
 
-      {/* ================= STATS ================= */}
-      {restaurant && (
-        <StoreStats restaurantId={restaurant.restaurant_id} />
-      )}
+        {/* ===== MENU ===== */}
+        {activeTab === "menu" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <MenuSection restaurantId={restaurant.restaurant_id} />
+          </div>
+        )}
 
-      {/* ================= MENU SECTION ================= */}
-      {restaurant && (
-        <div className="bg-white border rounded-2xl p-6">
+        {/* ===== ORDERS ===== */}
+        {activeTab === "orders" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <StoreOwnerOrdersSection restaurantId={restaurant.restaurant_id} />
+          </div>
+        )}
 
-          <MenuSection restaurantId={restaurant.restaurant_id} />
+      </main>
 
-        </div>
-      )}
-
-      {/* ================= ORDERS SECTION ================= */}
-      {restaurant && (
-        <div className="bg-white border rounded-2xl p-6">
-          <StoreOwnerOrdersSection restaurantId={restaurant.restaurant_id} />
-        </div>
-      )}
-
-      {/* ================= EMPTY STATE ================= */}
-      {!loading && !restaurant && (
-        <div className="bg-white border rounded-2xl p-10 text-center space-y-3">
-
-          <h2 className="text-lg font-semibold">
-            No restaurant found
-          </h2>
-
-          <p className="text-gray-500">
-            Create your restaurant to start managing orders and menu.
-          </p>
-
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="bg-red-500 text-white px-4 py-2 rounded-xl"
-          >
-            Create Restaurant
-          </button>
-
-        </div>
-      )}
-
-      {/* ================= LOADING ================= */}
-      {loading && (
-        <div className="bg-white border rounded-2xl p-6 animate-pulse">
-          Loading dashboard...
-        </div>
-      )}
-
-      {/* ================= MODALS ================= */}
       <StoreOwnerEditStoreModal
         open={editOpen}
         restaurant={restaurant}
         onClose={() => setEditOpen(false)}
         onSave={handleUpdateRestaurant}
       />
-
-      <StoreOwnerCreateStoreModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onSuccess={fetchRestaurant}
-      />
-
-    </div>
-  );
-}
-
-// ================= STAT COMPONENT =================
-function Stat({ label, value }) {
-  return (
-    <div className="bg-white border rounded-2xl p-4">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="text-2xl font-bold">{value}</p>
-    </div>
+    </>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase.js";
+import { LuPencil, LuTrash2, LuPlus, LuX, LuImagePlus } from "react-icons/lu";
 
 function MenuSection({ restaurantId }) {
   const [items, setItems] = useState([]);
@@ -15,11 +16,6 @@ function MenuSection({ restaurantId }) {
   const [imageFile, setImageFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
 
-  const inputClass =
-    "w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-red-500";
-
-  const cardClass =
-    "rounded-2xl border bg-white shadow-sm";
 
   // ================= AUTH =================
   const sessionToken = async () => {
@@ -161,58 +157,49 @@ function MenuSection({ restaurantId }) {
     setEditingId(item.item_id);
   };
 
+  const inputClass =
+    "w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100";
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
 
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
-          Menu Management
-        </h2>
-
-        <span className="text-sm text-gray-500">
-          {items.length} items
-        </span>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">Menu Management</h2>
+          <p className="text-sm text-gray-400 mt-0.5">{items.length} item{items.length !== 1 ? "s" : ""}</p>
+        </div>
       </div>
 
-      {/* ================= GRID ================= */}
-      <div className="grid lg:grid-cols-[380px_1fr] gap-6">
+      {/* GRID */}
+      <div className="grid lg:grid-cols-[360px_1fr] gap-6">
 
-        {/* ================= FORM ================= */}
-        <div className={`${cardClass} p-5 space-y-4`}>
+        {/* FORM CARD */}
+        <div className="bg-gray-50 rounded-2xl border border-gray-100 p-5 space-y-3 self-start">
 
-          <h3 className="font-semibold">
-            {editingId ? "Edit Item" : "Add Item"}
+          <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+            {editingId ? <><LuPencil size={15} /> Edit Item</> : <><LuPlus size={15} /> Add Item</>}
           </h3>
 
           <input
             className={inputClass}
             placeholder="Item name"
             value={form.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
 
           <input
             className={inputClass}
             type="number"
-            placeholder="Price"
+            placeholder="Price (₱)"
             value={form.price}
-            onChange={(e) =>
-              setForm({ ...form, price: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, price: e.target.value })}
           />
 
           <select
             className={inputClass}
             value={form.category}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                category: e.target.value,
-              })
-            }
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
           >
             <option value="food">Food</option>
             <option value="drink">Drink</option>
@@ -221,37 +208,24 @@ function MenuSection({ restaurantId }) {
           <textarea
             className={`${inputClass} resize-none`}
             rows="3"
-            placeholder="Description"
+            placeholder="Description (optional)"
             value={form.description}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                description: e.target.value,
-              })
-            }
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
 
-          <label className="block border border-dashed rounded-xl p-4 text-center cursor-pointer hover:border-red-500">
-            <p className="text-sm">Upload Image</p>
-
-            {imageFile && (
-              <p className="text-xs text-red-500 mt-1 truncate">
-                {imageFile.name}
+          <label className="flex items-center gap-3 border border-dashed border-gray-300 rounded-xl p-3 cursor-pointer hover:border-red-400 hover:bg-white transition">
+            <LuImagePlus size={18} className="text-gray-400 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm text-gray-500">
+                {imageFile ? imageFile.name : "Upload image"}
               </p>
-            )}
-
-            <input
-              type="file"
-              className="hidden"
-              onChange={(e) =>
-                setImageFile(e.target.files[0])
-              }
-            />
+            </div>
+            <input type="file" className="hidden" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} />
           </label>
 
           <button
             onClick={handleSubmit}
-            className="w-full bg-red-500 text-white py-3 rounded-xl hover:bg-red-600"
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-sm font-semibold transition"
           >
             {editingId ? "Update Item" : "Create Item"}
           </button>
@@ -259,84 +233,61 @@ function MenuSection({ restaurantId }) {
           {editingId && (
             <button
               onClick={resetForm}
-              className="w-full text-sm text-gray-500"
+              className="w-full flex items-center justify-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition"
             >
-              Cancel Edit
+              <LuX size={13} /> Cancel Edit
             </button>
           )}
         </div>
 
-        {/* ================= LIST ================= */}
-        <div className={`${cardClass} p-5`}>
-
+        {/* LIST */}
+        <div className="rounded-2xl border border-gray-100 overflow-hidden">
           {loading ? (
-            <p className="text-gray-500">Loading...</p>
+            <div className="p-8 text-center text-gray-400 text-sm animate-pulse">Loading menu...</div>
           ) : items.length === 0 ? (
-            <p className="text-gray-500">
-              No menu items yet.
-            </p>
+            <div className="p-12 text-center text-gray-400 text-sm">No menu items yet. Add your first item!</div>
           ) : (
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
-
+            <div className="divide-y divide-gray-100 max-h-[600px] overflow-y-auto">
               {items.map((item) => (
-                <div
-                  key={item.item_id}
-                  className="flex items-center justify-between p-3 border rounded-xl"
-                >
+                <div key={item.item_id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition">
 
-                  <div className="flex gap-3 items-center">
-
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
-                      {item.item_image ? (
-                        <img
-                          src={item.item_image}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : null}
-                    </div>
-
-                    <div>
-                      <p className="font-semibold">
-                        {item.name}
-                      </p>
-
-                      <p className="text-sm text-red-500">
-                        ₱{item.price}
-                      </p>
-
-                      <p className="text-xs text-gray-500">
-                        {item.category}
-                      </p>
-                    </div>
-
+                  <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                    {item.item_image ? (
+                      <img src={item.item_image} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <LuImagePlus size={18} />
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">{item.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-sm font-medium text-red-600">₱{item.price}</span>
+                      <span className="text-xs text-gray-400 capitalize bg-gray-100 px-2 py-0.5 rounded-full">{item.category}</span>
+                    </div>
+                  </div>
 
+                  <div className="flex gap-2 shrink-0">
                     <button
                       onClick={() => handleEdit(item)}
-                      className="text-sm px-3 py-1 bg-gray-100 rounded-lg"
+                      className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
                     >
-                      Edit
+                      <LuPencil size={13} />
                     </button>
-
                     <button
-                      onClick={() =>
-                        handleDelete(item.item_id)
-                      }
-                      className="text-sm px-3 py-1 bg-red-100 text-red-600 rounded-lg"
+                      onClick={() => handleDelete(item.item_id)}
+                      className="h-8 w-8 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition"
                     >
-                      Delete
+                      <LuTrash2 size={13} />
                     </button>
-
                   </div>
 
                 </div>
               ))}
-
             </div>
           )}
-
         </div>
 
       </div>

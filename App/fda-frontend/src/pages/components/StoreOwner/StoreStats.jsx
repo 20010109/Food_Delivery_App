@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase.js";
+import { LuShoppingBag, LuBanknote, LuUtensilsCrossed, LuClock } from "react-icons/lu";
 
 function StoreStats({ restaurantId }) {
   const [stats, setStats] = useState(null);
@@ -31,27 +32,44 @@ function StoreStats({ restaurantId }) {
     {
       label: "Orders Today",
       value: stats ? String(stats.ordersToday) : "—",
+      icon: LuShoppingBag,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
     },
     {
-      label: "Revenue",
+      label: "Total Revenue",
       value: stats ? `₱${Number(stats.totalRevenue).toLocaleString()}` : "—",
+      icon: LuBanknote,
+      color: "text-green-600",
+      bg: "bg-green-50",
     },
     {
       label: "Menu Items",
-      value: stats ? String(stats.totalMenuItems) : "—", // 👈 FIX HERE
+      value: stats ? String(stats.totalMenuItems) : "—",
+      icon: LuUtensilsCrossed,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
     },
     {
       label: "Active Orders",
       value: stats ? String(stats.activeOrders) : "—",
+      icon: LuClock,
+      color: "text-orange-600",
+      bg: "bg-orange-50",
     },
   ];
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {items.map((item) => (
-        <div key={item.label} className="bg-white border rounded-2xl p-4">
-          <p className="text-sm text-gray-500">{item.label}</p>
-          <p className="text-2xl font-bold">{item.value}</p>
+      {items.map(({ label, value, icon: Icon, color, bg }) => (
+        <div key={label} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-start gap-4">
+          <div className={`${bg} ${color} rounded-xl p-2.5 shrink-0`}>
+            <Icon size={18} />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+          </div>
         </div>
       ))}
     </div>
