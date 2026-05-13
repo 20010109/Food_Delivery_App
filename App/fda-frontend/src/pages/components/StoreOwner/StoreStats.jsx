@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase.js";
 
-function StoreStats({ restaurantId, menuItemCount }) {
+function StoreStats({ restaurantId }) {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ function StoreStats({ restaurantId, menuItemCount }) {
     },
     {
       label: "Menu Items",
-      value: menuItemCount !== undefined ? String(menuItemCount) : "—",
+      value: stats ? String(stats.totalMenuItems) : "—", // 👈 FIX HERE
     },
     {
       label: "Active Orders",

@@ -336,22 +336,37 @@ export const getRestaurantOrderStats = async (supabase, restaurantId) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const { data, error } = await supabase
-    .from("orders")
-    .select("order_id, total_price, status, created_at")
-    .eq("restaurant_id", restaurantId);
+  // Run BOTH queries at the same time (faster)
+  const [
+    { data: orders, error: ordersError },
+    { count: menuCount, error: menuError }
+  ] = await Promise.all([
+    supabase
+      .from("orders")
+      .select("order_id, total_price, status, created_at")
+      .eq("restaurant_id", restaurantId),
 
-  if (error) throw error;
+    supabase
+      .from("menu_items")
+      .select("*", { count: "exact", head: true })
+      .eq("restaurant_id", restaurantId)
+  ]);
 
-  const todayOrders = data.filter(
+  if (ordersError) throw ordersError;
+  if (menuError) throw menuError;
+
+  // =========================
+  // PROCESS ORDERS
+  // =========================
+  const todayOrders = orders.filter(
     (o) => new Date(o.created_at) >= today
   );
 
-  const revenue = data
+  const revenue = orders
     .filter((o) => o.status === "completed")
     .reduce((sum, o) => sum + Number(o.total_price || 0), 0);
 
-  const activeOrders = data.filter((o) =>
+  const activeOrders = orders.filter((o) =>
     ["pending", "picked_up"].includes(o.status)
   ).length;
 
@@ -359,5 +374,6 @@ export const getRestaurantOrderStats = async (supabase, restaurantId) => {
     ordersToday: todayOrders.length,
     totalRevenue: revenue,
     activeOrders,
+    totalMenuItems: menuCount || 0, // 👈 merged here
   };
 };
