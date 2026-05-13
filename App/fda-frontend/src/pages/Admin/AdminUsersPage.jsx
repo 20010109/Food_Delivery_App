@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../utils/supabase";
-import { LuSearch } from "react-icons/lu";
+import { LuSearch, LuTrash2 } from "react-icons/lu";
 import AdminSidebar from "../components/Admin/AdminSidebar";
 import AdminNavbar from "../components/Admin/AdminNavbar";
 
@@ -42,6 +42,25 @@ function AdminUsersPage() {
 
     if (error) return alert("Failed to update status");
     fetchUsers();
+  };
+
+  const deleteUser = async (userId, name) => {
+    if (!window.confirm(`Are you sure you want to permanently delete ${name}? This cannot be undone.`)) return;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const res = await fetch(`http://localhost:3000/api/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        return alert(`Failed to delete user: ${err.error}`);
+      }
+      fetchUsers();
+    } catch (err) {
+      alert(`Failed to delete user: ${err.message}`);
+    }
   };
 
   const ROLES = ["All", "customer", "storeowner", "rider", "admin"];
@@ -223,6 +242,14 @@ function AdminUsersPage() {
                               }`}
                             >
                               {u.is_active ? "Deactivate" : "Activate"}
+                            </button>
+
+                            <button
+                              onClick={() => deleteUser(u.user_id, `${u.first_name} ${u.last_name}`)}
+                              className="h-9 w-9 flex items-center justify-center rounded-xl border border-red-200 text-red-500 hover:bg-red-50 hover:border-red-400 transition"
+                              title="Delete user"
+                            >
+                              <LuTrash2 size={14} />
                             </button>
                           </div>
                         </td>

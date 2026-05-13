@@ -11,6 +11,7 @@ import paymentRoute from "./modules/Payments/payments.routes.js";
 import reviewRoute from "./modules/Reviews/reviews.route.js";
 import riderRoute from "./modules/user/rider/rider.routes.js";
 import cartRoute from "./modules/Cart/cart.routes.js";
+import adminRoute from "./modules/Admin/admin.routes.js";
 import { supabase } from "./config/supabase.js";
 
 const app = express();
@@ -43,6 +44,9 @@ app.use('/api/cart', cartRoute);
 
 // rider routes
 app.use('/api/rider', riderRoute)
+
+// admin routes
+app.use('/api/admin', adminRoute)
 
 // test route
 app.get("/", (req, res) => {
