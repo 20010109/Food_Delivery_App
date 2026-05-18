@@ -26,6 +26,16 @@ Grubero is designed to replicate a modern food delivery ecosystem with multiple 
 
 ---
 
+## Setup
+
+- **git pull** repository
+- run **npm install** on App/fda-frontend/
+- run **npm install** on App/fda-backend/
+- run frontend on App/fda-frontend/ using **npm run dev**
+- run backend on App/fda-backend/ using **node server.js**
+
+---
+
 ## 👨‍💻 Contributors
 
 - Lance Russel Cartagenas
